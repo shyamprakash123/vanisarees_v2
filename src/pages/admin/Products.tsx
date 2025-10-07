@@ -1,11 +1,11 @@
-import { useEffect, useState } from 'react';
-import { supabase } from '../../lib/supabase';
-import { useAuth } from '../../contexts/AuthContext';
-import { Pencil, Trash2, Plus, Search, Eye } from 'lucide-react';
-import { useToast } from '../../hooks/useToast';
-import { Modal } from '../../components/ui/Modal';
-import { ProductForm } from '../../components/product/ProductForm';
-import { formatCurrency } from '../../utils/format';
+import { useEffect, useState } from "react";
+import { supabase } from "../../lib/supabase";
+import { useAuth } from "../../contexts/AuthContext";
+import { Pencil, Trash2, Plus, Search, Eye } from "lucide-react";
+import { useToast } from "../../hooks/useToast";
+import { Modal } from "../../components/ui/Modal";
+import { ProductForm } from "../../components/product/ProductForm";
+import { formatCurrency } from "../../utils/format";
 
 interface Product {
   id: string;
@@ -32,13 +32,13 @@ interface Product {
 
 export function AdminProducts() {
   const { user } = useAuth();
-  const { showToast } = useToast();
+  const toast = useToast();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
-  const [filterActive, setFilterActive] = useState<string>('all');
+  const [filterActive, setFilterActive] = useState<string>("all");
 
   useEffect(() => {
     fetchProducts();
@@ -47,15 +47,15 @@ export function AdminProducts() {
   const fetchProducts = async () => {
     try {
       const { data, error } = await supabase
-        .from('products')
-        .select('*')
-        .order('created_at', { ascending: false });
+        .from("products")
+        .select("*")
+        .order("created_at", { ascending: false });
 
       if (error) throw error;
       setProducts(data || []);
     } catch (error) {
-      console.error('Error fetching products:', error);
-      showToast('Failed to load products', 'error');
+      console.error("Error fetching products:", error);
+      toast.error("Failed to load products");
     } finally {
       setLoading(false);
     }
@@ -84,65 +84,69 @@ export function AdminProducts() {
   const toggleFeatured = async (productId: string, currentStatus: boolean) => {
     try {
       const { error } = await supabase
-        .from('products')
+        .from("products")
         .update({ featured: !currentStatus })
-        .eq('id', productId);
+        .eq("id", productId);
 
       if (error) throw error;
 
-      showToast('Product updated successfully', 'success');
+      toast.success("Product updated successfully");
       fetchProducts();
     } catch (error) {
-      console.error('Error updating product:', error);
-      showToast('Failed to update product', 'error');
+      console.error("Error updating product:", error);
+      toast.error("Failed to update product");
     }
   };
 
   const toggleActive = async (productId: string, currentStatus: boolean) => {
     try {
       const { error } = await supabase
-        .from('products')
+        .from("products")
         .update({ active: !currentStatus })
-        .eq('id', productId);
+        .eq("id", productId);
 
       if (error) throw error;
 
-      showToast('Product status updated', 'success');
+      toast.success("Product status updated");
       fetchProducts();
     } catch (error) {
-      console.error('Error updating product:', error);
-      showToast('Failed to update product', 'error');
+      console.error("Error updating product:", error);
+      toast.error("Failed to update product");
     }
   };
 
   const deleteProduct = async (productId: string) => {
-    if (!confirm('Are you sure you want to delete this product?')) return;
+    if (!confirm("Are you sure you want to delete this product?")) return;
 
     try {
       const { error } = await supabase
-        .from('products')
+        .from("products")
         .delete()
-        .eq('id', productId);
+        .eq("id", productId);
 
       if (error) throw error;
 
-      showToast('Product deleted successfully', 'success');
+      toast.success("Product deleted successfully");
       fetchProducts();
     } catch (error) {
-      console.error('Error deleting product:', error);
-      showToast('Failed to delete product', 'error');
+      console.error("Error deleting product:", error);
+      toast.error("Failed to delete product");
     }
   };
 
-  const filteredProducts = products.filter(product => {
-    const matchesSearch = product.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      product.codes.some(code => code.toLowerCase().includes(searchQuery.toLowerCase())) ||
+  const filteredProducts = products.filter((product) => {
+    const matchesSearch =
+      product.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      product.codes.some((code) =>
+        code.toLowerCase().includes(searchQuery.toLowerCase())
+      ) ||
       product.sku.toLowerCase().includes(searchQuery.toLowerCase());
 
-    const matchesFilter = filterActive === 'all' ||
-      (filterActive === 'active' && product.active) ||
-      (filterActive === 'inactive' && !product.active) ||
-      (filterActive === 'featured' && product.featured);
+    const matchesFilter =
+      filterActive === "all" ||
+      (filterActive === "active" && product.active) ||
+      (filterActive === "inactive" && !product.active) ||
+      (filterActive === "featured" && product.featured);
 
     return matchesSearch && matchesFilter;
   });
@@ -162,7 +166,10 @@ export function AdminProducts() {
 
         <div className="flex flex-col sm:flex-row gap-4 mb-6">
           <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+            <Search
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+              size={20}
+            />
             <input
               type="text"
               placeholder="Search products by name, code, or SKU..."
@@ -182,26 +189,42 @@ export function AdminProducts() {
 
         <div className="flex gap-2 mb-6">
           <button
-            onClick={() => setFilterActive('all')}
-            className={`px-4 py-2 rounded-lg ${filterActive === 'all' ? 'bg-red-800 text-white' : 'bg-gray-100 text-gray-700'}`}
+            onClick={() => setFilterActive("all")}
+            className={`px-4 py-2 rounded-lg ${
+              filterActive === "all"
+                ? "bg-red-800 text-white"
+                : "bg-gray-100 text-gray-700"
+            }`}
           >
             All
           </button>
           <button
-            onClick={() => setFilterActive('active')}
-            className={`px-4 py-2 rounded-lg ${filterActive === 'active' ? 'bg-red-800 text-white' : 'bg-gray-100 text-gray-700'}`}
+            onClick={() => setFilterActive("active")}
+            className={`px-4 py-2 rounded-lg ${
+              filterActive === "active"
+                ? "bg-red-800 text-white"
+                : "bg-gray-100 text-gray-700"
+            }`}
           >
             Active
           </button>
           <button
-            onClick={() => setFilterActive('inactive')}
-            className={`px-4 py-2 rounded-lg ${filterActive === 'inactive' ? 'bg-red-800 text-white' : 'bg-gray-100 text-gray-700'}`}
+            onClick={() => setFilterActive("inactive")}
+            className={`px-4 py-2 rounded-lg ${
+              filterActive === "inactive"
+                ? "bg-red-800 text-white"
+                : "bg-gray-100 text-gray-700"
+            }`}
           >
             Inactive
           </button>
           <button
-            onClick={() => setFilterActive('featured')}
-            className={`px-4 py-2 rounded-lg ${filterActive === 'featured' ? 'bg-red-800 text-white' : 'bg-gray-100 text-gray-700'}`}
+            onClick={() => setFilterActive("featured")}
+            className={`px-4 py-2 rounded-lg ${
+              filterActive === "featured"
+                ? "bg-red-800 text-white"
+                : "bg-gray-100 text-gray-700"
+            }`}
           >
             Featured
           </button>
@@ -238,40 +261,64 @@ export function AdminProducts() {
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
                         {product.images[0] && (
-                          <img src={product.images[0]} alt={product.title} className="w-12 h-12 object-cover rounded" />
+                          <img
+                            src={product.images[0]}
+                            alt={product.title}
+                            className="w-12 h-12 object-cover rounded"
+                          />
                         )}
                         <div>
-                          <div className="text-sm font-medium text-gray-900">{product.title}</div>
-                          <div className="text-sm text-gray-500">{product.slug}</div>
+                          <div className="text-sm font-medium text-gray-900">
+                            {product.title}
+                          </div>
+                          <div className="text-sm text-gray-500">
+                            {product.slug}
+                          </div>
                         </div>
                       </div>
                     </td>
                     <td className="px-6 py-4">
                       <div className="text-sm text-gray-900">{product.sku}</div>
-                      <div className="text-sm text-gray-500">{product.codes.slice(0, 2).join(', ')}</div>
+                      <div className="text-sm text-gray-500">
+                        {product.codes.slice(0, 2).join(", ")}
+                      </div>
                     </td>
                     <td className="px-6 py-4">
-                      <div className="text-sm text-gray-900">{formatCurrency(product.price)}</div>
+                      <div className="text-sm text-gray-900">
+                        {formatCurrency(product.price)}
+                      </div>
                       {product.mrp > product.price && (
-                        <div className="text-sm text-gray-500 line-through">{formatCurrency(product.mrp)}</div>
+                        <div className="text-sm text-gray-500 line-through">
+                          {formatCurrency(product.mrp)}
+                        </div>
                       )}
                     </td>
                     <td className="px-6 py-4">
-                      <span className={`text-sm ${product.stock > 10 ? 'text-green-600' : product.stock > 0 ? 'text-yellow-600' : 'text-red-600'}`}>
+                      <span
+                        className={`text-sm ${
+                          product.stock > 10
+                            ? "text-green-600"
+                            : product.stock > 0
+                            ? "text-yellow-600"
+                            : "text-red-600"
+                        }`}
+                      >
                         {product.stock}
                       </span>
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex flex-col gap-1">
                         <button
-                          onClick={() => toggleActive(product.id, product.active)}
+                          onClick={() =>
+                            toggleActive(product.id, product.active)
+                          }
                           className={`px-2 py-1 text-xs font-semibold rounded-full ${
                             product.active
-                              ? 'bg-green-100 text-green-800'
-                              : 'bg-gray-100 text-gray-800'
+                              ? "bg-green-100 text-green-800"
+                              : "bg-gray-100 text-gray-800"
                           }`}
                         >
-                          {product.active ? 'Active' : 'Inactive'}
+                          {product.active ? "Active" : "Inactive"}
                         </button>
                         {product.featured && (
                           <span className="px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
@@ -290,7 +337,9 @@ export function AdminProducts() {
                           <Pencil size={16} />
                         </button>
                         <button
-                          onClick={() => toggleFeatured(product.id, product.featured)}
+                          onClick={() =>
+                            toggleFeatured(product.id, product.featured)
+                          }
                           className="p-2 text-amber-600 hover:bg-amber-50 rounded"
                           title="Toggle Featured"
                         >
@@ -322,7 +371,7 @@ export function AdminProducts() {
       <Modal
         isOpen={isModalOpen}
         onClose={closeModal}
-        title={editingProduct ? 'Edit Product' : 'Add New Product'}
+        title={editingProduct ? "Edit Product" : "Add New Product"}
         size="large"
       >
         <ProductForm

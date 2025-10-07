@@ -1,11 +1,11 @@
-import { useEffect, useState } from 'react';
-import { supabase } from '../../lib/supabase';
-import { useAuth } from '../../contexts/AuthContext';
-import { Pencil, Trash2, Plus, Search } from 'lucide-react';
-import { useToast } from '../../hooks/useToast';
-import { Modal } from '../../components/ui/Modal';
-import { ProductForm } from '../../components/product/ProductForm';
-import { formatCurrency } from '../../utils/format';
+import { useEffect, useState } from "react";
+import { supabase } from "../../lib/supabase";
+import { useAuth } from "../../contexts/AuthContext";
+import { Pencil, Trash2, Plus, Search } from "lucide-react";
+import { useToast } from "../../hooks/useToast";
+import { Modal } from "../../components/ui/Modal";
+import { ProductForm } from "../../components/product/ProductForm";
+import { formatCurrency } from "../../utils/format";
 
 interface Product {
   id: string;
@@ -30,10 +30,10 @@ interface Product {
 
 export function SellerProducts() {
   const { user } = useAuth();
-  const { showToast } = useToast();
+  const toast = useToast();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [sellerId, setSellerId] = useState<string | null>(null);
@@ -47,9 +47,9 @@ export function SellerProducts() {
 
     try {
       const { data: seller } = await supabase
-        .from('sellers')
-        .select('id')
-        .eq('user_id', user.id)
+        .from("sellers")
+        .select("id")
+        .eq("user_id", user.id)
         .maybeSingle();
 
       if (seller) {
@@ -59,7 +59,7 @@ export function SellerProducts() {
         setLoading(false);
       }
     } catch (error) {
-      console.error('Error loading seller data:', error);
+      console.error("Error loading seller data:", error);
       setLoading(false);
     }
   };
@@ -67,16 +67,16 @@ export function SellerProducts() {
   const fetchProducts = async (sellerIdParam: string) => {
     try {
       const { data, error } = await supabase
-        .from('products')
-        .select('*')
-        .eq('seller_id', sellerIdParam)
-        .order('created_at', { ascending: false });
+        .from("products")
+        .select("*")
+        .eq("seller_id", sellerIdParam)
+        .order("created_at", { ascending: false });
 
       if (error) throw error;
       setProducts(data || []);
     } catch (error) {
-      console.error('Error fetching products:', error);
-      showToast('Failed to load products', 'error');
+      console.error("Error fetching products:", error);
+      toast.error("Failed to load products");
     } finally {
       setLoading(false);
     }
@@ -105,71 +105,74 @@ export function SellerProducts() {
   };
 
   const deleteProduct = async (productId: string) => {
-    if (!confirm('Are you sure you want to delete this product?')) return;
+    if (!confirm("Are you sure you want to delete this product?")) return;
 
     try {
       const { error } = await supabase
-        .from('products')
+        .from("products")
         .delete()
-        .eq('id', productId)
-        .eq('seller_id', sellerId);
+        .eq("id", productId)
+        .eq("seller_id", sellerId);
 
       if (error) throw error;
 
-      showToast('Product deleted successfully', 'success');
+      toast.success("Product deleted successfully");
       if (sellerId) {
         fetchProducts(sellerId);
       }
     } catch (error) {
-      console.error('Error deleting product:', error);
-      showToast('Failed to delete product', 'error');
+      console.error("Error deleting product:", error);
+      toast.error("Failed to delete product");
     }
   };
 
   const updateStock = async (productId: string, newStock: number) => {
     try {
       const { error } = await supabase
-        .from('products')
+        .from("products")
         .update({ stock: newStock })
-        .eq('id', productId)
-        .eq('seller_id', sellerId);
+        .eq("id", productId)
+        .eq("seller_id", sellerId);
 
       if (error) throw error;
 
-      showToast('Stock updated successfully', 'success');
+      toast.success("Stock updated successfully");
       if (sellerId) {
         fetchProducts(sellerId);
       }
     } catch (error) {
-      console.error('Error updating stock:', error);
-      showToast('Failed to update stock', 'error');
+      console.error("Error updating stock:", error);
+      toast.error("Failed to update stock");
     }
   };
 
   const toggleActive = async (productId: string, currentStatus: boolean) => {
     try {
       const { error } = await supabase
-        .from('products')
+        .from("products")
         .update({ active: !currentStatus })
-        .eq('id', productId)
-        .eq('seller_id', sellerId);
+        .eq("id", productId)
+        .eq("seller_id", sellerId);
 
       if (error) throw error;
 
-      showToast('Product status updated', 'success');
+      toast.success("Product status updated");
       if (sellerId) {
         fetchProducts(sellerId);
       }
     } catch (error) {
-      console.error('Error updating product:', error);
-      showToast('Failed to update product', 'error');
+      console.error("Error updating product:", error);
+      toast.error("Failed to update product");
     }
   };
 
-  const filteredProducts = products.filter(product =>
-    product.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    product.codes.some(code => code.toLowerCase().includes(searchQuery.toLowerCase())) ||
-    product.sku.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredProducts = products.filter(
+    (product) =>
+      product.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      product.codes.some((code) =>
+        code.toLowerCase().includes(searchQuery.toLowerCase())
+      ) ||
+      product.sku.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   if (loading) {
@@ -184,7 +187,9 @@ export function SellerProducts() {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="text-center py-12">
-          <p className="text-gray-500">Seller account not found. Please contact support.</p>
+          <p className="text-gray-500">
+            Seller account not found. Please contact support.
+          </p>
         </div>
       </div>
     );
@@ -197,7 +202,10 @@ export function SellerProducts() {
 
         <div className="flex flex-col sm:flex-row gap-4 mb-6">
           <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+            <Search
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+              size={20}
+            />
             <input
               type="text"
               placeholder="Search products by name, code, or SKU..."
@@ -246,35 +254,51 @@ export function SellerProducts() {
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
                         {product.images[0] && (
-                          <img src={product.images[0]} alt={product.title} className="w-12 h-12 object-cover rounded" />
+                          <img
+                            src={product.images[0]}
+                            alt={product.title}
+                            className="w-12 h-12 object-cover rounded"
+                          />
                         )}
                         <div>
-                          <div className="text-sm font-medium text-gray-900">{product.title}</div>
-                          <div className="text-sm text-gray-500">{product.slug}</div>
+                          <div className="text-sm font-medium text-gray-900">
+                            {product.title}
+                          </div>
+                          <div className="text-sm text-gray-500">
+                            {product.slug}
+                          </div>
                         </div>
                       </div>
                     </td>
                     <td className="px-6 py-4">
                       <div className="text-sm text-gray-900">{product.sku}</div>
-                      <div className="text-sm text-gray-500">{product.codes.slice(0, 2).join(', ')}</div>
+                      <div className="text-sm text-gray-500">
+                        {product.codes.slice(0, 2).join(", ")}
+                      </div>
                     </td>
                     <td className="px-6 py-4">
-                      <div className="text-sm text-gray-900">{formatCurrency(product.price)}</div>
+                      <div className="text-sm text-gray-900">
+                        {formatCurrency(product.price)}
+                      </div>
                       {product.mrp > product.price && (
-                        <div className="text-sm text-gray-500 line-through">{formatCurrency(product.mrp)}</div>
+                        <div className="text-sm text-gray-500 line-through">
+                          {formatCurrency(product.mrp)}
+                        </div>
                       )}
                     </td>
                     <td className="px-6 py-4">
                       <input
                         type="number"
                         value={product.stock}
-                        onChange={(e) => updateStock(product.id, parseInt(e.target.value) || 0)}
+                        onChange={(e) =>
+                          updateStock(product.id, parseInt(e.target.value) || 0)
+                        }
                         className={`w-20 px-2 py-1 text-sm border rounded ${
                           product.stock > 10
-                            ? 'border-green-300 text-green-600'
+                            ? "border-green-300 text-green-600"
                             : product.stock > 0
-                            ? 'border-yellow-300 text-yellow-600'
-                            : 'border-red-300 text-red-600'
+                            ? "border-yellow-300 text-yellow-600"
+                            : "border-red-300 text-red-600"
                         }`}
                       />
                     </td>
@@ -283,11 +307,11 @@ export function SellerProducts() {
                         onClick={() => toggleActive(product.id, product.active)}
                         className={`px-2 py-1 text-xs font-semibold rounded-full ${
                           product.active
-                            ? 'bg-green-100 text-green-800'
-                            : 'bg-gray-100 text-gray-800'
+                            ? "bg-green-100 text-green-800"
+                            : "bg-gray-100 text-gray-800"
                         }`}
                       >
-                        {product.active ? 'Active' : 'Inactive'}
+                        {product.active ? "Active" : "Inactive"}
                       </button>
                     </td>
                     <td className="px-6 py-4">
@@ -317,7 +341,9 @@ export function SellerProducts() {
 
         {filteredProducts.length === 0 && (
           <div className="text-center py-8 text-gray-500">
-            {searchQuery ? 'No products found' : 'No products yet. Start by adding your first product!'}
+            {searchQuery
+              ? "No products found"
+              : "No products yet. Start by adding your first product!"}
           </div>
         )}
       </div>
@@ -325,7 +351,7 @@ export function SellerProducts() {
       <Modal
         isOpen={isModalOpen}
         onClose={closeModal}
-        title={editingProduct ? 'Edit Product' : 'Add New Product'}
+        title={editingProduct ? "Edit Product" : "Add New Product"}
         size="large"
       >
         <ProductForm

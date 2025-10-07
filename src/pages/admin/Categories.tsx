@@ -1,9 +1,9 @@
-import { useEffect, useState } from 'react';
-import { supabase } from '../../lib/supabase';
-import { useAuth } from '../../contexts/AuthContext';
-import { Pencil, Trash2, Plus, FolderTree } from 'lucide-react';
-import { useToast } from '../../hooks/useToast';
-import { Modal } from '../../components/ui/Modal';
+import { useEffect, useState } from "react";
+import { supabase } from "../../lib/supabase";
+import { useAuth } from "../../contexts/AuthContext";
+import { Pencil, Trash2, Plus, FolderTree } from "lucide-react";
+import { useToast } from "../../hooks/useToast";
+import { Modal } from "../../components/ui/Modal";
 
 interface Category {
   id: string;
@@ -19,17 +19,17 @@ interface Category {
 
 export function AdminCategories() {
   const { user } = useAuth();
-  const { showToast } = useToast();
+  const toast = useToast();
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [formData, setFormData] = useState({
-    name: '',
-    slug: '',
-    parent_id: '',
-    description: '',
-    image_url: '',
+    name: "",
+    slug: "",
+    parent_id: "",
+    description: "",
+    image_url: "",
     sort_order: 0,
     active: true,
   });
@@ -41,15 +41,15 @@ export function AdminCategories() {
   const fetchCategories = async () => {
     try {
       const { data, error } = await supabase
-        .from('categories')
-        .select('*')
-        .order('sort_order', { ascending: true });
+        .from("categories")
+        .select("*")
+        .order("sort_order", { ascending: true });
 
       if (error) throw error;
       setCategories(data || []);
     } catch (error) {
-      console.error('Error fetching categories:', error);
-      showToast('Failed to load categories', 'error');
+      console.error("Error fetching categories:", error);
+      toast.error("Failed to load categories");
     } finally {
       setLoading(false);
     }
@@ -58,9 +58,9 @@ export function AdminCategories() {
   const generateSlug = (name: string) => {
     return name
       .toLowerCase()
-      .replace(/[^\w\s-]/g, '')
-      .replace(/\s+/g, '-')
-      .replace(/-+/g, '-')
+      .replace(/[^\w\s-]/g, "")
+      .replace(/\s+/g, "-")
+      .replace(/-+/g, "-")
       .trim();
   };
 
@@ -78,20 +78,20 @@ export function AdminCategories() {
       setFormData({
         name: category.name,
         slug: category.slug,
-        parent_id: category.parent_id || '',
-        description: category.description || '',
-        image_url: category.image_url || '',
+        parent_id: category.parent_id || "",
+        description: category.description || "",
+        image_url: category.image_url || "",
         sort_order: category.sort_order,
         active: category.active,
       });
     } else {
       setEditingCategory(null);
       setFormData({
-        name: '',
-        slug: '',
-        parent_id: '',
-        description: '',
-        image_url: '',
+        name: "",
+        slug: "",
+        parent_id: "",
+        description: "",
+        image_url: "",
         sort_order: 0,
         active: true,
       });
@@ -103,11 +103,11 @@ export function AdminCategories() {
     setIsModalOpen(false);
     setEditingCategory(null);
     setFormData({
-      name: '',
-      slug: '',
-      parent_id: '',
-      description: '',
-      image_url: '',
+      name: "",
+      slug: "",
+      parent_id: "",
+      description: "",
+      image_url: "",
       sort_order: 0,
       active: true,
     });
@@ -129,69 +129,69 @@ export function AdminCategories() {
 
       if (editingCategory) {
         const { error } = await supabase
-          .from('categories')
+          .from("categories")
           .update(categoryData)
-          .eq('id', editingCategory.id);
+          .eq("id", editingCategory.id);
 
         if (error) throw error;
-        showToast('Category updated successfully', 'success');
+        toast.success("Category updated successfully");
       } else {
         const { error } = await supabase
-          .from('categories')
+          .from("categories")
           .insert([categoryData]);
 
         if (error) throw error;
-        showToast('Category created successfully', 'success');
+        toast.success("Category created successfully");
       }
 
       closeModal();
       fetchCategories();
     } catch (error) {
-      console.error('Error saving category:', error);
-      showToast('Failed to save category', 'error');
+      console.error("Error saving category:", error);
+      toast.error("Failed to save category");
     }
   };
 
   const deleteCategory = async (categoryId: string) => {
-    if (!confirm('Are you sure you want to delete this category?')) return;
+    if (!confirm("Are you sure you want to delete this category?")) return;
 
     try {
       const { error } = await supabase
-        .from('categories')
+        .from("categories")
         .delete()
-        .eq('id', categoryId);
+        .eq("id", categoryId);
 
       if (error) throw error;
 
-      showToast('Category deleted successfully', 'success');
+      toast.success("Category deleted successfully");
       fetchCategories();
     } catch (error) {
-      console.error('Error deleting category:', error);
-      showToast('Failed to delete category', 'error');
+      console.error("Error deleting category:", error);
+      toast.error("Failed to delete category");
     }
   };
 
   const toggleActive = async (categoryId: string, currentStatus: boolean) => {
     try {
       const { error } = await supabase
-        .from('categories')
+        .from("categories")
         .update({ active: !currentStatus })
-        .eq('id', categoryId);
+        .eq("id", categoryId);
 
       if (error) throw error;
 
-      showToast('Category status updated', 'success');
+      toast.success("Category status updated");
       fetchCategories();
     } catch (error) {
-      console.error('Error updating category:', error);
-      showToast('Failed to update category', 'error');
+      console.error("Error updating category:", error);
+      toast.error("Failed to update category");
     }
   };
 
   const getParentName = (parentId: string | null) => {
-    if (!parentId) return 'None';
-    const parent = categories.find(c => c.id === parentId);
-    return parent ? parent.name : 'Unknown';
+    if (!parentId) return "None";
+    const parent = categories.find((c) => c.id === parentId);
+    return parent ? parent.name : "Unknown";
   };
 
   if (loading) {
@@ -247,30 +247,42 @@ export function AdminCategories() {
                   <tr key={category.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2">
-                        {category.parent_id && <FolderTree className="w-4 h-4 text-gray-400" />}
+                        {category.parent_id && (
+                          <FolderTree className="w-4 h-4 text-gray-400" />
+                        )}
                         <div>
-                          <div className="text-sm font-medium text-gray-900">{category.name}</div>
+                          <div className="text-sm font-medium text-gray-900">
+                            {category.name}
+                          </div>
                           {category.description && (
-                            <div className="text-sm text-gray-500">{category.description}</div>
+                            <div className="text-sm text-gray-500">
+                              {category.description}
+                            </div>
                           )}
                         </div>
                       </div>
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-500">{category.slug}</td>
+                    <td className="px-6 py-4 text-sm text-gray-500">
+                      {category.slug}
+                    </td>
                     <td className="px-6 py-4 text-sm text-gray-500">
                       {getParentName(category.parent_id)}
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-500">{category.sort_order}</td>
+                    <td className="px-6 py-4 text-sm text-gray-500">
+                      {category.sort_order}
+                    </td>
                     <td className="px-6 py-4">
                       <button
-                        onClick={() => toggleActive(category.id, category.active)}
+                        onClick={() =>
+                          toggleActive(category.id, category.active)
+                        }
                         className={`px-3 py-1 text-xs font-semibold rounded-full ${
                           category.active
-                            ? 'bg-green-100 text-green-800'
-                            : 'bg-gray-100 text-gray-800'
+                            ? "bg-green-100 text-green-800"
+                            : "bg-gray-100 text-gray-800"
                         }`}
                       >
-                        {category.active ? 'Active' : 'Inactive'}
+                        {category.active ? "Active" : "Inactive"}
                       </button>
                     </td>
                     <td className="px-6 py-4">
@@ -306,7 +318,7 @@ export function AdminCategories() {
       <Modal
         isOpen={isModalOpen}
         onClose={closeModal}
-        title={editingCategory ? 'Edit Category' : 'Add New Category'}
+        title={editingCategory ? "Edit Category" : "Add New Category"}
       >
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
@@ -329,7 +341,9 @@ export function AdminCategories() {
             <input
               type="text"
               value={formData.slug}
-              onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, slug: e.target.value })
+              }
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-800 focus:border-transparent"
               required
             />
@@ -341,13 +355,15 @@ export function AdminCategories() {
             </label>
             <select
               value={formData.parent_id}
-              onChange={(e) => setFormData({ ...formData, parent_id: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, parent_id: e.target.value })
+              }
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-800 focus:border-transparent"
             >
               <option value="">None (Top Level)</option>
               {categories
-                .filter(c => !editingCategory || c.id !== editingCategory.id)
-                .map(category => (
+                .filter((c) => !editingCategory || c.id !== editingCategory.id)
+                .map((category) => (
                   <option key={category.id} value={category.id}>
                     {category.name}
                   </option>
@@ -361,7 +377,9 @@ export function AdminCategories() {
             </label>
             <textarea
               value={formData.description}
-              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, description: e.target.value })
+              }
               rows={3}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-800 focus:border-transparent"
             />
@@ -374,7 +392,9 @@ export function AdminCategories() {
             <input
               type="url"
               value={formData.image_url}
-              onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, image_url: e.target.value })
+              }
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-800 focus:border-transparent"
             />
           </div>
@@ -386,7 +406,12 @@ export function AdminCategories() {
             <input
               type="number"
               value={formData.sort_order}
-              onChange={(e) => setFormData({ ...formData, sort_order: parseInt(e.target.value) })}
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  sort_order: parseInt(e.target.value),
+                })
+              }
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-800 focus:border-transparent"
             />
           </div>
@@ -396,10 +421,15 @@ export function AdminCategories() {
               type="checkbox"
               id="active"
               checked={formData.active}
-              onChange={(e) => setFormData({ ...formData, active: e.target.checked })}
+              onChange={(e) =>
+                setFormData({ ...formData, active: e.target.checked })
+              }
               className="w-4 h-4 text-red-600 border-gray-300 rounded focus:ring-red-500"
             />
-            <label htmlFor="active" className="text-sm font-medium text-gray-700">
+            <label
+              htmlFor="active"
+              className="text-sm font-medium text-gray-700"
+            >
               Active
             </label>
           </div>
@@ -416,7 +446,7 @@ export function AdminCategories() {
               type="submit"
               className="px-4 py-2 bg-red-800 text-white rounded-lg hover:bg-red-900"
             >
-              {editingCategory ? 'Update' : 'Create'} Category
+              {editingCategory ? "Update" : "Create"} Category
             </button>
           </div>
         </form>

@@ -1,8 +1,8 @@
-import { useEffect, useState } from 'react';
-import { supabase } from '../../lib/supabase';
-import { useAuth } from '../../contexts/AuthContext';
-import { Ban, CheckCircle, Eye } from 'lucide-react';
-import { useToast } from '../../hooks/useToast';
+import { useEffect, useState } from "react";
+import { supabase } from "../../lib/supabase";
+import { useAuth } from "../../contexts/AuthContext";
+import { Ban, CheckCircle, Eye } from "lucide-react";
+import { useToast } from "../../hooks/useToast";
 
 interface User {
   id: string;
@@ -16,10 +16,10 @@ interface User {
 
 export function AdminUsers() {
   const { user } = useAuth();
-  const { showToast } = useToast();
+  const toast = useToast();
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
     fetchUsers();
@@ -28,33 +28,34 @@ export function AdminUsers() {
   const fetchUsers = async () => {
     try {
       const { data, error } = await supabase
-        .from('users')
-        .select('*')
-        .order('created_at', { ascending: false });
+        .from("users")
+        .select("*")
+        .order("created_at", { ascending: false });
 
       if (error) throw error;
       setUsers(data || []);
     } catch (error) {
-      console.error('Error fetching users:', error);
-      showToast('Failed to load users', 'error');
+      console.error("Error fetching users:", error);
+      toast.error("Failed to load users");
     } finally {
       setLoading(false);
     }
   };
 
-  const filteredUsers = users.filter(user =>
-    user.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    user.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    user.phone?.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredUsers = users.filter(
+    (user) =>
+      user.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      user.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      user.phone?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const getRoleBadgeColor = (role: string) => {
     const colors: Record<string, string> = {
-      admin: 'bg-purple-100 text-purple-800',
-      seller: 'bg-blue-100 text-blue-800',
-      user: 'bg-gray-100 text-gray-800',
+      admin: "bg-purple-100 text-purple-800",
+      seller: "bg-blue-100 text-blue-800",
+      user: "bg-gray-100 text-gray-800",
     };
-    return colors[role] || 'bg-gray-100 text-gray-800';
+    return colors[role] || "bg-gray-100 text-gray-800";
   };
 
   if (loading) {
@@ -109,33 +110,54 @@ export function AdminUsers() {
                 {filteredUsers.map((user) => (
                   <tr key={user.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4">
-                      <div className="text-sm font-medium text-gray-900">{user.name || 'Unknown'}</div>
-                      <div className="text-sm text-gray-500">{user.id.substring(0, 8)}</div>
+                      <div className="text-sm font-medium text-gray-900">
+                        {user.name || "Unknown"}
+                      </div>
+                      <div className="text-sm text-gray-500">
+                        {user.id.substring(0, 8)}
+                      </div>
                     </td>
                     <td className="px-6 py-4">
                       <div className="text-sm text-gray-900">{user.email}</div>
-                      <div className="text-sm text-gray-500">{user.phone || 'N/A'}</div>
+                      <div className="text-sm text-gray-500">
+                        {user.phone || "N/A"}
+                      </div>
                     </td>
                     <td className="px-6 py-4">
-                      <span className={`px-3 py-1 text-xs font-semibold rounded-full capitalize ${getRoleBadgeColor(user.role)}`}>
+                      <span
+                        className={`px-3 py-1 text-xs font-semibold rounded-full capitalize ${getRoleBadgeColor(
+                          user.role
+                        )}`}
+                      >
                         {user.role}
                       </span>
                     </td>
                     <td className="px-6 py-4">
-                      <div className="text-sm font-medium text-gray-900">₹{user.wallet_balance?.toFixed(2) || '0.00'}</div>
+                      <div className="text-sm font-medium text-gray-900">
+                        ₹{user.wallet_balance?.toFixed(2) || "0.00"}
+                      </div>
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-500">
                       {new Date(user.created_at).toLocaleDateString()}
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex gap-2">
-                        <button className="p-2 text-blue-600 hover:bg-blue-50 rounded" title="View Details">
+                        <button
+                          className="p-2 text-blue-600 hover:bg-blue-50 rounded"
+                          title="View Details"
+                        >
                           <Eye size={16} />
                         </button>
-                        <button className="p-2 text-green-600 hover:bg-green-50 rounded" title="Activate">
+                        <button
+                          className="p-2 text-green-600 hover:bg-green-50 rounded"
+                          title="Activate"
+                        >
                           <CheckCircle size={16} />
                         </button>
-                        <button className="p-2 text-red-600 hover:bg-red-50 rounded" title="Suspend">
+                        <button
+                          className="p-2 text-red-600 hover:bg-red-50 rounded"
+                          title="Suspend"
+                        >
                           <Ban size={16} />
                         </button>
                       </div>
@@ -148,9 +170,7 @@ export function AdminUsers() {
         </div>
 
         {filteredUsers.length === 0 && (
-          <div className="text-center py-8 text-gray-500">
-            No users found
-          </div>
+          <div className="text-center py-8 text-gray-500">No users found</div>
         )}
       </div>
     </div>

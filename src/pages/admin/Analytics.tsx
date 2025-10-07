@@ -1,8 +1,15 @@
-import { useEffect, useState } from 'react';
-import { supabase } from '../../lib/supabase';
-import { useAuth } from '../../contexts/AuthContext';
-import { TrendingUp, ShoppingCart, Users, DollarSign, Package, RefreshCw } from 'lucide-react';
-import { useToast } from '../../hooks/useToast';
+import { useEffect, useState } from "react";
+import { supabase } from "../../lib/supabase";
+import { useAuth } from "../../contexts/AuthContext";
+import {
+  TrendingUp,
+  ShoppingCart,
+  Users,
+  DollarSign,
+  Package,
+  RefreshCw,
+} from "lucide-react";
+import { useToast } from "../../hooks/useToast";
 
 interface Analytics {
   totalSales: number;
@@ -22,7 +29,7 @@ interface TopProduct {
 
 export function AdminAnalytics() {
   const { user } = useAuth();
-  const { showToast } = useToast();
+  const toast = useToast();
   const [analytics, setAnalytics] = useState<Analytics>({
     totalSales: 0,
     totalOrders: 0,
@@ -47,31 +54,45 @@ export function AdminAnalytics() {
       periodDate.setDate(periodDate.getDate() - period);
 
       const { data: orders, error: ordersError } = await supabase
-        .from('orders')
-        .select('total, status, created_at')
-        .gte('created_at', periodDate.toISOString());
+        .from("orders")
+        .select("total, status, created_at")
+        .gte("created_at", periodDate.toISOString());
 
       if (ordersError) throw ordersError;
 
       const { data: users, error: usersError } = await supabase
-        .from('users')
-        .select('id', { count: 'exact', head: true });
+        .from("users")
+        .select("id", { count: "exact", head: true });
 
       if (usersError) throw usersError;
 
       const { data: products, error: productsError } = await supabase
-        .from('products')
-        .select('id', { count: 'exact', head: true });
+        .from("products")
+        .select("id", { count: "exact", head: true });
 
       if (productsError) throw productsError;
 
-      const paidOrders = orders?.filter(o => o.status === 'paid' || o.status === 'confirmed' || o.status === 'shipped' || o.status === 'delivered') || [];
-      const refundedOrders = orders?.filter(o => o.status === 'refunded') || [];
+      const paidOrders =
+        orders?.filter(
+          (o) =>
+            o.status === "paid" ||
+            o.status === "confirmed" ||
+            o.status === "shipped" ||
+            o.status === "delivered"
+        ) || [];
+      const refundedOrders =
+        orders?.filter((o) => o.status === "refunded") || [];
 
-      const totalSales = paidOrders.reduce((sum, order) => sum + order.total, 0);
+      const totalSales = paidOrders.reduce(
+        (sum, order) => sum + order.total,
+        0
+      );
       const totalOrders = paidOrders.length;
       const averageOrderValue = totalOrders > 0 ? totalSales / totalOrders : 0;
-      const refundRate = orders && orders.length > 0 ? (refundedOrders.length / orders.length) * 100 : 0;
+      const refundRate =
+        orders && orders.length > 0
+          ? (refundedOrders.length / orders.length) * 100
+          : 0;
 
       setAnalytics({
         totalSales,
@@ -81,16 +102,25 @@ export function AdminAnalytics() {
         totalProducts: products || 0,
         refundRate,
       });
-
     } catch (error) {
-      console.error('Error fetching analytics:', error);
-      showToast('Failed to load analytics', 'error');
+      console.error("Error fetching analytics:", error);
+      toast.error("Failed to load analytics");
     } finally {
       setLoading(false);
     }
   };
 
-  const StatCard = ({ title, value, icon: Icon, color }: { title: string; value: string | number; icon: any; color: string }) => (
+  const StatCard = ({
+    title,
+    value,
+    icon: Icon,
+    color,
+  }: {
+    title: string;
+    value: string | number;
+    icon: any;
+    color: string;
+  }) => (
     <div className="bg-white rounded-lg shadow p-6">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-sm font-medium text-gray-600">{title}</h3>
@@ -118,19 +148,31 @@ export function AdminAnalytics() {
           <div className="flex gap-2">
             <button
               onClick={() => setPeriod(7)}
-              className={`px-4 py-2 rounded-lg ${period === 7 ? 'bg-red-800 text-white' : 'bg-gray-100 text-gray-700'}`}
+              className={`px-4 py-2 rounded-lg ${
+                period === 7
+                  ? "bg-red-800 text-white"
+                  : "bg-gray-100 text-gray-700"
+              }`}
             >
               7 Days
             </button>
             <button
               onClick={() => setPeriod(30)}
-              className={`px-4 py-2 rounded-lg ${period === 30 ? 'bg-red-800 text-white' : 'bg-gray-100 text-gray-700'}`}
+              className={`px-4 py-2 rounded-lg ${
+                period === 30
+                  ? "bg-red-800 text-white"
+                  : "bg-gray-100 text-gray-700"
+              }`}
             >
               30 Days
             </button>
             <button
               onClick={() => setPeriod(90)}
-              className={`px-4 py-2 rounded-lg ${period === 90 ? 'bg-red-800 text-white' : 'bg-gray-100 text-gray-700'}`}
+              className={`px-4 py-2 rounded-lg ${
+                period === 90
+                  ? "bg-red-800 text-white"
+                  : "bg-gray-100 text-gray-700"
+              }`}
             >
               90 Days
             </button>
@@ -189,16 +231,27 @@ export function AdminAnalytics() {
             <div className="space-y-4">
               {topProducts.length > 0 ? (
                 topProducts.map((product) => (
-                  <div key={product.id} className="flex justify-between items-center">
+                  <div
+                    key={product.id}
+                    className="flex justify-between items-center"
+                  >
                     <div>
-                      <p className="font-medium text-gray-900">{product.title}</p>
-                      <p className="text-sm text-gray-500">{product.total_quantity} units sold</p>
+                      <p className="font-medium text-gray-900">
+                        {product.title}
+                      </p>
+                      <p className="text-sm text-gray-500">
+                        {product.total_quantity} units sold
+                      </p>
                     </div>
-                    <p className="font-bold text-gray-900">₹{product.total_revenue.toFixed(2)}</p>
+                    <p className="font-bold text-gray-900">
+                      ₹{product.total_revenue.toFixed(2)}
+                    </p>
                   </div>
                 ))
               ) : (
-                <p className="text-center text-gray-500 py-8">No data available for this period</p>
+                <p className="text-center text-gray-500 py-8">
+                  No data available for this period
+                </p>
               )}
             </div>
           </div>
@@ -210,14 +263,23 @@ export function AdminAnalytics() {
             <table className="w-full">
               <thead className="bg-gray-50 border-b border-gray-200">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tax Slab</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Taxable Amount</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tax Collected</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    Tax Slab
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    Taxable Amount
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    Tax Collected
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
                 <tr>
-                  <td colSpan={3} className="px-6 py-8 text-center text-gray-500">
+                  <td
+                    colSpan={3}
+                    className="px-6 py-8 text-center text-gray-500"
+                  >
                     GST report data would be displayed here
                   </td>
                 </tr>

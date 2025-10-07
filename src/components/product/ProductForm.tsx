@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
-import { supabase } from '../../lib/supabase';
-import { useToast } from '../../hooks/useToast';
-import { X, Plus } from 'lucide-react';
+import { useState, useEffect } from "react";
+import { supabase } from "../../lib/supabase";
+import { useToast } from "../../hooks/useToast";
+import { X, Plus } from "lucide-react";
 
 interface Category {
   id: string;
@@ -38,22 +38,29 @@ interface ProductFormProps {
   isSeller?: boolean;
 }
 
-export function ProductForm({ productId, initialData, onSuccess, onCancel, sellerId, isSeller }: ProductFormProps) {
-  const { showToast } = useToast();
+export function ProductForm({
+  productId,
+  initialData,
+  onSuccess,
+  onCancel,
+  sellerId,
+  isSeller,
+}: ProductFormProps) {
+  const toast = useToast();
   const [loading, setLoading] = useState(false);
   const [categories, setCategories] = useState<Category[]>([]);
   const [formData, setFormData] = useState<ProductFormData>({
-    title: initialData?.title || '',
-    slug: initialData?.slug || '',
+    title: initialData?.title || "",
+    slug: initialData?.slug || "",
     codes: initialData?.codes || [],
-    sku: initialData?.sku || '',
-    category_id: initialData?.category_id || '',
+    sku: initialData?.sku || "",
+    category_id: initialData?.category_id || "",
     price: initialData?.price || 0,
     mrp: initialData?.mrp || 0,
     tax_slab: initialData?.tax_slab || 5,
-    hsn_code: initialData?.hsn_code || '',
+    hsn_code: initialData?.hsn_code || "",
     stock: initialData?.stock || 0,
-    description: initialData?.description || '',
+    description: initialData?.description || "",
     features: initialData?.features || [],
     images: initialData?.images || [],
     youtube_ids: initialData?.youtube_ids || [],
@@ -62,10 +69,10 @@ export function ProductForm({ productId, initialData, onSuccess, onCancel, selle
     active: initialData?.active !== undefined ? initialData.active : true,
   });
 
-  const [newCode, setNewCode] = useState('');
-  const [newFeature, setNewFeature] = useState('');
-  const [newImage, setNewImage] = useState('');
-  const [newYoutubeId, setNewYoutubeId] = useState('');
+  const [newCode, setNewCode] = useState("");
+  const [newFeature, setNewFeature] = useState("");
+  const [newImage, setNewImage] = useState("");
+  const [newYoutubeId, setNewYoutubeId] = useState("");
 
   useEffect(() => {
     fetchCategories();
@@ -74,24 +81,24 @@ export function ProductForm({ productId, initialData, onSuccess, onCancel, selle
   const fetchCategories = async () => {
     try {
       const { data, error } = await supabase
-        .from('categories')
-        .select('id, name, slug')
-        .eq('active', true)
-        .order('name');
+        .from("categories")
+        .select("id, name, slug")
+        .eq("active", true)
+        .order("name");
 
       if (error) throw error;
       setCategories(data || []);
     } catch (error) {
-      console.error('Error fetching categories:', error);
+      console.error("Error fetching categories:", error);
     }
   };
 
   const generateSlug = (title: string) => {
     return title
       .toLowerCase()
-      .replace(/[^\w\s-]/g, '')
-      .replace(/\s+/g, '-')
-      .replace(/-+/g, '-')
+      .replace(/[^\w\s-]/g, "")
+      .replace(/\s+/g, "-")
+      .replace(/-+/g, "-")
       .trim();
   };
 
@@ -106,45 +113,69 @@ export function ProductForm({ productId, initialData, onSuccess, onCancel, selle
   const addCode = () => {
     if (newCode.trim() && !formData.codes.includes(newCode.trim())) {
       setFormData({ ...formData, codes: [...formData.codes, newCode.trim()] });
-      setNewCode('');
+      setNewCode("");
     }
   };
 
   const removeCode = (code: string) => {
-    setFormData({ ...formData, codes: formData.codes.filter(c => c !== code) });
+    setFormData({
+      ...formData,
+      codes: formData.codes.filter((c) => c !== code),
+    });
   };
 
   const addFeature = () => {
     if (newFeature.trim() && !formData.features.includes(newFeature.trim())) {
-      setFormData({ ...formData, features: [...formData.features, newFeature.trim()] });
-      setNewFeature('');
+      setFormData({
+        ...formData,
+        features: [...formData.features, newFeature.trim()],
+      });
+      setNewFeature("");
     }
   };
 
   const removeFeature = (feature: string) => {
-    setFormData({ ...formData, features: formData.features.filter(f => f !== feature) });
+    setFormData({
+      ...formData,
+      features: formData.features.filter((f) => f !== feature),
+    });
   };
 
   const addImage = () => {
     if (newImage.trim() && !formData.images.includes(newImage.trim())) {
-      setFormData({ ...formData, images: [...formData.images, newImage.trim()] });
-      setNewImage('');
+      setFormData({
+        ...formData,
+        images: [...formData.images, newImage.trim()],
+      });
+      setNewImage("");
     }
   };
 
   const removeImage = (image: string) => {
-    setFormData({ ...formData, images: formData.images.filter(i => i !== image) });
+    setFormData({
+      ...formData,
+      images: formData.images.filter((i) => i !== image),
+    });
   };
 
   const addYoutubeId = () => {
-    if (newYoutubeId.trim() && !formData.youtube_ids.includes(newYoutubeId.trim())) {
-      setFormData({ ...formData, youtube_ids: [...formData.youtube_ids, newYoutubeId.trim()] });
-      setNewYoutubeId('');
+    if (
+      newYoutubeId.trim() &&
+      !formData.youtube_ids.includes(newYoutubeId.trim())
+    ) {
+      setFormData({
+        ...formData,
+        youtube_ids: [...formData.youtube_ids, newYoutubeId.trim()],
+      });
+      setNewYoutubeId("");
     }
   };
 
   const removeYoutubeId = (id: string) => {
-    setFormData({ ...formData, youtube_ids: formData.youtube_ids.filter(ytId => ytId !== id) });
+    setFormData({
+      ...formData,
+      youtube_ids: formData.youtube_ids.filter((ytId) => ytId !== id),
+    });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -178,25 +209,23 @@ export function ProductForm({ productId, initialData, onSuccess, onCancel, selle
 
       if (productId) {
         const { error } = await supabase
-          .from('products')
+          .from("products")
           .update(productData)
-          .eq('id', productId);
+          .eq("id", productId);
 
         if (error) throw error;
-        showToast('Product updated successfully', 'success');
+        toast.success("Product updated successfully");
       } else {
-        const { error } = await supabase
-          .from('products')
-          .insert([productData]);
+        const { error } = await supabase.from("products").insert([productData]);
 
         if (error) throw error;
-        showToast('Product created successfully', 'success');
+        toast.success("Product created successfully");
       }
 
       onSuccess();
     } catch (error: any) {
-      console.error('Error saving product:', error);
-      showToast(error.message || 'Failed to save product', 'error');
+      console.error("Error saving product:", error);
+      toast.error(error.message || "Failed to save product");
     } finally {
       setLoading(false);
     }
@@ -250,11 +279,13 @@ export function ProductForm({ productId, initialData, onSuccess, onCancel, selle
           </label>
           <select
             value={formData.category_id}
-            onChange={(e) => setFormData({ ...formData, category_id: e.target.value })}
+            onChange={(e) =>
+              setFormData({ ...formData, category_id: e.target.value })
+            }
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-800 focus:border-transparent"
           >
             <option value="">Select Category</option>
-            {categories.map(category => (
+            {categories.map((category) => (
               <option key={category.id} value={category.id}>
                 {category.name}
               </option>
@@ -269,7 +300,9 @@ export function ProductForm({ productId, initialData, onSuccess, onCancel, selle
           <input
             type="text"
             value={formData.hsn_code}
-            onChange={(e) => setFormData({ ...formData, hsn_code: e.target.value })}
+            onChange={(e) =>
+              setFormData({ ...formData, hsn_code: e.target.value })
+            }
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-800 focus:border-transparent"
           />
         </div>
@@ -283,7 +316,12 @@ export function ProductForm({ productId, initialData, onSuccess, onCancel, selle
             step="0.01"
             min="0"
             value={formData.price}
-            onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) || 0 })}
+            onChange={(e) =>
+              setFormData({
+                ...formData,
+                price: parseFloat(e.target.value) || 0,
+              })
+            }
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-800 focus:border-transparent"
             required
           />
@@ -298,7 +336,9 @@ export function ProductForm({ productId, initialData, onSuccess, onCancel, selle
             step="0.01"
             min="0"
             value={formData.mrp}
-            onChange={(e) => setFormData({ ...formData, mrp: parseFloat(e.target.value) || 0 })}
+            onChange={(e) =>
+              setFormData({ ...formData, mrp: parseFloat(e.target.value) || 0 })
+            }
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-800 focus:border-transparent"
             required
           />
@@ -314,7 +354,12 @@ export function ProductForm({ productId, initialData, onSuccess, onCancel, selle
             min="0"
             max="100"
             value={formData.tax_slab}
-            onChange={(e) => setFormData({ ...formData, tax_slab: parseFloat(e.target.value) || 0 })}
+            onChange={(e) =>
+              setFormData({
+                ...formData,
+                tax_slab: parseFloat(e.target.value) || 0,
+              })
+            }
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-800 focus:border-transparent"
             required
           />
@@ -328,7 +373,9 @@ export function ProductForm({ productId, initialData, onSuccess, onCancel, selle
             type="number"
             min="0"
             value={formData.stock}
-            onChange={(e) => setFormData({ ...formData, stock: parseInt(e.target.value) || 0 })}
+            onChange={(e) =>
+              setFormData({ ...formData, stock: parseInt(e.target.value) || 0 })
+            }
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-800 focus:border-transparent"
             required
           />
@@ -344,7 +391,9 @@ export function ProductForm({ productId, initialData, onSuccess, onCancel, selle
             type="text"
             value={newCode}
             onChange={(e) => setNewCode(e.target.value)}
-            onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addCode())}
+            onKeyPress={(e) =>
+              e.key === "Enter" && (e.preventDefault(), addCode())
+            }
             placeholder="Enter product code"
             className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-800 focus:border-transparent"
           />
@@ -357,10 +406,17 @@ export function ProductForm({ productId, initialData, onSuccess, onCancel, selle
           </button>
         </div>
         <div className="flex flex-wrap gap-2">
-          {formData.codes.map(code => (
-            <span key={code} className="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">
+          {formData.codes.map((code) => (
+            <span
+              key={code}
+              className="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm"
+            >
               {code}
-              <button type="button" onClick={() => removeCode(code)} className="hover:text-blue-900">
+              <button
+                type="button"
+                onClick={() => removeCode(code)}
+                className="hover:text-blue-900"
+              >
                 <X size={14} />
               </button>
             </span>
@@ -374,7 +430,9 @@ export function ProductForm({ productId, initialData, onSuccess, onCancel, selle
         </label>
         <textarea
           value={formData.description}
-          onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+          onChange={(e) =>
+            setFormData({ ...formData, description: e.target.value })
+          }
           rows={4}
           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-800 focus:border-transparent"
         />
@@ -389,7 +447,9 @@ export function ProductForm({ productId, initialData, onSuccess, onCancel, selle
             type="text"
             value={newFeature}
             onChange={(e) => setNewFeature(e.target.value)}
-            onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addFeature())}
+            onKeyPress={(e) =>
+              e.key === "Enter" && (e.preventDefault(), addFeature())
+            }
             placeholder="Enter product feature"
             className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-800 focus:border-transparent"
           />
@@ -403,9 +463,16 @@ export function ProductForm({ productId, initialData, onSuccess, onCancel, selle
         </div>
         <div className="space-y-2">
           {formData.features.map((feature, index) => (
-            <div key={index} className="flex items-center gap-2 p-2 bg-gray-50 rounded">
+            <div
+              key={index}
+              className="flex items-center gap-2 p-2 bg-gray-50 rounded"
+            >
               <span className="flex-1 text-sm">{feature}</span>
-              <button type="button" onClick={() => removeFeature(feature)} className="text-red-600 hover:text-red-800">
+              <button
+                type="button"
+                onClick={() => removeFeature(feature)}
+                className="text-red-600 hover:text-red-800"
+              >
                 <X size={16} />
               </button>
             </div>
@@ -422,7 +489,9 @@ export function ProductForm({ productId, initialData, onSuccess, onCancel, selle
             type="url"
             value={newImage}
             onChange={(e) => setNewImage(e.target.value)}
-            onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addImage())}
+            onKeyPress={(e) =>
+              e.key === "Enter" && (e.preventDefault(), addImage())
+            }
             placeholder="Enter image URL"
             className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-800 focus:border-transparent"
           />
@@ -437,7 +506,11 @@ export function ProductForm({ productId, initialData, onSuccess, onCancel, selle
         <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
           {formData.images.map((image, index) => (
             <div key={index} className="relative group">
-              <img src={image} alt="" className="w-full h-24 object-cover rounded border" />
+              <img
+                src={image}
+                alt=""
+                className="w-full h-24 object-cover rounded border"
+              />
               <button
                 type="button"
                 onClick={() => removeImage(image)}
@@ -459,7 +532,9 @@ export function ProductForm({ productId, initialData, onSuccess, onCancel, selle
             type="text"
             value={newYoutubeId}
             onChange={(e) => setNewYoutubeId(e.target.value)}
-            onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addYoutubeId())}
+            onKeyPress={(e) =>
+              e.key === "Enter" && (e.preventDefault(), addYoutubeId())
+            }
             placeholder="Enter YouTube video ID"
             className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-800 focus:border-transparent"
           />
@@ -472,10 +547,17 @@ export function ProductForm({ productId, initialData, onSuccess, onCancel, selle
           </button>
         </div>
         <div className="flex flex-wrap gap-2">
-          {formData.youtube_ids.map(id => (
-            <span key={id} className="inline-flex items-center gap-1 px-3 py-1 bg-red-100 text-red-800 rounded-full text-sm">
+          {formData.youtube_ids.map((id) => (
+            <span
+              key={id}
+              className="inline-flex items-center gap-1 px-3 py-1 bg-red-100 text-red-800 rounded-full text-sm"
+            >
               {id}
-              <button type="button" onClick={() => removeYoutubeId(id)} className="hover:text-red-900">
+              <button
+                type="button"
+                onClick={() => removeYoutubeId(id)}
+                className="hover:text-red-900"
+              >
                 <X size={14} />
               </button>
             </span>
@@ -491,10 +573,15 @@ export function ProductForm({ productId, initialData, onSuccess, onCancel, selle
                 type="checkbox"
                 id="featured"
                 checked={formData.featured}
-                onChange={(e) => setFormData({ ...formData, featured: e.target.checked })}
+                onChange={(e) =>
+                  setFormData({ ...formData, featured: e.target.checked })
+                }
                 className="w-4 h-4 text-red-600 border-gray-300 rounded focus:ring-red-500"
               />
-              <label htmlFor="featured" className="text-sm font-medium text-gray-700">
+              <label
+                htmlFor="featured"
+                className="text-sm font-medium text-gray-700"
+              >
                 Featured Product
               </label>
             </div>
@@ -504,10 +591,15 @@ export function ProductForm({ productId, initialData, onSuccess, onCancel, selle
                 type="checkbox"
                 id="trending"
                 checked={formData.trending}
-                onChange={(e) => setFormData({ ...formData, trending: e.target.checked })}
+                onChange={(e) =>
+                  setFormData({ ...formData, trending: e.target.checked })
+                }
                 className="w-4 h-4 text-red-600 border-gray-300 rounded focus:ring-red-500"
               />
-              <label htmlFor="trending" className="text-sm font-medium text-gray-700">
+              <label
+                htmlFor="trending"
+                className="text-sm font-medium text-gray-700"
+              >
                 Trending Product
               </label>
             </div>
@@ -519,7 +611,9 @@ export function ProductForm({ productId, initialData, onSuccess, onCancel, selle
             type="checkbox"
             id="active"
             checked={formData.active}
-            onChange={(e) => setFormData({ ...formData, active: e.target.checked })}
+            onChange={(e) =>
+              setFormData({ ...formData, active: e.target.checked })
+            }
             className="w-4 h-4 text-red-600 border-gray-300 rounded focus:ring-red-500"
           />
           <label htmlFor="active" className="text-sm font-medium text-gray-700">
@@ -542,7 +636,11 @@ export function ProductForm({ productId, initialData, onSuccess, onCancel, selle
           className="px-6 py-2 bg-red-800 text-white rounded-lg hover:bg-red-900 disabled:opacity-50"
           disabled={loading}
         >
-          {loading ? 'Saving...' : productId ? 'Update Product' : 'Create Product'}
+          {loading
+            ? "Saving..."
+            : productId
+            ? "Update Product"
+            : "Create Product"}
         </button>
       </div>
     </form>
