@@ -424,5 +424,34 @@
       "SMTP_USER",
       "SMTP_PASSWORD"
     ]
+  },
+
+  "database": {
+    "provider": "Supabase",
+    "url": "https://kgyyubfudpkdkkftbrdg.supabase.co",
+    "project_ref": "kgyyubfudpkdkkftbrdg",
+    "region": "auto",
+    "status": "provisioned",
+    "connection": {
+      "type": "serverless",
+      "auth": "anon_key_for_client",
+      "rls_enabled": true
+    },
+    "migrations_status": "pending",
+    "migrations_required": [
+      "Initial schema setup with all tables",
+      "RLS policies for all tables",
+      "Indexes for performance optimization",
+      "Seed data for admin user and sample products"
+    ],
+    "next_steps": [
+      "Apply initial migration to create all tables",
+      "Enable RLS on all tables",
+      "Create admin, seller, and user RLS policies",
+      "Add search indexes (trigram, GIN)",
+      "Seed initial data",
+      "Configure auth providers (Google OAuth)",
+      "Set up Edge Functions for webhooks and invoice generation"
+    ]
   }
 }
