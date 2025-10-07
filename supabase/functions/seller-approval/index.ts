@@ -40,13 +40,9 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    const { data: adminUser } = await supabase
-      .from("users")
-      .select("email")
-      .eq("id", user.id)
-      .maybeSingle();
+    const userRole = user.app_metadata?.role;
 
-    if (!adminUser || !adminUser.email.endsWith("@vanisarees.com")) {
+    if (userRole !== 'admin') {
       return new Response(
         JSON.stringify({ error: "Admin access required" }),
         {
@@ -68,6 +64,22 @@ Deno.serve(async (req: Request) => {
       );
     }
 
+    const { data: seller, error: sellerError } = await supabase
+      .from("sellers")
+      .select("*, users!inner(id, email, name)")
+      .eq("id", seller_id)
+      .maybeSingle();
+
+    if (sellerError || !seller) {
+      return new Response(
+        JSON.stringify({ error: "Seller not found" }),
+        {
+          status: 404,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
+
     const updateData: any = {
       approved_by: user.id,
       updated_at: new Date().toISOString(),
@@ -77,6 +89,26 @@ Deno.serve(async (req: Request) => {
       updateData.status = 'approved';
       updateData.approved_at = new Date().toISOString();
       updateData.rejection_reason = null;
+
+      const { error: authUpdateError } = await supabase.auth.admin.updateUserById(
+        seller.users.id,
+        {
+          app_metadata: {
+            role: 'seller'
+          }
+        }
+      );
+
+      if (authUpdateError) {
+        console.error("Failed to update user role:", authUpdateError);
+        return new Response(
+          JSON.stringify({ error: "Failed to update user role in auth system" }),
+          {
+            status: 500,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          }
+        );
+      }
     } else if (action === 'reject') {
       updateData.status = 'rejected';
       updateData.rejection_reason = rejection_reason || 'Application rejected';
@@ -91,7 +123,7 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    const { data: seller, error: updateError } = await supabase
+    const { data: updatedSeller, error: updateError } = await supabase
       .from("sellers")
       .update(updateData)
       .eq("id", seller_id)
@@ -111,7 +143,7 @@ Deno.serve(async (req: Request) => {
     return new Response(
       JSON.stringify({
         success: true,
-        seller,
+        seller: updatedSeller,
         message: `Seller ${action === 'approve' ? 'approved' : 'rejected'} successfully`
       }),
       {
