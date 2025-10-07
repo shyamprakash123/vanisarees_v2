@@ -32,27 +32,51 @@ export function Search() {
   const searchProducts = async () => {
     setLoading(true);
     try {
-      let queryBuilder = supabase
-        .from('products')
-        .select('id, title, slug, price, mrp, images, stock', { count: 'exact' })
-        .eq('active', true);
+      if (!query || query.trim() === '') {
+        const { data, count, error } = await supabase
+          .from('products')
+          .select('id, title, slug, price, mrp, images, stock', { count: 'exact' })
+          .eq('active', true)
+          .range((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage - 1)
+          .order('created_at', { ascending: false });
 
-      if (query) {
-        queryBuilder = queryBuilder.or(
-          `title.ilike.%${query}%,codes.cs.{${query}},sku.ilike.%${query}%`
-        );
+        if (error) throw error;
+        setProducts(data || []);
+        setTotalPages(Math.ceil((count || 0) / itemsPerPage));
+        setLoading(false);
+        return;
       }
 
-      const { data, count, error } = await queryBuilder
-        .range((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage - 1)
-        .order('created_at', { ascending: false });
+      const searchTerm = query.trim();
 
-      if (error) throw error;
+      const { data, error } = await supabase.rpc('search_products', {
+        search_query: searchTerm,
+        page_num: currentPage,
+        page_size: itemsPerPage
+      });
 
-      setProducts(data || []);
-      setTotalPages(Math.ceil((count || 0) / itemsPerPage));
+      if (error) {
+        console.warn('RPC search failed, falling back to basic search:', error);
+
+        const { data: fallbackData, count, error: fallbackError } = await supabase
+          .from('products')
+          .select('id, title, slug, price, mrp, images, stock', { count: 'exact' })
+          .eq('active', true)
+          .or(`title.ilike.%${searchTerm}%,description.ilike.%${searchTerm}%`)
+          .range((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage - 1)
+          .order('created_at', { ascending: false });
+
+        if (fallbackError) throw fallbackError;
+        setProducts(fallbackData || []);
+        setTotalPages(Math.ceil((count || 0) / itemsPerPage));
+      } else {
+        setProducts(data?.results || []);
+        setTotalPages(data?.total_pages || 1);
+      }
     } catch (error) {
       console.error('Search error:', error);
+      setProducts([]);
+      setTotalPages(1);
     } finally {
       setLoading(false);
     }
@@ -79,7 +103,16 @@ export function Search() {
         <>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {products.map((product) => (
-              <ProductCard key={product.id} product={product} />
+              <ProductCard
+                key={product.id}
+                id={product.id}
+                title={product.title}
+                slug={product.slug}
+                price={product.price}
+                mrp={product.mrp}
+                image={product.images[0]}
+                inStock={product.stock > 0}
+              />
             ))}
           </div>
           <Pagination

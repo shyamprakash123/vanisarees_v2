@@ -16,6 +16,8 @@ import { OrderDetail } from './pages/OrderDetail';
 import { AccountSettings } from './pages/AccountSettings';
 import { Wallet } from './pages/Wallet';
 import { Addresses } from './pages/Addresses';
+import { AdminDashboard } from './pages/admin/Dashboard';
+import { SellerDashboard } from './pages/seller/Dashboard';
 import { ToastContainer } from './components/ui/Toast';
 import { TopSlidingBar } from './components/ui/TopSlidingBar';
 import { useToast } from './hooks/useToast';
@@ -44,6 +46,10 @@ function AppContent() {
           <Route path="/account/settings" element={<AccountSettings />} />
           <Route path="/account/wallet" element={<Wallet />} />
           <Route path="/account/addresses" element={<Addresses />} />
+          <Route path="/admin" element={<AdminDashboard />} />
+          <Route path="/admin/dashboard" element={<AdminDashboard />} />
+          <Route path="/seller" element={<SellerDashboard />} />
+          <Route path="/seller/dashboard" element={<SellerDashboard />} />
           <Route path="/auth/signin" element={<SignIn />} />
           <Route path="/auth/signup" element={<SignUp />} />
         </Routes>

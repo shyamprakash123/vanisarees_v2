@@ -1,29 +1,117 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { ShoppingCart, Heart, Truck, Shield, Package } from 'lucide-react';
+import { ShoppingCart, Heart, Truck, Shield, Package, Star } from 'lucide-react';
 import { useCart } from '../contexts/CartContext';
 import { useToast } from '../hooks/useToast';
+import { ProductGallery } from '../components/product/ProductGallery';
+import { ReviewsList } from '../components/product/ReviewsList';
+import { supabase } from '../lib/supabase';
+import { formatCurrency } from '../utils/format';
+
+interface Product {
+  id: string;
+  title: string;
+  description: string;
+  price: number;
+  mrp: number;
+  stock: number;
+  images: string[];
+  youtube_ids: string[];
+  codes: string[];
+  sku: string;
+  features: string[];
+}
 
 export function ProductDetail() {
   const { slug } = useParams();
   const { addItem } = useCart();
   const toast = useToast();
-  const [selectedImage, setSelectedImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
+  const [product, setProduct] = useState<Product | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [averageRating, setAverageRating] = useState(0);
+  const [reviewCount, setReviewCount] = useState(0);
 
-  const product = {
-    id: '1',
-    title: 'Banarasi Silk Saree - Red & Gold',
-    description:
-      'Exquisite handwoven Banarasi silk saree featuring intricate zari work in traditional patterns. Perfect for weddings and special occasions.',
-    price: 12999,
-    mrp: 18999,
-    stock: 10,
-    images: [
-      'https://images.pexels.com/photos/1164674/pexels-photo-1164674.jpeg?auto=compress&cs=tinysrgb&w=800',
-      'https://images.pexels.com/photos/3621953/pexels-photo-3621953.jpeg?auto=compress&cs=tinysrgb&w=800',
-    ],
-  };
+  useEffect(() => {
+    if (slug) {
+      loadProduct();
+      loadReviews();
+    }
+  }, [slug]);
+
+  async function loadProduct() {
+    try {
+      const { data, error } = await supabase
+        .from('products')
+        .select('*')
+        .eq('slug', slug)
+        .eq('active', true)
+        .maybeSingle();
+
+      if (error) throw error;
+      if (data) setProduct(data);
+    } catch (error) {
+      console.error('Error loading product:', error);
+      toast.error('Failed to load product');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function loadReviews() {
+    try {
+      const { data: productData } = await supabase
+        .from('products')
+        .select('id')
+        .eq('slug', slug)
+        .maybeSingle();
+
+      if (!productData) return;
+
+      const { data, error } = await supabase
+        .from('reviews')
+        .select('rating')
+        .eq('product_id', productData.id)
+        .eq('status', 'approved');
+
+      if (error) throw error;
+      if (data && data.length > 0) {
+        const avg = data.reduce((sum, review) => sum + review.rating, 0) / data.length;
+        setAverageRating(avg);
+        setReviewCount(data.length);
+      }
+    } catch (error) {
+      console.error('Error loading reviews:', error);
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 py-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="animate-pulse grid md:grid-cols-2 gap-8">
+            <div className="bg-gray-200 aspect-square rounded-lg"></div>
+            <div className="space-y-4">
+              <div className="h-8 bg-gray-200 rounded w-3/4"></div>
+              <div className="h-6 bg-gray-200 rounded w-1/2"></div>
+              <div className="h-20 bg-gray-200 rounded"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!product) {
+    return (
+      <div className="min-h-screen bg-gray-50 py-8 flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Product not found</h2>
+          <p className="text-gray-600">The product you're looking for doesn't exist.</p>
+        </div>
+      </div>
+    );
+  }
 
   const discount = Math.round(((product.mrp - product.price) / product.mrp) * 100);
 
@@ -47,52 +135,74 @@ export function ProductDetail() {
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid md:grid-cols-2 gap-8">
-          <div className="space-y-4">
-            <div className="relative aspect-square overflow-hidden rounded-lg bg-white shadow-lg group">
-              <img
-                src={product.images[selectedImage]}
-                alt={product.title}
-                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-              />
-              {discount > 0 && (
-                <div className="absolute top-4 right-4 bg-red-600 text-white text-sm font-bold px-3 py-1 rounded-full">
-                  {discount}% OFF
-                </div>
-              )}
-            </div>
-
-            <div className="grid grid-cols-4 gap-2">
-              {product.images.map((image, index) => (
-                <button
-                  key={index}
-                  onClick={() => setSelectedImage(index)}
-                  className={`aspect-square rounded-lg overflow-hidden border-2 transition-all ${
-                    selectedImage === index
-                      ? 'border-red-600 ring-2 ring-red-600'
-                      : 'border-gray-200 hover:border-gray-300'
-                  }`}
-                >
-                  <img src={image} alt={`${product.title} ${index + 1}`} className="w-full h-full object-cover" />
-                </button>
-              ))}
-            </div>
+          <div>
+            <ProductGallery
+              images={product.images}
+              youtubeIds={product.youtube_ids}
+              title={product.title}
+            />
           </div>
 
           <div className="space-y-6">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-4">{product.title}</h1>
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">{product.title}</h1>
+
+              {product.codes.length > 0 && (
+                <p className="text-sm text-gray-600 mb-4">
+                  Product Code: {product.codes.join(', ')}
+                </p>
+              )}
+
+              {reviewCount > 0 && (
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="flex items-center">
+                    {[...Array(5)].map((_, i) => (
+                      <Star
+                        key={i}
+                        className={`w-4 h-4 ${
+                          i < Math.round(averageRating)
+                            ? 'text-yellow-400 fill-yellow-400'
+                            : 'text-gray-300'
+                        }`}
+                      />
+                    ))}
+                  </div>
+                  <span className="text-sm text-gray-600">
+                    {averageRating.toFixed(1)} ({reviewCount} reviews)
+                  </span>
+                </div>
+              )}
 
               <div className="flex items-center gap-3 mb-4">
                 <span className="text-3xl font-bold text-gray-900">
-                  ₹{product.price.toLocaleString('en-IN')}
+                  {formatCurrency(product.price)}
                 </span>
                 <span className="text-xl text-gray-500 line-through">
-                  ₹{product.mrp.toLocaleString('en-IN')}
+                  {formatCurrency(product.mrp)}
                 </span>
-                <span className="text-green-600 font-semibold">Save {discount}%</span>
+                {discount > 0 && (
+                  <span className="text-green-600 font-semibold">Save {discount}%</span>
+                )}
               </div>
 
+              {product.stock > 0 ? (
+                <p className="text-green-600 font-medium mb-4">In Stock ({product.stock} available)</p>
+              ) : (
+                <p className="text-red-600 font-medium mb-4">Out of Stock</p>
+              )}
+
               <p className="text-gray-600 mb-6">{product.description}</p>
+
+              {product.features && product.features.length > 0 && (
+                <div className="mb-6">
+                  <h3 className="font-semibold text-gray-900 mb-2">Features:</h3>
+                  <ul className="list-disc list-inside space-y-1 text-gray-600">
+                    {product.features.map((feature, index) => (
+                      <li key={index}>{feature}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
             </div>
 
             <div className="flex items-center gap-4">
@@ -117,10 +227,11 @@ export function ProductDetail() {
             <div className="flex gap-4">
               <button
                 onClick={handleAddToCart}
-                className="flex-1 btn btn-primary flex items-center justify-center gap-2"
+                disabled={product.stock === 0}
+                className="flex-1 btn btn-primary flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <ShoppingCart className="w-5 h-5" />
-                Add to Cart
+                {product.stock === 0 ? 'Out of Stock' : 'Add to Cart'}
               </button>
               <button className="p-3 border-2 border-gray-300 rounded-lg hover:border-red-600 hover:text-red-600 transition-colors">
                 <Heart className="w-6 h-6" />
@@ -148,6 +259,10 @@ export function ProductDetail() {
               </div>
             </div>
           </div>
+        </div>
+
+        <div className="mt-16">
+          <ReviewsList productId={product.id} />
         </div>
       </div>
     </div>
