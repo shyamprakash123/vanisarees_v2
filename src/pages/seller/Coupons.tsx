@@ -71,10 +71,16 @@ export function SellerCoupons() {
   };
 
   const fetchCoupons = async () => {
+    if (!sellerId) {
+      setLoading(false);
+      return;
+    }
+
     try {
       const { data, error } = await supabase
         .from("coupons")
         .select("*")
+        .eq("seller_id", sellerId)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
@@ -131,6 +137,11 @@ export function SellerCoupons() {
       return;
     }
 
+    if (!sellerId) {
+      addToast("Seller account not found", "error");
+      return;
+    }
+
     try {
       const couponData = {
         code: formData.code.toUpperCase(),
@@ -144,6 +155,7 @@ export function SellerCoupons() {
         valid_to: formData.valid_to || null,
         description: formData.description || null,
         active: formData.active,
+        seller_id: sellerId,
       };
 
       if (editingCoupon) {

@@ -5,10 +5,21 @@ import { useToast } from '../../hooks/useToast';
 import { Wallet, Plus, Clock, CheckCircle, XCircle } from 'lucide-react';
 import { Modal } from '../../components/ui/Modal';
 
+interface BankAccount {
+  id: string;
+  account_holder: string;
+  account_number: string;
+  ifsc_code: string;
+  bank_name: string;
+  branch_name?: string;
+  account_type: string;
+  is_default: boolean;
+  is_verified: boolean;
+}
+
 interface Seller {
   id: string;
   seller_wallet_balance: number;
-  bank_details: any;
 }
 
 interface WithdrawalRequest {
@@ -28,19 +39,16 @@ export function SellerWithdrawals() {
   const toast = useToast();
   const [seller, setSeller] = useState<Seller | null>(null);
   const [withdrawals, setWithdrawals] = useState<WithdrawalRequest[]>([]);
+  const [bankAccounts, setBankAccounts] = useState<BankAccount[]>([]);
   const [loading, setLoading] = useState(true);
   const [showWithdrawModal, setShowWithdrawModal] = useState(false);
   const [withdrawAmount, setWithdrawAmount] = useState('');
-  const [bankDetails, setBankDetails] = useState({
-    account_holder: '',
-    account_number: '',
-    ifsc_code: '',
-    bank_name: '',
-  });
+  const [selectedBankAccountId, setSelectedBankAccountId] = useState<string>('');
 
   useEffect(() => {
     fetchSellerData();
     fetchWithdrawals();
+    fetchBankAccounts();
   }, [user]);
 
   const fetchSellerData = async () => {
@@ -49,7 +57,7 @@ export function SellerWithdrawals() {
     try {
       const { data, error } = await supabase
         .from('sellers')
-        .select('id, seller_wallet_balance, bank_details')
+        .select('id, seller_wallet_balance')
         .eq('user_id', user.id)
         .maybeSingle();
 
@@ -57,9 +65,6 @@ export function SellerWithdrawals() {
 
       if (data) {
         setSeller(data);
-        if (data.bank_details && Object.keys(data.bank_details).length > 0) {
-          setBankDetails(data.bank_details);
-        }
       }
     } catch (error) {
       console.error('Error fetching seller:', error);
@@ -95,14 +100,48 @@ export function SellerWithdrawals() {
     }
   };
 
+  const fetchBankAccounts = async () => {
+    if (!user) return;
+
+    try {
+      const { data: sellerData } = await supabase
+        .from('sellers')
+        .select('id')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      if (!sellerData) return;
+
+      const { data, error } = await supabase
+        .from('seller_bank_accounts')
+        .select('*')
+        .eq('seller_id', sellerData.id)
+        .order('is_default', { ascending: false });
+
+      if (error) throw error;
+
+      const accounts = data || [];
+      setBankAccounts(accounts);
+
+      const defaultAccount = accounts.find(acc => acc.is_default);
+      if (defaultAccount) {
+        setSelectedBankAccountId(defaultAccount.id);
+      } else if (accounts.length > 0) {
+        setSelectedBankAccountId(accounts[0].id);
+      }
+    } catch (error) {
+      console.error('Error fetching bank accounts:', error);
+    }
+  };
+
   const handleWithdrawRequest = async () => {
     if (!seller || !withdrawAmount || Number(withdrawAmount) <= 0) {
       toast.error('Please enter a valid amount');
       return;
     }
 
-    if (!bankDetails.account_holder || !bankDetails.account_number || !bankDetails.ifsc_code) {
-      toast.error('Please fill in all bank details');
+    if (!selectedBankAccountId) {
+      toast.error('Please select a bank account');
       return;
     }
 
@@ -118,6 +157,21 @@ export function SellerWithdrawals() {
         return;
       }
 
+      const selectedAccount = bankAccounts.find(acc => acc.id === selectedBankAccountId);
+      if (!selectedAccount) {
+        toast.error('Selected bank account not found');
+        return;
+      }
+
+      const bankDetails = {
+        account_holder: selectedAccount.account_holder,
+        account_number: selectedAccount.account_number,
+        ifsc_code: selectedAccount.ifsc_code,
+        bank_name: selectedAccount.bank_name,
+        branch_name: selectedAccount.branch_name,
+        account_type: selectedAccount.account_type,
+      };
+
       const apiUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/seller-withdrawal`;
       const response = await fetch(apiUrl, {
         method: 'POST',
@@ -129,6 +183,7 @@ export function SellerWithdrawals() {
           seller_id: seller.id,
           amount: Number(withdrawAmount),
           bank_details: bankDetails,
+          bank_account_id: selectedBankAccountId,
         }),
       });
 
@@ -137,11 +192,6 @@ export function SellerWithdrawals() {
       if (!response.ok) {
         throw new Error(result.error || 'Failed to create withdrawal request');
       }
-
-      await supabase
-        .from('sellers')
-        .update({ bank_details: bankDetails })
-        .eq('id', seller.id);
 
       toast.success('Withdrawal request submitted successfully');
       setShowWithdrawModal(false);
@@ -348,67 +398,50 @@ export function SellerWithdrawals() {
           </div>
 
           <div className="border-t pt-4">
-            <h3 className="text-sm font-medium text-gray-700 mb-3">Bank Details</h3>
+            <h3 className="text-sm font-medium text-gray-700 mb-3">Bank Account</h3>
 
-            <div className="space-y-3">
+            {bankAccounts.length === 0 ? (
+              <div className="text-center py-6 bg-gray-50 rounded-lg">
+                <p className="text-sm text-gray-600 mb-3">No bank accounts found</p>
+                <a
+                  href="/seller/bank-accounts"
+                  className="text-sm text-red-800 hover:underline"
+                >
+                  Add a bank account first
+                </a>
+              </div>
+            ) : (
               <div>
-                <label className="block text-xs text-gray-600 mb-1">
-                  Account Holder Name *
+                <label className="block text-xs text-gray-600 mb-2">
+                  Select Bank Account *
                 </label>
-                <input
-                  type="text"
-                  value={bankDetails.account_holder}
-                  onChange={(e) =>
-                    setBankDetails({ ...bankDetails, account_holder: e.target.value })
-                  }
+                <select
+                  value={selectedBankAccountId}
+                  onChange={(e) => setSelectedBankAccountId(e.target.value)}
                   className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-800 focus:border-red-800"
-                  placeholder="Full name as per bank"
-                />
+                  required
+                >
+                  {bankAccounts.map((account) => (
+                    <option key={account.id} value={account.id}>
+                      {account.bank_name} - {account.account_number.slice(-4).padStart(account.account_number.length, '*')}
+                      {account.is_default ? ' (Default)' : ''}
+                      {account.is_verified ? ' ✓' : ''}
+                    </option>
+                  ))}
+                </select>
+                {selectedBankAccountId && (() => {
+                  const account = bankAccounts.find(acc => acc.id === selectedBankAccountId);
+                  if (!account) return null;
+                  return (
+                    <div className="mt-3 p-3 bg-gray-50 rounded text-xs space-y-1">
+                      <p><span className="font-medium">Holder:</span> {account.account_holder}</p>
+                      <p><span className="font-medium">IFSC:</span> {account.ifsc_code}</p>
+                      <p><span className="font-medium">Type:</span> {account.account_type}</p>
+                    </div>
+                  );
+                })()}
               </div>
-
-              <div>
-                <label className="block text-xs text-gray-600 mb-1">
-                  Account Number *
-                </label>
-                <input
-                  type="text"
-                  value={bankDetails.account_number}
-                  onChange={(e) =>
-                    setBankDetails({ ...bankDetails, account_number: e.target.value })
-                  }
-                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-800 focus:border-red-800"
-                  placeholder="Account number"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs text-gray-600 mb-1">
-                  IFSC Code *
-                </label>
-                <input
-                  type="text"
-                  value={bankDetails.ifsc_code}
-                  onChange={(e) =>
-                    setBankDetails({ ...bankDetails, ifsc_code: e.target.value.toUpperCase() })
-                  }
-                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-800 focus:border-red-800"
-                  placeholder="IFSC code"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs text-gray-600 mb-1">Bank Name</label>
-                <input
-                  type="text"
-                  value={bankDetails.bank_name}
-                  onChange={(e) =>
-                    setBankDetails({ ...bankDetails, bank_name: e.target.value })
-                  }
-                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-800 focus:border-red-800"
-                  placeholder="Bank name"
-                />
-              </div>
-            </div>
+            )}
           </div>
 
           <div className="flex gap-3 justify-end pt-4">
@@ -423,7 +456,8 @@ export function SellerWithdrawals() {
             </button>
             <button
               onClick={handleWithdrawRequest}
-              className="px-4 py-2 bg-red-800 text-white rounded-lg hover:bg-red-900"
+              disabled={bankAccounts.length === 0}
+              className="px-4 py-2 bg-red-800 text-white rounded-lg hover:bg-red-900 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Submit Request
             </button>
