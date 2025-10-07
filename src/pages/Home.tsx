@@ -35,11 +35,13 @@ export function Home() {
           .from('products')
           .select('id, title, slug, price, mrp, images, stock, featured, trending')
           .eq('featured', true)
+          .eq('active', true)
           .limit(8),
         supabase
           .from('products')
           .select('id, title, slug, price, mrp, images, stock, featured, trending')
-          .order('created_at', { ascending: false })
+          .eq('trending', true)
+          .eq('active', true)
           .limit(8),
       ]);
 
