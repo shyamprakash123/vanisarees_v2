@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../../lib/supabase";
 import { useAuth } from "../../contexts/AuthContext";
-import { Check, X, Eye } from "lucide-react";
+import { Check, X, Eye, Wallet } from "lucide-react";
 import { useToast } from "../../hooks/useToast";
+import { Modal } from "../../components/ui/Modal";
+import { ConfirmDialog } from "../../components/ui/ConfirmDialog";
 
 interface Seller {
   id: string;
@@ -10,6 +12,10 @@ interface Seller {
   shop_name: string;
   status: string;
   kyc: any;
+  seller_wallet_balance: number;
+  commission_rate: number;
+  rejection_reason?: string;
+  approved_at?: string;
   created_at: string;
   users?: {
     email: string;
@@ -24,6 +30,13 @@ export function AdminSellers() {
   const [sellers, setSellers] = useState<Seller[]>([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [selectedSeller, setSelectedSeller] = useState<Seller | null>(null);
+  const [showApprovalModal, setShowApprovalModal] = useState(false);
+  const [showRejectModal, setShowRejectModal] = useState(false);
+  const [showCreditModal, setShowCreditModal] = useState(false);
+  const [rejectionReason, setRejectionReason] = useState("");
+  const [creditAmount, setCreditAmount] = useState("");
+  const [creditDescription, setCreditDescription] = useState("");
 
   useEffect(() => {
     fetchSellers();
@@ -46,6 +59,136 @@ export function AdminSellers() {
     }
   };
 
+  const handleApprove = async () => {
+    if (!selectedSeller) return;
+
+    try {
+      const { data: session } = await supabase.auth.getSession();
+      if (!session?.session) {
+        toast.error("Session expired");
+        return;
+      }
+
+      const apiUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/seller-approval`;
+      const response = await fetch(apiUrl, {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${session.session.access_token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          seller_id: selectedSeller.id,
+          action: "approve",
+        }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || "Failed to approve seller");
+      }
+
+      toast.success("Seller approved successfully");
+      setShowApprovalModal(false);
+      setSelectedSeller(null);
+      fetchSellers();
+    } catch (error: any) {
+      console.error("Error approving seller:", error);
+      toast.error(error.message || "Failed to approve seller");
+    }
+  };
+
+  const handleReject = async () => {
+    if (!selectedSeller || !rejectionReason.trim()) {
+      toast.error("Please provide a rejection reason");
+      return;
+    }
+
+    try {
+      const { data: session } = await supabase.auth.getSession();
+      if (!session?.session) {
+        toast.error("Session expired");
+        return;
+      }
+
+      const apiUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/seller-approval`;
+      const response = await fetch(apiUrl, {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${session.session.access_token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          seller_id: selectedSeller.id,
+          action: "reject",
+          rejection_reason: rejectionReason,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || "Failed to reject seller");
+      }
+
+      toast.success("Seller rejected successfully");
+      setShowRejectModal(false);
+      setSelectedSeller(null);
+      setRejectionReason("");
+      fetchSellers();
+    } catch (error: any) {
+      console.error("Error rejecting seller:", error);
+      toast.error(error.message || "Failed to reject seller");
+    }
+  };
+
+  const handleCreditWallet = async () => {
+    if (!selectedSeller || !creditAmount || Number(creditAmount) <= 0) {
+      toast.error("Please enter a valid amount");
+      return;
+    }
+
+    try {
+      const { data: session } = await supabase.auth.getSession();
+      if (!session?.session) {
+        toast.error("Session expired");
+        return;
+      }
+
+      const apiUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/wallet-transaction`;
+      const response = await fetch(apiUrl, {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${session.session.access_token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          seller_id: selectedSeller.id,
+          type: "credit",
+          amount: Number(creditAmount),
+          description: creditDescription || "Admin credit",
+          reference_type: "admin_credit",
+        }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || "Failed to credit wallet");
+      }
+
+      toast.success("Wallet credited successfully");
+      setShowCreditModal(false);
+      setSelectedSeller(null);
+      setCreditAmount("");
+      setCreditDescription("");
+      fetchSellers();
+    } catch (error: any) {
+      console.error("Error crediting wallet:", error);
+      toast.error(error.message || "Failed to credit wallet");
+    }
+  };
+
   const updateSellerStatus = async (sellerId: string, newStatus: string) => {
     try {
       const { error } = await supabase
@@ -63,6 +206,21 @@ export function AdminSellers() {
     }
   };
 
+  const openApprovalModal = (seller: Seller) => {
+    setSelectedSeller(seller);
+    setShowApprovalModal(true);
+  };
+
+  const openRejectModal = (seller: Seller) => {
+    setSelectedSeller(seller);
+    setShowRejectModal(true);
+  };
+
+  const openCreditModal = (seller: Seller) => {
+    setSelectedSeller(seller);
+    setShowCreditModal(true);
+  };
+
   const filteredSellers =
     statusFilter === "all"
       ? sellers
@@ -73,6 +231,7 @@ export function AdminSellers() {
       pending: "bg-yellow-100 text-yellow-800",
       approved: "bg-green-100 text-green-800",
       suspended: "bg-red-100 text-red-800",
+      rejected: "bg-gray-100 text-gray-800",
     };
     return colors[status] || "bg-gray-100 text-gray-800";
   };
@@ -101,7 +260,7 @@ export function AdminSellers() {
           >
             All Sellers
           </button>
-          {["pending", "approved", "suspended"].map((status) => (
+          {["pending", "approved", "suspended", "rejected"].map((status) => (
             <button
               key={status}
               onClick={() => setStatusFilter(status)}
@@ -129,6 +288,9 @@ export function AdminSellers() {
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Status
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Wallet Balance
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Applied On
@@ -166,6 +328,17 @@ export function AdminSellers() {
                         {seller.status}
                       </span>
                     </td>
+                    <td className="px-6 py-4">
+                      <div className="text-sm font-medium text-gray-900">
+                        ₹{seller.seller_wallet_balance?.toFixed(2) || '0.00'}
+                      </div>
+                      <button
+                        onClick={() => openCreditModal(seller)}
+                        className="text-xs text-blue-600 hover:text-blue-800 flex items-center gap-1 mt-1"
+                      >
+                        <Wallet size={12} /> Credit Wallet
+                      </button>
+                    </td>
                     <td className="px-6 py-4 text-sm text-gray-500">
                       {new Date(seller.created_at).toLocaleDateString()}
                     </td>
@@ -174,18 +347,14 @@ export function AdminSellers() {
                         {seller.status === "pending" && (
                           <>
                             <button
-                              onClick={() =>
-                                updateSellerStatus(seller.id, "approved")
-                              }
+                              onClick={() => openApprovalModal(seller)}
                               className="p-2 text-green-600 hover:bg-green-50 rounded"
                               title="Approve"
                             >
                               <Check size={16} />
                             </button>
                             <button
-                              onClick={() =>
-                                updateSellerStatus(seller.id, "suspended")
-                              }
+                              onClick={() => openRejectModal(seller)}
                               className="p-2 text-red-600 hover:bg-red-50 rounded"
                               title="Reject"
                             >
@@ -232,6 +401,125 @@ export function AdminSellers() {
           <div className="text-center py-8 text-gray-500">No sellers found</div>
         )}
       </div>
+
+      <ConfirmDialog
+        isOpen={showApprovalModal}
+        onClose={() => setShowApprovalModal(false)}
+        onConfirm={handleApprove}
+        title="Approve Seller"
+        message={`Are you sure you want to approve ${selectedSeller?.shop_name}? This will grant them access to the seller dashboard.`}
+        confirmText="Approve"
+        confirmVariant="success"
+      />
+
+      <Modal
+        isOpen={showRejectModal}
+        onClose={() => {
+          setShowRejectModal(false);
+          setRejectionReason("");
+        }}
+        title="Reject Seller Application"
+      >
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Rejection Reason *
+            </label>
+            <textarea
+              value={rejectionReason}
+              onChange={(e) => setRejectionReason(e.target.value)}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+              rows={4}
+              placeholder="Provide a detailed reason for rejection..."
+            />
+          </div>
+          <div className="flex gap-3 justify-end">
+            <button
+              onClick={() => {
+                setShowRejectModal(false);
+                setRejectionReason("");
+              }}
+              className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleReject}
+              className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+            >
+              Reject Seller
+            </button>
+          </div>
+        </div>
+      </Modal>
+
+      <Modal
+        isOpen={showCreditModal}
+        onClose={() => {
+          setShowCreditModal(false);
+          setCreditAmount("");
+          setCreditDescription("");
+        }}
+        title="Credit Seller Wallet"
+      >
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Shop Name
+            </label>
+            <div className="text-gray-900 font-medium">
+              {selectedSeller?.shop_name}
+            </div>
+            <div className="text-sm text-gray-500">
+              Current Balance: ₹{selectedSeller?.seller_wallet_balance?.toFixed(2) || '0.00'}
+            </div>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Amount *
+            </label>
+            <input
+              type="number"
+              step="0.01"
+              min="0.01"
+              value={creditAmount}
+              onChange={(e) => setCreditAmount(e.target.value)}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-800 focus:border-red-800"
+              placeholder="Enter amount to credit"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Description
+            </label>
+            <textarea
+              value={creditDescription}
+              onChange={(e) => setCreditDescription(e.target.value)}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-800 focus:border-red-800"
+              rows={3}
+              placeholder="Optional description for this credit"
+            />
+          </div>
+          <div className="flex gap-3 justify-end">
+            <button
+              onClick={() => {
+                setShowCreditModal(false);
+                setCreditAmount("");
+                setCreditDescription("");
+              }}
+              className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleCreditWallet}
+              className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+            >
+              Credit Wallet
+            </button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }
