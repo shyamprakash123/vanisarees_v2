@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
-import { supabase } from '../../lib/supabase';
-import { useAuth } from '../../contexts/AuthContext';
-import { useToast } from '../../hooks/useToast';
+import { useState, useEffect } from "react";
+import { supabase } from "../../lib/supabase";
+import { useAuth } from "../../contexts/AuthContext";
+import { useToast } from "../../hooks/useToast";
 
 interface Address {
   id: string;
@@ -33,16 +33,22 @@ export interface CheckoutData {
   useWallet: boolean;
 }
 
-export function CheckoutForm({ onSubmit, subtotal, shippingCharge, tax, total }: CheckoutFormProps) {
+export function CheckoutForm({
+  onSubmit,
+  subtotal,
+  shippingCharge,
+  tax,
+  total,
+}: CheckoutFormProps) {
   const { user } = useAuth();
-  const { showToast } = useToast();
+  const toast = useToast();
   const [addresses, setAddresses] = useState<Address[]>([]);
-  const [selectedAddressId, setSelectedAddressId] = useState<string>('');
-  const [paymentMethod, setPaymentMethod] = useState<string>('online');
+  const [selectedAddressId, setSelectedAddressId] = useState<string>("");
+  const [paymentMethod, setPaymentMethod] = useState<string>("online");
   const [giftWrap, setGiftWrap] = useState(false);
-  const [giftMessage, setGiftMessage] = useState('');
-  const [notes, setNotes] = useState('');
-  const [couponCode, setCouponCode] = useState('');
+  const [giftMessage, setGiftMessage] = useState("");
+  const [notes, setNotes] = useState("");
+  const [couponCode, setCouponCode] = useState("");
   const [useWallet, setUseWallet] = useState(false);
   const [walletBalance, setWalletBalance] = useState(0);
 
@@ -56,10 +62,10 @@ export function CheckoutForm({ onSubmit, subtotal, shippingCharge, tax, total }:
 
     try {
       const { data, error } = await supabase
-        .from('addresses')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('is_default', { ascending: false });
+        .from("addresses")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("is_default", { ascending: false });
 
       if (error) throw error;
 
@@ -68,8 +74,8 @@ export function CheckoutForm({ onSubmit, subtotal, shippingCharge, tax, total }:
         setSelectedAddressId(data[0].id);
       }
     } catch (error) {
-      console.error('Error fetching addresses:', error);
-      showToast('Failed to load addresses', 'error');
+      console.error("Error fetching addresses:", error);
+      toast.error("Failed to load addresses");
     }
   };
 
@@ -78,24 +84,26 @@ export function CheckoutForm({ onSubmit, subtotal, shippingCharge, tax, total }:
 
     try {
       const { data, error } = await supabase
-        .from('users')
-        .select('wallet_balance')
-        .eq('id', user.id)
+        .from("users")
+        .select("wallet_balance")
+        .eq("id", user.id)
         .single();
 
       if (error) throw error;
       setWalletBalance(data?.wallet_balance || 0);
     } catch (error) {
-      console.error('Error fetching wallet balance:', error);
+      console.error("Error fetching wallet balance:", error);
     }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    const selectedAddress = addresses.find(addr => addr.id === selectedAddressId);
+    const selectedAddress = addresses.find(
+      (addr) => addr.id === selectedAddressId
+    );
     if (!selectedAddress) {
-      showToast('Please select a delivery address', 'error');
+      toast.error("Please select a delivery address");
       return;
     }
 
@@ -116,14 +124,18 @@ export function CheckoutForm({ onSubmit, subtotal, shippingCharge, tax, total }:
         <h2 className="text-xl font-bold mb-4">Delivery Address</h2>
 
         {addresses.length === 0 ? (
-          <p className="text-gray-500">No addresses found. Please add an address first.</p>
+          <p className="text-gray-500">
+            No addresses found. Please add an address first.
+          </p>
         ) : (
           <div className="space-y-3">
             {addresses.map((address) => (
               <label
                 key={address.id}
                 className={`block p-4 border rounded-lg cursor-pointer ${
-                  selectedAddressId === address.id ? 'border-red-800 bg-red-50' : 'border-gray-200'
+                  selectedAddressId === address.id
+                    ? "border-red-800 bg-red-50"
+                    : "border-gray-200"
                 }`}
               >
                 <input
@@ -142,7 +154,9 @@ export function CheckoutForm({ onSubmit, subtotal, shippingCharge, tax, total }:
                   <p className="text-sm text-gray-600">
                     {address.city}, {address.state} - {address.pincode}
                   </p>
-                  <p className="text-sm text-gray-600">Phone: {address.phone}</p>
+                  <p className="text-sm text-gray-600">
+                    Phone: {address.phone}
+                  </p>
                 </div>
               </label>
             ))}
@@ -159,13 +173,15 @@ export function CheckoutForm({ onSubmit, subtotal, shippingCharge, tax, total }:
               type="radio"
               name="payment"
               value="online"
-              checked={paymentMethod === 'online'}
+              checked={paymentMethod === "online"}
               onChange={(e) => setPaymentMethod(e.target.value)}
               className="mr-3"
             />
             <div>
               <p className="font-medium">Online Payment</p>
-              <p className="text-sm text-gray-600">Pay using UPI, Card, or Net Banking</p>
+              <p className="text-sm text-gray-600">
+                Pay using UPI, Card, or Net Banking
+              </p>
             </div>
           </label>
 
@@ -174,13 +190,15 @@ export function CheckoutForm({ onSubmit, subtotal, shippingCharge, tax, total }:
               type="radio"
               name="payment"
               value="cod"
-              checked={paymentMethod === 'cod'}
+              checked={paymentMethod === "cod"}
               onChange={(e) => setPaymentMethod(e.target.value)}
               className="mr-3"
             />
             <div>
               <p className="font-medium">Cash on Delivery</p>
-              <p className="text-sm text-gray-600">Pay when you receive the product</p>
+              <p className="text-sm text-gray-600">
+                Pay when you receive the product
+              </p>
             </div>
           </label>
         </div>
@@ -219,7 +237,9 @@ export function CheckoutForm({ onSubmit, subtotal, shippingCharge, tax, total }:
           />
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Coupon Code</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Coupon Code
+            </label>
             <input
               type="text"
               placeholder="Enter coupon code"
@@ -237,7 +257,9 @@ export function CheckoutForm({ onSubmit, subtotal, shippingCharge, tax, total }:
                 onChange={(e) => setUseWallet(e.target.checked)}
                 className="mr-3"
               />
-              <span>Use Wallet Balance (₹{walletBalance.toFixed(2)} available)</span>
+              <span>
+                Use Wallet Balance (₹{walletBalance.toFixed(2)} available)
+              </span>
             </label>
           )}
         </div>
@@ -273,7 +295,14 @@ export function CheckoutForm({ onSubmit, subtotal, shippingCharge, tax, total }:
           )}
           <div className="border-t pt-2 flex justify-between font-bold text-lg">
             <span>Total</span>
-            <span>₹{(total + (giftWrap ? 50 : 0) - (useWallet ? Math.min(walletBalance, total) : 0)).toFixed(2)}</span>
+            <span>
+              ₹
+              {(
+                total +
+                (giftWrap ? 50 : 0) -
+                (useWallet ? Math.min(walletBalance, total) : 0)
+              ).toFixed(2)}
+            </span>
           </div>
         </div>
       </div>
