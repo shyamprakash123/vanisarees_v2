@@ -7,6 +7,8 @@ import { Home } from './pages/Home';
 import { CategoryPage } from './pages/CategoryPage';
 import { ProductDetail } from './pages/ProductDetail';
 import { Cart } from './pages/Cart';
+import { SignIn } from './pages/SignIn';
+import { SignUp } from './pages/SignUp';
 import { ToastContainer } from './components/ui/Toast';
 import { useToast } from './hooks/useToast';
 
@@ -22,6 +24,8 @@ function AppContent() {
           <Route path="/category/:slug" element={<CategoryPage />} />
           <Route path="/product/:slug" element={<ProductDetail />} />
           <Route path="/cart" element={<Cart />} />
+          <Route path="/auth/signin" element={<SignIn />} />
+          <Route path="/auth/signup" element={<SignUp />} />
         </Routes>
       </main>
       <Footer />
