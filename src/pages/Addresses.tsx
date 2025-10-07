@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
-import { MapPin, Plus, Edit, Trash2 } from 'lucide-react';
+import { MapPin, Plus, CreditCard as Edit, Trash2 } from 'lucide-react';
 import { Modal } from '../components/ui/Modal';
 import { ConfirmDialog } from '../components/ui/ConfirmDialog';
 
