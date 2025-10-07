@@ -36,7 +36,6 @@ export function Search() {
         const { data, count, error } = await supabase
           .from('products')
           .select('id, title, slug, price, mrp, images, stock', { count: 'exact' })
-          .eq('active', true)
           .range((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage - 1)
           .order('created_at', { ascending: false });
 
@@ -61,7 +60,6 @@ export function Search() {
         const { data: fallbackData, count, error: fallbackError } = await supabase
           .from('products')
           .select('id, title, slug, price, mrp, images, stock', { count: 'exact' })
-          .eq('active', true)
           .or(`title.ilike.%${searchTerm}%,description.ilike.%${searchTerm}%`)
           .range((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage - 1)
           .order('created_at', { ascending: false });

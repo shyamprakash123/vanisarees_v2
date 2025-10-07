@@ -35,14 +35,12 @@ export function Home() {
           .from('products')
           .select('id, title, slug, price, mrp, images, stock, featured, trending')
           .eq('featured', true)
-          .eq('active', true)
-          .limit(4),
+          .limit(8),
         supabase
           .from('products')
           .select('id, title, slug, price, mrp, images, stock, featured, trending')
-          .eq('trending', true)
-          .eq('active', true)
-          .limit(4),
+          .order('created_at', { ascending: false })
+          .limit(8),
       ]);
 
       if (featuredRes.data) setFeaturedProducts(featuredRes.data);
