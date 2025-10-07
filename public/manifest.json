@@ -1,0 +1,49 @@
+{
+  "name": "VaniSarees - Traditional Indian Sarees & Jewellery",
+  "short_name": "VaniSarees",
+  "description": "Discover the finest collection of traditional Indian sarees and elegant jewellery",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#b91c1c",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["shopping", "fashion", "lifestyle"],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "Browse Sarees",
+      "short_name": "Sarees",
+      "description": "Browse our saree collection",
+      "url": "/category/sarees",
+      "icons": []
+    },
+    {
+      "name": "Browse Jewellery",
+      "short_name": "Jewellery",
+      "description": "Browse our jewellery collection",
+      "url": "/category/jewellery",
+      "icons": []
+    },
+    {
+      "name": "My Orders",
+      "short_name": "Orders",
+      "description": "View your orders",
+      "url": "/orders",
+      "icons": []
+    }
+  ]
+}

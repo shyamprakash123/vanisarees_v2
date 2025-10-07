@@ -2,12 +2,42 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>New chat</title>
+    <meta name="theme-color" content="#b91c1c" />
+
+    <title>VaniSarees - Traditional Indian Sarees & Elegant Jewellery</title>
+    <meta name="description" content="Discover the finest collection of traditional Indian sarees and elegant jewellery. Premium silk sarees, wedding collections, rings, chains and more at VaniSarees.in" />
+    <meta name="keywords" content="sarees, indian sarees, silk sarees, jewellery, traditional jewellery, rings, chains, vanisarees" />
+
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="apple-touch-icon" href="/icon-192.png" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://vanisarees.in/" />
+    <meta property="og:title" content="VaniSarees - Traditional Indian Sarees & Elegant Jewellery" />
+    <meta property="og:description" content="Discover the finest collection of traditional Indian sarees and elegant jewellery. Premium silk sarees, wedding collections, and more." />
+    <meta property="og:image" content="https://vanisarees.in/og-image.jpg" />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:url" content="https://vanisarees.in/" />
+    <meta name="twitter:title" content="VaniSarees - Traditional Indian Sarees & Elegant Jewellery" />
+    <meta name="twitter:description" content="Discover the finest collection of traditional Indian sarees and elegant jewellery." />
+    <meta name="twitter:image" content="https://vanisarees.in/og-image.jpg" />
+
+    <link rel="canonical" href="https://vanisarees.in/" />
   </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js')
+            .then(registration => console.log('SW registered'))
+            .catch(err => console.log('SW registration failed'));
+        });
+      }
+    </script>
   </body>
 </html>

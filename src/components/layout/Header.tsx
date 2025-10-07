@@ -1,13 +1,17 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ShoppingBag, Search, User, Menu, X, LogOut, Settings, Wallet as WalletIcon, MapPin, Package, LayoutDashboard, Store } from 'lucide-react';
+import { ShoppingBag, Search, User, Menu, X, LogOut, Settings, Wallet as WalletIcon, MapPin, Package, LayoutDashboard, Store, Moon, Sun, Languages } from 'lucide-react';
 import { useCart } from '../../contexts/CartContext';
 import { useAuth } from '../../contexts/AuthContext';
+import { useTheme } from '../../contexts/ThemeContext';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { supabase } from '../../lib/supabase';
 
 export function Header() {
   const { itemCount } = useCart();
   const { user, role } = useAuth();
+  const { theme, toggleTheme } = useTheme();
+  const { language, setLanguage } = useLanguage();
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
@@ -72,8 +76,29 @@ export function Header() {
               </button>
             </form>
 
-            <button onClick={() => navigate('/search')} className="md:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors">
-              <Search className="w-5 h-5 text-gray-700" />
+            <button onClick={() => navigate('/search')} className="md:hidden p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+              <Search className="w-5 h-5 text-gray-700 dark:text-gray-300" />
+            </button>
+
+            <button
+              onClick={toggleTheme}
+              className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+              title={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
+            >
+              {theme === 'light' ? (
+                <Moon className="w-5 h-5 text-gray-700" />
+              ) : (
+                <Sun className="w-5 h-5 text-gray-300" />
+              )}
+            </button>
+
+            <button
+              onClick={() => setLanguage(language === 'en' ? 'hi' : 'en')}
+              className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors flex items-center gap-1"
+              title="Change Language"
+            >
+              <Languages className="w-5 h-5 text-gray-700 dark:text-gray-300" />
+              <span className="text-xs font-medium text-gray-700 dark:text-gray-300 uppercase">{language}</span>
             </button>
 
             <div className="relative">

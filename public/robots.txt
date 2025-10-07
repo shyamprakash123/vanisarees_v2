@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /seller/
+Disallow: /account/
+Disallow: /cart
+Disallow: /checkout
+
+Sitemap: https://vanisarees.in/sitemap.xml

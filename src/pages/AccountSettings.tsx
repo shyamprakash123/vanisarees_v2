@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
-import { User, Mail, Phone, Building } from 'lucide-react';
+import { User, Mail, Phone, Building, Bell } from 'lucide-react';
 
 export function AccountSettings() {
   const { user } = useAuth();
@@ -13,6 +13,12 @@ export function AccountSettings() {
   const [gstin, setGstin] = useState('');
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
+  const [notifications, setNotifications] = useState({
+    orderUpdates: true,
+    promotions: true,
+    newsletter: false,
+    newArrivals: true,
+  });
 
   useEffect(() => {
     if (!user) {
@@ -26,7 +32,7 @@ export function AccountSettings() {
     try {
       const { data, error } = await supabase
         .from('users')
-        .select('name, phone, gstin')
+        .select('name, phone, gstin, notification_preferences')
         .eq('id', user!.id)
         .single();
 
@@ -35,6 +41,9 @@ export function AccountSettings() {
         setName(data.name || '');
         setPhone(data.phone || '');
         setGstin(data.gstin || '');
+        if (data.notification_preferences) {
+          setNotifications(data.notification_preferences);
+        }
       }
     } catch (error) {
       console.error('Load profile error:', error);
@@ -48,7 +57,12 @@ export function AccountSettings() {
     try {
       const { error } = await supabase
         .from('users')
-        .update({ name, phone, gstin })
+        .update({
+          name,
+          phone,
+          gstin,
+          notification_preferences: notifications
+        })
         .eq('id', user!.id);
 
       if (error) throw error;
@@ -121,6 +135,51 @@ export function AccountSettings() {
             className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-red-800 focus:border-transparent"
           />
           <p className="text-xs text-gray-500 mt-1">For GST invoice generation</p>
+        </div>
+
+        <div className="border-t pt-6">
+          <h3 className="flex items-center gap-2 text-lg font-semibold text-gray-900 mb-4">
+            <Bell className="h-5 w-5" />
+            Notification Preferences
+          </h3>
+          <div className="space-y-3">
+            <label className="flex items-center justify-between p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors">
+              <span className="text-sm font-medium text-gray-700">Order Updates</span>
+              <input
+                type="checkbox"
+                checked={notifications.orderUpdates}
+                onChange={(e) => setNotifications({ ...notifications, orderUpdates: e.target.checked })}
+                className="w-5 h-5 text-red-800 border-gray-300 rounded focus:ring-red-800"
+              />
+            </label>
+            <label className="flex items-center justify-between p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors">
+              <span className="text-sm font-medium text-gray-700">Promotions & Offers</span>
+              <input
+                type="checkbox"
+                checked={notifications.promotions}
+                onChange={(e) => setNotifications({ ...notifications, promotions: e.target.checked })}
+                className="w-5 h-5 text-red-800 border-gray-300 rounded focus:ring-red-800"
+              />
+            </label>
+            <label className="flex items-center justify-between p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors">
+              <span className="text-sm font-medium text-gray-700">Newsletter</span>
+              <input
+                type="checkbox"
+                checked={notifications.newsletter}
+                onChange={(e) => setNotifications({ ...notifications, newsletter: e.target.checked })}
+                className="w-5 h-5 text-red-800 border-gray-300 rounded focus:ring-red-800"
+              />
+            </label>
+            <label className="flex items-center justify-between p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors">
+              <span className="text-sm font-medium text-gray-700">New Arrivals</span>
+              <input
+                type="checkbox"
+                checked={notifications.newArrivals}
+                onChange={(e) => setNotifications({ ...notifications, newArrivals: e.target.checked })}
+                className="w-5 h-5 text-red-800 border-gray-300 rounded focus:ring-red-800"
+              />
+            </label>
+          </div>
         </div>
 
         {message && (
