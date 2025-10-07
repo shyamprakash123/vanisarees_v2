@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
-import { Tag, Copy, Check } from 'lucide-react';
-import { formatCurrency } from '../../utils/format';
-import { supabase } from '../../lib/supabase';
+import { useState, useEffect } from "react";
+import { Tag, Copy, Check } from "lucide-react";
+import { formatCurrency } from "../../utils/format";
+import { supabase } from "../../lib/supabase";
 
 interface Coupon {
   id: string;
@@ -26,17 +26,17 @@ export function OffersGrid() {
   async function loadCoupons() {
     try {
       const { data, error } = await supabase
-        .from('coupons')
-        .select('*')
-        .eq('active', true)
-        .gte('valid_to', new Date().toISOString())
-        .order('value', { ascending: false })
+        .from("coupons")
+        .select("*")
+        .eq("active", true)
+        .or(`valid_to.gte.${new Date().toISOString()},valid_to.is.null`)
+        .order("value", { ascending: false })
         .limit(4);
 
       if (error) throw error;
       if (data) setCoupons(data);
     } catch (error) {
-      console.error('Error loading coupons:', error);
+      console.error("Error loading coupons:", error);
     } finally {
       setLoading(false);
     }
@@ -48,12 +48,12 @@ export function OffersGrid() {
       setCopiedCode(code);
       setTimeout(() => setCopiedCode(null), 2000);
     } catch (error) {
-      console.error('Failed to copy:', error);
+      console.error("Failed to copy:", error);
     }
   };
 
   const getDiscountText = (coupon: Coupon) => {
-    if (coupon.type === 'percentage') {
+    if (coupon.type === "percentage") {
       return `${coupon.value}% OFF`;
     }
     return `${formatCurrency(coupon.value)} OFF`;
@@ -63,7 +63,10 @@ export function OffersGrid() {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {[...Array(4)].map((_, i) => (
-          <div key={i} className="animate-pulse bg-gray-200 rounded-lg h-40"></div>
+          <div
+            key={i}
+            className="animate-pulse bg-gray-200 rounded-lg h-40"
+          ></div>
         ))}
       </div>
     );
@@ -91,7 +94,7 @@ export function OffersGrid() {
             </div>
             <div className="flex-1">
               <h4 className="font-semibold text-gray-900 mb-1">
-                {coupon.description || 'Special Offer'}
+                {coupon.description || "Special Offer"}
               </h4>
               {coupon.min_order > 0 && (
                 <p className="text-xs text-gray-600">

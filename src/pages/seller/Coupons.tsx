@@ -28,7 +28,6 @@ export function SellerCoupons() {
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editingCoupon, setEditingCoupon] = useState<Coupon | null>(null);
-  const [sellerId, setSellerId] = useState<string | null>(null);
 
   const [formData, setFormData] = useState({
     code: "",
@@ -38,7 +37,7 @@ export function SellerCoupons() {
     max_discount: "",
     max_uses: "",
     uses_per_user: "1",
-    valid_from: new Date().toISOString().split('T')[0],
+    valid_from: new Date().toISOString().split("T")[0],
     valid_to: "",
     description: "",
     active: true,
@@ -59,7 +58,6 @@ export function SellerCoupons() {
         .maybeSingle();
 
       if (seller) {
-        setSellerId(seller.id);
         fetchCoupons();
       } else {
         setLoading(false);
@@ -71,16 +69,11 @@ export function SellerCoupons() {
   };
 
   const fetchCoupons = async () => {
-    if (!sellerId) {
-      setLoading(false);
-      return;
-    }
-
     try {
       const { data, error } = await supabase
         .from("coupons")
         .select("*")
-        .eq("seller_id", sellerId)
+        .eq("seller_id", user?.id)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
@@ -103,7 +96,7 @@ export function SellerCoupons() {
       max_discount: "",
       max_uses: "",
       uses_per_user: "1",
-      valid_from: new Date().toISOString().split('T')[0],
+      valid_from: new Date().toISOString().split("T")[0],
       valid_to: "",
       description: "",
       active: true,
@@ -121,8 +114,8 @@ export function SellerCoupons() {
       max_discount: coupon.max_discount?.toString() || "",
       max_uses: coupon.max_uses?.toString() || "",
       uses_per_user: coupon.uses_per_user.toString(),
-      valid_from: coupon.valid_from.split('T')[0],
-      valid_to: coupon.valid_to ? coupon.valid_to.split('T')[0] : "",
+      valid_from: coupon.valid_from.split("T")[0],
+      valid_to: coupon.valid_to ? coupon.valid_to.split("T")[0] : "",
       description: coupon.description || "",
       active: coupon.active,
     });
@@ -137,25 +130,22 @@ export function SellerCoupons() {
       return;
     }
 
-    if (!sellerId) {
-      addToast("Seller account not found", "error");
-      return;
-    }
-
     try {
       const couponData = {
         code: formData.code.toUpperCase(),
         type: formData.type,
         value: parseFloat(formData.value),
         min_order: parseFloat(formData.min_order) || 0,
-        max_discount: formData.max_discount ? parseFloat(formData.max_discount) : null,
+        max_discount: formData.max_discount
+          ? parseFloat(formData.max_discount)
+          : null,
         max_uses: formData.max_uses ? parseInt(formData.max_uses) : null,
         uses_per_user: parseInt(formData.uses_per_user),
         valid_from: formData.valid_from,
         valid_to: formData.valid_to || null,
         description: formData.description || null,
         active: formData.active,
-        seller_id: sellerId,
+        seller_id: user?.id,
       };
 
       if (editingCoupon) {
@@ -167,9 +157,7 @@ export function SellerCoupons() {
         if (error) throw error;
         addToast("Coupon updated successfully", "success");
       } else {
-        const { error } = await supabase
-          .from("coupons")
-          .insert(couponData);
+        const { error } = await supabase.from("coupons").insert(couponData);
 
         if (error) throw error;
         addToast("Coupon created successfully", "success");
@@ -232,16 +220,6 @@ export function SellerCoupons() {
     );
   }
 
-  if (!sellerId) {
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="text-center py-12">
-          <p className="text-gray-500">Seller account not found.</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="mb-8">
@@ -268,7 +246,9 @@ export function SellerCoupons() {
                   <div>
                     <h3 className="font-bold text-lg">{coupon.code}</h3>
                     {coupon.description && (
-                      <p className="text-sm text-gray-600">{coupon.description}</p>
+                      <p className="text-sm text-gray-600">
+                        {coupon.description}
+                      </p>
                     )}
                   </div>
                 </div>
@@ -293,7 +273,8 @@ export function SellerCoupons() {
                       : `₹${coupon.value}`}
                     {coupon.type === "percentage" && coupon.max_discount && (
                       <span className="text-xs text-gray-500">
-                        {" "}(max ₹{coupon.max_discount})
+                        {" "}
+                        (max ₹{coupon.max_discount})
                       </span>
                     )}
                   </span>
@@ -322,7 +303,11 @@ export function SellerCoupons() {
                     {coupon.valid_to && (
                       <>
                         {" → "}
-                        <span className={isExpired(coupon.valid_to) ? "text-red-600" : ""}>
+                        <span
+                          className={
+                            isExpired(coupon.valid_to) ? "text-red-600" : ""
+                          }
+                        >
                           {new Date(coupon.valid_to).toLocaleDateString()}
                         </span>
                       </>
@@ -377,7 +362,9 @@ export function SellerCoupons() {
             <input
               type="text"
               value={formData.code}
-              onChange={(e) => setFormData({ ...formData, code: e.target.value.toUpperCase() })}
+              onChange={(e) =>
+                setFormData({ ...formData, code: e.target.value.toUpperCase() })
+              }
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-800 focus:border-red-800 uppercase"
               placeholder="e.g., SAVE20"
               required
@@ -391,7 +378,12 @@ export function SellerCoupons() {
               </label>
               <select
                 value={formData.type}
-                onChange={(e) => setFormData({ ...formData, type: e.target.value as "percentage" | "fixed" })}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    type: e.target.value as "percentage" | "fixed",
+                  })
+                }
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-800 focus:border-red-800"
               >
                 <option value="percentage">Percentage</option>
@@ -406,9 +398,13 @@ export function SellerCoupons() {
                 type="number"
                 step="0.01"
                 value={formData.value}
-                onChange={(e) => setFormData({ ...formData, value: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, value: e.target.value })
+                }
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-800 focus:border-red-800"
-                placeholder={formData.type === "percentage" ? "e.g., 20" : "e.g., 100"}
+                placeholder={
+                  formData.type === "percentage" ? "e.g., 20" : "e.g., 100"
+                }
                 required
               />
             </div>
@@ -423,7 +419,9 @@ export function SellerCoupons() {
                 type="number"
                 step="0.01"
                 value={formData.min_order}
-                onChange={(e) => setFormData({ ...formData, min_order: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, min_order: e.target.value })
+                }
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-800 focus:border-red-800"
                 placeholder="0"
               />
@@ -437,7 +435,9 @@ export function SellerCoupons() {
                   type="number"
                   step="0.01"
                   value={formData.max_discount}
-                  onChange={(e) => setFormData({ ...formData, max_discount: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, max_discount: e.target.value })
+                  }
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-800 focus:border-red-800"
                   placeholder="No limit"
                 />
@@ -453,7 +453,9 @@ export function SellerCoupons() {
               <input
                 type="number"
                 value={formData.uses_per_user}
-                onChange={(e) => setFormData({ ...formData, uses_per_user: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, uses_per_user: e.target.value })
+                }
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-800 focus:border-red-800"
                 min="1"
                 required
@@ -466,7 +468,9 @@ export function SellerCoupons() {
               <input
                 type="number"
                 value={formData.max_uses}
-                onChange={(e) => setFormData({ ...formData, max_uses: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, max_uses: e.target.value })
+                }
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-800 focus:border-red-800"
                 placeholder="Unlimited"
               />
@@ -481,7 +485,9 @@ export function SellerCoupons() {
               <input
                 type="date"
                 value={formData.valid_from}
-                onChange={(e) => setFormData({ ...formData, valid_from: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, valid_from: e.target.value })
+                }
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-800 focus:border-red-800"
                 required
               />
@@ -493,7 +499,9 @@ export function SellerCoupons() {
               <input
                 type="date"
                 value={formData.valid_to}
-                onChange={(e) => setFormData({ ...formData, valid_to: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, valid_to: e.target.value })
+                }
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-800 focus:border-red-800"
               />
             </div>
@@ -505,7 +513,9 @@ export function SellerCoupons() {
             </label>
             <textarea
               value={formData.description}
-              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, description: e.target.value })
+              }
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-800 focus:border-red-800"
               rows={2}
               placeholder="Brief description of this coupon"
@@ -517,10 +527,15 @@ export function SellerCoupons() {
               type="checkbox"
               id="active"
               checked={formData.active}
-              onChange={(e) => setFormData({ ...formData, active: e.target.checked })}
+              onChange={(e) =>
+                setFormData({ ...formData, active: e.target.checked })
+              }
               className="w-4 h-4 text-red-800 border-gray-300 rounded focus:ring-red-800"
             />
-            <label htmlFor="active" className="text-sm font-medium text-gray-700">
+            <label
+              htmlFor="active"
+              className="text-sm font-medium text-gray-700"
+            >
               Active
             </label>
           </div>
