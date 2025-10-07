@@ -28,6 +28,7 @@ import { SellerProducts } from './pages/seller/Products';
 import { SellerOrders } from './pages/seller/Orders';
 import { ToastContainer } from './components/ui/Toast';
 import { TopSlidingBar } from './components/ui/TopSlidingBar';
+import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import { useToast } from './hooks/useToast';
 
 function AppContent() {
@@ -52,20 +53,76 @@ function AppContent() {
           <Route path="/checkout" element={<Checkout />} />
           <Route path="/orders" element={<Orders />} />
           <Route path="/order/:id" element={<OrderDetail />} />
-          <Route path="/account/settings" element={<AccountSettings />} />
-          <Route path="/account/wallet" element={<Wallet />} />
-          <Route path="/account/addresses" element={<Addresses />} />
-          <Route path="/admin" element={<AdminDashboard />} />
-          <Route path="/admin/dashboard" element={<AdminDashboard />} />
-          <Route path="/admin/products" element={<AdminProducts />} />
-          <Route path="/admin/orders" element={<AdminOrders />} />
-          <Route path="/admin/sellers" element={<AdminSellers />} />
-          <Route path="/admin/users" element={<AdminUsers />} />
-          <Route path="/admin/analytics" element={<AdminAnalytics />} />
-          <Route path="/seller" element={<SellerDashboard />} />
-          <Route path="/seller/dashboard" element={<SellerDashboard />} />
-          <Route path="/seller/products" element={<SellerProducts />} />
-          <Route path="/seller/orders" element={<SellerOrders />} />
+          <Route path="/account/settings" element={
+            <ProtectedRoute>
+              <AccountSettings />
+            </ProtectedRoute>
+          } />
+          <Route path="/account/wallet" element={
+            <ProtectedRoute>
+              <Wallet />
+            </ProtectedRoute>
+          } />
+          <Route path="/account/addresses" element={
+            <ProtectedRoute>
+              <Addresses />
+            </ProtectedRoute>
+          } />
+          <Route path="/admin" element={
+            <ProtectedRoute requireRole="admin">
+              <AdminDashboard />
+            </ProtectedRoute>
+          } />
+          <Route path="/admin/dashboard" element={
+            <ProtectedRoute requireRole="admin">
+              <AdminDashboard />
+            </ProtectedRoute>
+          } />
+          <Route path="/admin/products" element={
+            <ProtectedRoute requireRole="admin">
+              <AdminProducts />
+            </ProtectedRoute>
+          } />
+          <Route path="/admin/orders" element={
+            <ProtectedRoute requireRole="admin">
+              <AdminOrders />
+            </ProtectedRoute>
+          } />
+          <Route path="/admin/sellers" element={
+            <ProtectedRoute requireRole="admin">
+              <AdminSellers />
+            </ProtectedRoute>
+          } />
+          <Route path="/admin/users" element={
+            <ProtectedRoute requireRole="admin">
+              <AdminUsers />
+            </ProtectedRoute>
+          } />
+          <Route path="/admin/analytics" element={
+            <ProtectedRoute requireRole="admin">
+              <AdminAnalytics />
+            </ProtectedRoute>
+          } />
+          <Route path="/seller" element={
+            <ProtectedRoute requireRole="seller">
+              <SellerDashboard />
+            </ProtectedRoute>
+          } />
+          <Route path="/seller/dashboard" element={
+            <ProtectedRoute requireRole="seller">
+              <SellerDashboard />
+            </ProtectedRoute>
+          } />
+          <Route path="/seller/products" element={
+            <ProtectedRoute requireRole="seller">
+              <SellerProducts />
+            </ProtectedRoute>
+          } />
+          <Route path="/seller/orders" element={
+            <ProtectedRoute requireRole="seller">
+              <SellerOrders />
+            </ProtectedRoute>
+          } />
           <Route path="/auth/signin" element={<SignIn />} />
           <Route path="/auth/signup" element={<SignUp />} />
         </Routes>

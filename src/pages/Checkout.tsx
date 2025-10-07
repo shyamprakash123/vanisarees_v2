@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import { formatCurrency } from '../utils/format';
-import { CreditCard, Wallet, Package } from 'lucide-react';
+import { CreditCard, Wallet, Package, Tag, X } from 'lucide-react';
 
 interface Address {
   id: string;
@@ -36,6 +36,8 @@ export function Checkout() {
   const [selectedAddress, setSelectedAddress] = useState<string>('');
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [couponCode, setCouponCode] = useState('');
+  const [appliedCoupon, setAppliedCoupon] = useState<any>(null);
+  const [couponError, setCouponError] = useState('');
   const [walletBalance, setWalletBalance] = useState(0);
   const [useWallet, setUseWallet] = useState(false);
   const [giftWrap, setGiftWrap] = useState(false);
@@ -74,6 +76,57 @@ export function Checkout() {
     }
   };
 
+  const applyCoupon = async () => {
+    if (!couponCode.trim()) {
+      setCouponError('Please enter a coupon code');
+      return;
+    }
+
+    try {
+      const { data: coupon, error } = await supabase
+        .from('coupons')
+        .select('*')
+        .eq('code', couponCode.toUpperCase())
+        .eq('active', true)
+        .maybeSingle();
+
+      if (error || !coupon) {
+        setCouponError('Invalid coupon code');
+        return;
+      }
+
+      const now = new Date();
+      if (coupon.valid_from && new Date(coupon.valid_from) > now) {
+        setCouponError('Coupon not yet valid');
+        return;
+      }
+
+      if (coupon.valid_to && new Date(coupon.valid_to) < now) {
+        setCouponError('Coupon expired');
+        return;
+      }
+
+      const subtotalForCoupon = cartItems.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
+
+      if (coupon.min_order && subtotalForCoupon < coupon.min_order) {
+        setCouponError(`Minimum order value ₹${coupon.min_order} required`);
+        return;
+      }
+
+      setAppliedCoupon(coupon);
+      setCouponError('');
+    } catch (error) {
+      console.error('Error applying coupon:', error);
+      setCouponError('Failed to apply coupon');
+    }
+  };
+
+  const removeCoupon = () => {
+    setAppliedCoupon(null);
+    setCouponCode('');
+    setCouponError('');
+  };
+
   const subtotal = cartItems.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
   const taxes = cartItems.reduce((sum, item) => {
     const itemTotal = item.product.price * item.quantity;
@@ -81,8 +134,18 @@ export function Checkout() {
   }, 0);
   const shipping = subtotal > 1000 ? 0 : 100;
   const giftWrapFee = giftWrap ? 50 : 0;
-  const walletDeduction = useWallet ? Math.min(walletBalance, subtotal) : 0;
-  const total = subtotal + taxes + shipping + giftWrapFee - walletDeduction;
+
+  let couponDiscount = 0;
+  if (appliedCoupon) {
+    if (appliedCoupon.type === 'percentage') {
+      couponDiscount = (subtotal * appliedCoupon.value) / 100;
+    } else if (appliedCoupon.type === 'fixed') {
+      couponDiscount = appliedCoupon.value;
+    }
+  }
+
+  const walletDeduction = useWallet ? Math.min(walletBalance, subtotal - couponDiscount) : 0;
+  const total = subtotal + taxes + shipping + giftWrapFee - couponDiscount - walletDeduction;
 
   const handlePlaceOrder = async () => {
     if (!selectedAddress) {
@@ -215,6 +278,12 @@ export function Checkout() {
                   <span>{formatCurrency(giftWrapFee)}</span>
                 </div>
               )}
+              {couponDiscount > 0 && (
+                <div className="flex justify-between text-green-600">
+                  <span>Coupon Discount ({appliedCoupon?.code})</span>
+                  <span>-{formatCurrency(couponDiscount)}</span>
+                </div>
+              )}
               {walletDeduction > 0 && (
                 <div className="flex justify-between text-green-600">
                   <span>Wallet</span>
@@ -227,13 +296,58 @@ export function Checkout() {
               </div>
             </div>
 
-            {walletBalance > 0 && (
-              <label className="flex items-center gap-2 p-3 bg-amber-50 rounded-lg">
-                <input type="checkbox" checked={useWallet} onChange={(e) => setUseWallet(e.target.checked)} />
-                <Wallet className="h-5 w-5" />
-                <span className="text-sm">Use wallet balance ({formatCurrency(walletBalance)})</span>
-              </label>
-            )}
+            <div className="space-y-3">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Have a coupon code?
+                </label>
+                {appliedCoupon ? (
+                  <div className="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-lg">
+                    <div className="flex items-center gap-2">
+                      <Tag className="h-5 w-5 text-green-600" />
+                      <span className="font-medium text-green-800">{appliedCoupon.code}</span>
+                      <span className="text-sm text-green-600">applied</span>
+                    </div>
+                    <button
+                      onClick={removeCoupon}
+                      className="p-1 hover:bg-green-100 rounded transition-colors"
+                    >
+                      <X className="h-4 w-4 text-green-600" />
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={couponCode}
+                      onChange={(e) => {
+                        setCouponCode(e.target.value.toUpperCase());
+                        setCouponError('');
+                      }}
+                      placeholder="Enter coupon code"
+                      className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-800 focus:border-transparent"
+                    />
+                    <button
+                      onClick={applyCoupon}
+                      className="px-4 py-2 bg-red-800 text-white rounded-lg hover:bg-red-900 transition-colors"
+                    >
+                      Apply
+                    </button>
+                  </div>
+                )}
+                {couponError && (
+                  <p className="text-sm text-red-600 mt-1">{couponError}</p>
+                )}
+              </div>
+
+              {walletBalance > 0 && (
+                <label className="flex items-center gap-2 p-3 bg-amber-50 rounded-lg cursor-pointer">
+                  <input type="checkbox" checked={useWallet} onChange={(e) => setUseWallet(e.target.checked)} />
+                  <Wallet className="h-5 w-5" />
+                  <span className="text-sm">Use wallet balance ({formatCurrency(walletBalance)})</span>
+                </label>
+              )}
+            </div>
 
             <button
               onClick={handlePlaceOrder}
