@@ -110,6 +110,7 @@ export function AdminOrders() {
           </button>
           {[
             "draft",
+            "pending",
             "paid",
             "confirmed",
             "shipped",
@@ -188,6 +189,7 @@ export function AdminOrders() {
                         )}`}
                       >
                         <option value="draft">Draft</option>
+                        <option value="pending">Pending</option>
                         <option value="paid">Paid</option>
                         <option value="confirmed">Confirmed</option>
                         <option value="shipped">Shipped</option>
