@@ -1,0 +1,428 @@
+{
+  "name": "VaniSarees",
+  "domain": "vanisarees.in",
+  "version": "1.0.0",
+  "timestamp": "2025-10-06T00:00:00Z",
+  "description": "Full-featured eCommerce website selling sarees and jewellery (rings, chains) built with React.js + Tailwind + Supabase backend. Includes multi-role access, GST invoicing, embedded product YouTube videos, combos/offers, wallet, coupons and full admin analytics and management.",
+
+  "stack": {
+    "frontend": {
+      "framework": "react",
+      "styling": "tailwindcss",
+      "buildTool": "vite"
+    },
+    "backend": {
+      "database_auth": "supabase",
+      "storage": "supabase storage",
+      "serverless_functions": "supabase edge functions"
+    },
+    "payments": [
+      "Razorpay/Stripe/PayU - implement connector(s) with webhooks"
+    ],
+    "search": "Postgres full-text with pg_trgm or external search (Algolia/Typesense) for fast code/name search",
+    "hosting": "Vercel/Netlify for frontend, Supabase for backend",
+    "ci_cd": "GitHub Actions (build, test, deploy)",
+    "i18n": "support for English; structure prepared for additional locales"
+  },
+
+  "GOAL": "Create a professional, performant, accessible ecommerce app with the following user flows, pages, features, and admin controls.",
+
+  "features": [
+    "Home with hero carousel (images + embedded YouTube videos as slides). Each slide supports CTA actions (link to collection, product, or external URL).",
+    "Product catalog: categories, subcategories, filters (price, color, material), sort, pagination, featured products, trending, combos and offers sections on home.",
+    "Product detail page: images, gallery, product code(s), SKU, stock, price, variants (size/color), product description, YouTube video embed, ratings & reviews, seller info (if seller product).",
+    "Search: global search by name or product code (exact and fuzzy). Search suggestions and highlighted matches.",
+    "Cart: persistent per-user cart stored server-side in Supabase; guest cart stored in localStorage merged on sign-in.",
+    "Checkout: address selection/management, shipping options, payment gateway, order summary, gift wrapping option, per-order notes (text), coupon code input, apply wallet balance, shipping charge calculations.",
+    "Orders: order history, order status tracking (placed, confirmed, shipped, delivered, cancelled, refunded). Admin and seller order views.",
+    "Auth: Sign-in / Sign-up with email/password and social login (Google). Remember me. OTP optional for phone.",
+    "Role-based access control: roles = [admin, seller, user]. Role authoring resides in Supabase auth JWT -> app_metadata.role.",
+    "Wallet: per-user wallet with transactions ledger (top-up, refund, order payment). Secure operations via Edge Functions.",
+    "Coupons & Offers: coupon creation (percentage / fixed / min-order / expiry / usage limits), combos (bundles with special price) managed by admin/seller.",
+    "Reviews & Ratings: users can leave review after delivery. Admin/seller moderation.",
+    "Admin Console: dashboard analytics (sales, GMV, orders, refunds, top products, top sellers), GST report generation, exportable CSV/PDF, product/user/seller management, coupon management, order management, stories for suspending users/sellers, accept/reject seller applications.",
+    "Invoice: Generate downloadable GST-compliant invoice (PDF) when order status = invoiced. Include GSTIN fields, HSN/SAC codes per product, tax breakdown.",
+    "Reports: Sales by period, GST report per tax slab, seller payouts, wallet ledger exports.",
+    "RLS & Security: robust RLS for product, order, wallet tables. Use JWT role checks.",
+    "Admin actions: accept/suspend users/sellers, edit products, adjust stock, manual orders creation, refund processing.",
+    "Dark mode support and user settings (profile, addresses, notification preferences).",
+    "Top sliding bar: top-nav announcement banner with dismiss and link actions.",
+    "SEO: server-side metadata, social share cards, sitemap, robots.txt.",
+    "Accessibility: WCAG friendly components (keyboard nav, ARIA).",
+    "Mobile-first responsive design; PWA ready (manifest + service worker)."
+  ],
+
+  "routes": [
+    "/",
+    "/search",
+    "/category/:slug",
+    "/product/:slug_or_code",
+    "/cart",
+    "/checkout",
+    "/orders",
+    "/order/:id",
+    "/auth/signin",
+    "/auth/signup",
+    "/auth/signout",
+    "/account/settings",
+    "/account/wallet",
+    "/account/addresses",
+    "/admin",
+    "/admin/products",
+    "/admin/orders",
+    "/admin/sellers",
+    "/admin/users",
+    "/admin/analytics",
+    "/seller/dashboard",
+    "/seller/products",
+    "/seller/orders"
+  ],
+
+  "components": [
+    "Header (with logo, search, cart icon with count, profile menu, language toggle, dark-mode toggle)",
+    "TopSlidingBar (dismissible announcement)",
+    "HeroCarousel (supports image/video slides; youtube embed option; onClick CTA mapping)",
+    "ProductCard (thumbnail, name, code, price, rating, quick add to cart)",
+    "ProductGallery (zoom, thumbnails, video tab)",
+    "VariantSelector",
+    "QuantitySelector",
+    "AddToCartButton",
+    "CartSidebar (slide-over)",
+    "CheckoutForm",
+    "PaymentForm",
+    "ComboSlider (home)",
+    "OffersGrid (home)",
+    "FeaturedProductsGrid",
+    "AdminDashboardWidgets (charts, KPIs)",
+    "ReportsPanel",
+    "InvoiceGenerator",
+    "Toast/Notifications",
+    "Modal",
+    "ConfirmDialog",
+    "Pagination",
+    "LazyImage"
+  ],
+
+  "supabase_schema": {
+    "tables": {
+      "users": {
+        "columns": [
+          "id uuid (auth.uid)",
+          "email text",
+          "name text",
+          "phone text",
+          "role text",
+          "wallet_balance numeric default 0",
+          "gstin text",
+          "created_at timestamptz"
+        ],
+        "note": "role set via auth.app_metadata on sign-up or via admin action"
+      },
+      "sellers": {
+        "columns": [
+          "id uuid",
+          "user_id uuid",
+          "shop_name text",
+          "status text (pending/approved/suspended)",
+          "kyc jsonb",
+          "created_at timestamptz"
+        ]
+      },
+      "products": {
+        "columns": [
+          "id uuid",
+          "seller_id uuid nullable",
+          "title text",
+          "slug text",
+          "codes text[]",
+          "sku text",
+          "category_id uuid",
+          "price numeric",
+          "mrp numeric",
+          "tax_slab numeric",
+          "stock int",
+          "variants jsonb",
+          "images text[] (storage keys)",
+          "youtube_ids text[]",
+          "featured boolean",
+          "combo_id uuid nullable",
+          "metadata jsonb",
+          "created_at timestamptz"
+        ]
+      },
+      "categories": {
+        "columns": [
+          "id uuid",
+          "name text",
+          "slug text",
+          "parent_id uuid nullable"
+        ]
+      },
+      "combos": {
+        "columns": [
+          "id uuid",
+          "title text",
+          "product_ids uuid[]",
+          "combo_price numeric",
+          "active boolean",
+          "metadata jsonb"
+        ]
+      },
+      "coupons": {
+        "columns": [
+          "id uuid",
+          "code text",
+          "type text (percentage|fixed)",
+          "value numeric",
+          "min_order numeric",
+          "max_uses int",
+          "uses_per_user int",
+          "valid_from timestamptz",
+          "valid_to timestamptz",
+          "active boolean"
+        ]
+      },
+      "cart_items": {
+        "columns": [
+          "id uuid",
+          "user_id uuid",
+          "product_id uuid",
+          "variant jsonb",
+          "quantity int",
+          "created_at timestamptz"
+        ]
+      },
+      "orders": {
+        "columns": [
+          "id uuid",
+          "user_id uuid",
+          "seller_id uuid nullable",
+          "items jsonb",
+          "subtotal numeric",
+          "taxes numeric",
+          "shipping numeric",
+          "wallet_used numeric",
+          "coupon_id uuid nullable",
+          "total numeric",
+          "status text",
+          "invoiced boolean default false",
+          "invoice_id text nullable",
+          "shipping_address jsonb",
+          "payment_meta jsonb",
+          "created_at timestamptz"
+        ]
+      },
+      "invoices": {
+        "columns": [
+          "id uuid",
+          "order_id uuid",
+          "invoice_number text",
+          "gst_breakdown jsonb",
+          "pdf_storage_key text",
+          "created_at timestamptz"
+        ]
+      },
+      "wallet_transactions": {
+        "columns": [
+          "id uuid",
+          "user_id uuid",
+          "type text (credit|debit)",
+          "amount numeric",
+          "meta jsonb",
+          "created_at timestamptz"
+        ]
+      },
+      "reviews": {
+        "columns": [
+          "id uuid",
+          "user_id uuid",
+          "product_id uuid",
+          "rating int",
+          "comment text",
+          "status text (pending/approved/rejected)",
+          "created_at timestamptz"
+        ]
+      }
+    },
+    "indexes": [
+      "products (lower(title))",
+      "products (codes gin_trgm_ops)",
+      "products (slug unique)",
+      "orders (user_id)",
+      "cart_items (user_id)"
+    ]
+  },
+
+  "rls_policies": [
+    {
+      "target": "orders",
+      "policy": "Allow users to select their own orders",
+      "sql": "auth.role() = 'authenticated' AND orders.user_id = auth.uid()"
+    },
+    {
+      "target": "admin_only_example",
+      "policy": "Admin full access - use JWT app_metadata role check",
+      "sql": "(((auth.jwt() -> 'app_metadata'::text) ->> 'role'::text) = 'admin'::text)"
+    },
+    {
+      "target": "products_insert_by_seller",
+      "policy": "Allow seller to insert their products only",
+      "sql": "(((auth.jwt() -> 'app_metadata'::text) ->> 'role'::text) = 'seller'::text) AND new.seller_id = auth.uid()"
+    }
+  ],
+
+  "roles": ["admin", "seller", "user"],
+
+  "role_handling": {
+    "on_signup": "default role = 'user' (set in auth). Seller applications are separate table; admin approves and adds 'seller' role into user's auth.app_metadata.",
+    "admin_assignment": "Admin can set app_metadata.role via secure edge function or Supabase admin panel."
+  },
+
+  "search_design": {
+    "primary_search": "Postgres trigram & full-text search on products.title, products.codes, products.sku",
+    "secondary": "Optionally integrate Algolia/Typesense for instant UI search (configure indexing on product create/update)",
+    "search_api": "Edge Function / RPC that returns relevance-scored results and highlights; supports pagination and fuzzy match"
+  },
+
+  "payment_flow": {
+    "steps": [
+      "create order draft server-side (orders.status = 'draft')",
+      "calculate taxes and shipping, allow wallet & coupon application",
+      "submit to payment gateway; on success webhook updates order status to 'paid' and triggers invoice generation if requested",
+      "support partial payment or COD",
+      "edge function validates payment signature before marking order paid"
+    ],
+    "webhooks": "Implement and secure endpoints for gateway webhooks, validate signatures, idempotency, and update Supabase orders table",
+    "gift_wrap": "boolean on order and optional gift_message text stored in orders.shipping_meta or items meta"
+  },
+
+  "gst_invoice": {
+    "requirement": "Generate downloadable GST-compliant PDF when order.invoiced = true",
+    "fields": [
+      "invoice_number (serial)",
+      "order_id",
+      "billing & shipping addresses (GSTIN if provided)",
+      "HSN/SAC per product",
+      "taxable value per line",
+      "CGST/SGST/IGST breakup",
+      "total tax",
+      "amount in words"
+    ],
+    "generation": "use server-side PDF generator (edge function or server) and store PDF in Supabase storage; store reference in invoices table",
+    "access": "user can download invoice from orders page if invoiced=true; admin can regenerate"
+  },
+
+  "analytics": {
+    "dashboards": [
+      "Sales overview (7/30/90 days), Orders count, Average order value, Refund rate",
+      "Top products & categories",
+      "Seller performance & payout due",
+      "GST report by tax slab (export CSV/PDF)",
+      "Wallet ledger and refunds"
+    ],
+    "export": "CSV and PDF export for reports; scheduled reports via cron (edge function)"
+  },
+
+  "project_manifest": {
+    "purpose": "This manifest must be persisted by bolt.new as canonical project memory so any import into any account reproduces the whole project context and developer instructions.",
+    "includes": [
+      "Full feature list, schema, RLS policies, roles, routes, components and UX behaviors",
+      "Seed data scripts (example admin user, sample products, sample combos, example coupons, example sellers)",
+      "Environment variable checklist (SUPABASE_URL, SUPABASE_KEY_SERVICE_ROLE, NEXT_PUBLIC_SUPABASE_ANON, PAYMENT_GATEWAY_KEYS, SMTP creds)",
+      "Post-import setup script: Run DB migrations, run seed data, setup Supabase auth providers (Google), create admin account, link domain vanisarees.in, run CI/CD pipeline"
+    ],
+    "export_format": "JSON + SQL migration files + seed scripts; also create a human-readable README with setup steps",
+    "metadata_file": "project_manifest.json (top-level) - include timestamp and version"
+  },
+
+  "deployment": {
+    "frontend": "Vercel or Netlify - use environment variables for Supabase keys and payment keys; set up automatic deploys from main branch",
+    "backend": "Supabase for DB and storage, Edge Functions for server logic",
+    "cdn": "use CDN for static assets and images (Supabase or external CDN)",
+    "secrets": "service_role key only on server/edge functions, never in frontend",
+    "ssl": "enable TLS for vanisarees.in; set proper CORS and CSP headers"
+  },
+
+  "backup": "Scheduled DB dumps and periodic storage backups; provide restore scripts",
+
+  "testing": {
+    "unit": "component tests for React components; API tests for edge functions",
+    "e2e": "Cypress/Playwright tests for critical flows (signup, product search, add-to-cart, checkout, webhook handling, invoice download)",
+    "access_control_tests": "Validate RLS policies with typical user/seller/admin JWTs"
+  },
+
+  "design": {
+    "brand": {
+      "name": "VaniSarees",
+      "domain": "vanisarees.in",
+      "primary_color": "#b91c1c",
+      "accent": "#f59e0b",
+      "font": "system or preferred web font"
+    },
+    "tone": "clean, premium, high-contrast product photography; large product thumbnails; easy one-handed mobile checkout",
+    "dark_mode": "variables for light/dark and toggle persisted per user",
+    "youtube_embeds": "use YouTube iframe API; lazy-load embed; show poster thumbnail and play only on user interaction"
+  },
+
+  "automations": [
+    "Auto-send order confirmation email (SMTP) and webhook for external systems",
+    "Admin daily digest email (sales, low-stock alerts)",
+    "Seller payout generation (weekly/monthly), with CSV export"
+  ],
+
+  "seeds": {
+    "admin_user": {
+      "email": "admin@vanisarees.in",
+      "password_placeholder": "SET_ON_IMPORT",
+      "role": "admin"
+    },
+    "example_products": "10 sample sarees + 5 jewellery items with youtube_ids and codes",
+    "example_coupons": [
+      {
+        "code": "WELCOME10",
+        "type": "percentage",
+        "value": 10,
+        "valid_to": "2099-12-31"
+      }
+    ]
+  },
+
+  "docs_to_generate": [
+    "README.md with setup & deploy steps",
+    "API reference for Edge Functions",
+    "ER diagram",
+    "RLS policy explanation & test JWTs",
+    "Invoice template and GST compliance checklist"
+  ],
+
+  "acceptance": [
+    "All pages and routes load and pass linting/tests",
+    "Supabase RLS policies enforced (no leaks of sensitive data)",
+    "Search returns fuzzy matches for product codes and names",
+    "Checkout supports gift wrap, notes, coupons, wallet, and produces correct totals",
+    "Admin can generate GST invoice PDF and users can download when invoiced=true",
+    "Project export/import restores schema, seeds, and manifest so another account reproduces the project"
+  ],
+
+  "bolt_instructions": [
+    "Persist this entire JSON manifest as project metadata and show it in project settings.",
+    "When exporting project, include project_manifest.json and seeds/migrations/README.",
+    "On import, run an automated checklist: validate env vars, run migrations, seed data, create admin user (prompt for admin password), enable Google OAuth with provided client id/secret, and output a summary with next steps.",
+    "Provide a 'Regenerate Invoice' admin UI action that calls the invoice generator edge function.",
+    "Expose a secure admin-only UI for RLS policy tests (simulate JWTs)."
+  ],
+
+  "environment_variables": {
+    "required": [
+      "VITE_SUPABASE_URL",
+      "VITE_SUPABASE_ANON_KEY",
+      "SUPABASE_SERVICE_ROLE_KEY (server-side only)",
+      "PAYMENT_GATEWAY_KEY_ID",
+      "PAYMENT_GATEWAY_SECRET",
+      "SMTP_HOST",
+      "SMTP_PORT",
+      "SMTP_USER",
+      "SMTP_PASSWORD"
+    ]
+  }
+}
