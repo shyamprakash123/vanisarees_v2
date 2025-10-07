@@ -46,7 +46,7 @@ export function AdminSellers() {
     try {
       const { data, error } = await supabase
         .from("sellers")
-        .select("*, users(email, name, phone)")
+        .select("*, users:sellers_user_id_fkey(email, name, phone)")
         .order("created_at", { ascending: false });
 
       if (error) throw error;
@@ -69,11 +69,13 @@ export function AdminSellers() {
         return;
       }
 
-      const apiUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/seller-approval`;
+      const apiUrl = `${
+        import.meta.env.VITE_SUPABASE_URL
+      }/functions/v1/seller-approval`;
       const response = await fetch(apiUrl, {
         method: "POST",
         headers: {
-          "Authorization": `Bearer ${session.session.access_token}`,
+          Authorization: `Bearer ${session.session.access_token}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
@@ -111,11 +113,13 @@ export function AdminSellers() {
         return;
       }
 
-      const apiUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/seller-approval`;
+      const apiUrl = `${
+        import.meta.env.VITE_SUPABASE_URL
+      }/functions/v1/seller-approval`;
       const response = await fetch(apiUrl, {
         method: "POST",
         headers: {
-          "Authorization": `Bearer ${session.session.access_token}`,
+          Authorization: `Bearer ${session.session.access_token}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
@@ -155,11 +159,13 @@ export function AdminSellers() {
         return;
       }
 
-      const apiUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/wallet-transaction`;
+      const apiUrl = `${
+        import.meta.env.VITE_SUPABASE_URL
+      }/functions/v1/wallet-transaction`;
       const response = await fetch(apiUrl, {
         method: "POST",
         headers: {
-          "Authorization": `Bearer ${session.session.access_token}`,
+          Authorization: `Bearer ${session.session.access_token}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
@@ -330,7 +336,7 @@ export function AdminSellers() {
                     </td>
                     <td className="px-6 py-4">
                       <div className="text-sm font-medium text-gray-900">
-                        ₹{seller.seller_wallet_balance?.toFixed(2) || '0.00'}
+                        ₹{seller.seller_wallet_balance?.toFixed(2) || "0.00"}
                       </div>
                       <button
                         onClick={() => openCreditModal(seller)}
@@ -471,7 +477,8 @@ export function AdminSellers() {
               {selectedSeller?.shop_name}
             </div>
             <div className="text-sm text-gray-500">
-              Current Balance: ₹{selectedSeller?.seller_wallet_balance?.toFixed(2) || '0.00'}
+              Current Balance: ₹
+              {selectedSeller?.seller_wallet_balance?.toFixed(2) || "0.00"}
             </div>
           </div>
           <div>

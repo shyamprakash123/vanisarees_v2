@@ -4,12 +4,13 @@ import { createClient } from "npm:@supabase/supabase-js@2.57.4";
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Client-Info, Apikey",
+  "Access-Control-Allow-Headers":
+    "Content-Type, Authorization, X-Client-Info, Apikey",
 };
 
 interface ApprovalRequest {
   seller_id: string;
-  action: 'approve' | 'reject';
+  action: "approve" | "reject";
   rejection_reason?: string;
 }
 
@@ -28,31 +29,29 @@ Deno.serve(async (req: Request) => {
 
     const authHeader = req.headers.get("Authorization")!;
     const token = authHeader.replace("Bearer ", "");
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser(token);
 
     if (authError || !user) {
-      return new Response(
-        JSON.stringify({ error: "Unauthorized" }),
-        {
-          status: 401,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
-      );
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     const userRole = user.app_metadata?.role;
 
-    if (userRole !== 'admin') {
-      return new Response(
-        JSON.stringify({ error: "Admin access required" }),
-        {
-          status: 403,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
-      );
+    if (userRole !== "admin") {
+      return new Response(JSON.stringify({ error: "Admin access required" }), {
+        status: 403,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
-    const { seller_id, action, rejection_reason }: ApprovalRequest = await req.json();
+    const { seller_id, action, rejection_reason }: ApprovalRequest =
+      await req.json();
 
     if (!seller_id || !action) {
       return new Response(
@@ -66,18 +65,15 @@ Deno.serve(async (req: Request) => {
 
     const { data: seller, error: sellerError } = await supabase
       .from("sellers")
-      .select("*, users!inner(id, email, name)")
+      .select("*, users:sellers_user_id_fkey!inner(id, email, name)")
       .eq("id", seller_id)
       .maybeSingle();
 
     if (sellerError || !seller) {
-      return new Response(
-        JSON.stringify({ error: "Seller not found" }),
-        {
-          status: 404,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
-      );
+      return new Response(JSON.stringify({ error: "Seller not found" }), {
+        status: 404,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     const updateData: any = {
@@ -85,37 +81,39 @@ Deno.serve(async (req: Request) => {
       updated_at: new Date().toISOString(),
     };
 
-    if (action === 'approve') {
-      updateData.status = 'approved';
+    if (action === "approve") {
+      updateData.status = "approved";
       updateData.approved_at = new Date().toISOString();
       updateData.rejection_reason = null;
 
-      const { error: authUpdateError } = await supabase.auth.admin.updateUserById(
-        seller.users.id,
-        {
+      const { error: authUpdateError } =
+        await supabase.auth.admin.updateUserById(seller.users.id, {
           app_metadata: {
-            role: 'seller'
-          }
-        }
-      );
+            role: "seller",
+          },
+        });
 
       if (authUpdateError) {
         console.error("Failed to update user role:", authUpdateError);
         return new Response(
-          JSON.stringify({ error: "Failed to update user role in auth system" }),
+          JSON.stringify({
+            error: "Failed to update user role in auth system",
+          }),
           {
             status: 500,
             headers: { ...corsHeaders, "Content-Type": "application/json" },
           }
         );
       }
-    } else if (action === 'reject') {
-      updateData.status = 'rejected';
-      updateData.rejection_reason = rejection_reason || 'Application rejected';
+    } else if (action === "reject") {
+      updateData.status = "rejected";
+      updateData.rejection_reason = rejection_reason || "Application rejected";
       updateData.approved_at = null;
     } else {
       return new Response(
-        JSON.stringify({ error: "Invalid action. Must be 'approve' or 'reject'" }),
+        JSON.stringify({
+          error: "Invalid action. Must be 'approve' or 'reject'",
+        }),
         {
           status: 400,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -127,24 +125,23 @@ Deno.serve(async (req: Request) => {
       .from("sellers")
       .update(updateData)
       .eq("id", seller_id)
-      .select("*, users!inner(email, name)")
+      .select("*, users:sellers_user_id_fkey(id, email, name)")
       .single();
 
     if (updateError) {
-      return new Response(
-        JSON.stringify({ error: updateError.message }),
-        {
-          status: 500,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
-      );
+      return new Response(JSON.stringify({ error: updateError.message }), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     return new Response(
       JSON.stringify({
         success: true,
         seller: updatedSeller,
-        message: `Seller ${action === 'approve' ? 'approved' : 'rejected'} successfully`
+        message: `Seller ${
+          action === "approve" ? "approved" : "rejected"
+        } successfully`,
       }),
       {
         status: 200,
@@ -152,12 +149,9 @@ Deno.serve(async (req: Request) => {
       }
     );
   } catch (error) {
-    return new Response(
-      JSON.stringify({ error: error.message }),
-      {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
-    );
+    return new Response(JSON.stringify({ error: error.message }), {
+      status: 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   }
 });
