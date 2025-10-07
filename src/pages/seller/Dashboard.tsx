@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Package, ShoppingCart, TrendingUp, DollarSign } from 'lucide-react';
+import { Package, ShoppingCart, TrendingUp, DollarSign, Tag, BarChart } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
 import { formatCurrency } from '../../utils/format';
@@ -214,14 +214,14 @@ export function SellerDashboard() {
 
         <div className="bg-white rounded-lg shadow-sm border p-6">
           <h2 className="text-xl font-bold text-gray-900 mb-4">Quick Actions</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             <Link
-              to="/seller/products/new"
+              to="/seller/products"
               className="p-4 border rounded-lg hover:border-red-600 hover:bg-red-50 transition-colors"
             >
               <div className="flex items-center gap-3">
                 <Package className="w-5 h-5 text-red-600" />
-                <span className="font-medium">Add New Product</span>
+                <span className="font-medium">Manage Products</span>
               </div>
             </Link>
             <Link
@@ -234,12 +234,39 @@ export function SellerDashboard() {
               </div>
             </Link>
             <Link
-              to="/seller/products"
+              to="/seller/coupons"
+              className="p-4 border rounded-lg hover:border-red-600 hover:bg-red-50 transition-colors"
+            >
+              <div className="flex items-center gap-3">
+                <Tag className="w-5 h-5 text-red-600" />
+                <span className="font-medium">Manage Coupons</span>
+              </div>
+            </Link>
+            <Link
+              to="/seller/analytics"
+              className="p-4 border rounded-lg hover:border-red-600 hover:bg-red-50 transition-colors"
+            >
+              <div className="flex items-center gap-3">
+                <BarChart className="w-5 h-5 text-red-600" />
+                <span className="font-medium">View Analytics</span>
+              </div>
+            </Link>
+            <Link
+              to="/seller/withdrawals"
+              className="p-4 border rounded-lg hover:border-red-600 hover:bg-red-50 transition-colors"
+            >
+              <div className="flex items-center gap-3">
+                <DollarSign className="w-5 h-5 text-red-600" />
+                <span className="font-medium">Withdrawals</span>
+              </div>
+            </Link>
+            <Link
+              to="/account/settings"
               className="p-4 border rounded-lg hover:border-red-600 hover:bg-red-50 transition-colors"
             >
               <div className="flex items-center gap-3">
                 <Package className="w-5 h-5 text-red-600" />
-                <span className="font-medium">View All Products</span>
+                <span className="font-medium">Account Settings</span>
               </div>
             </Link>
           </div>

@@ -28,6 +28,8 @@ import { AdminCategories } from './pages/admin/Categories';
 import { SellerDashboard } from './pages/seller/Dashboard';
 import { SellerProducts } from './pages/seller/Products';
 import { SellerOrders } from './pages/seller/Orders';
+import { SellerCoupons } from './pages/seller/Coupons';
+import { SellerAnalytics } from './pages/seller/Analytics';
 import { ToastContainer } from './components/ui/Toast';
 import { TopSlidingBar } from './components/ui/TopSlidingBar';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
@@ -133,6 +135,16 @@ function AppContent() {
           <Route path="/seller/orders" element={
             <ProtectedRoute requireRole="seller">
               <SellerOrders />
+            </ProtectedRoute>
+          } />
+          <Route path="/seller/coupons" element={
+            <ProtectedRoute requireRole="seller">
+              <SellerCoupons />
+            </ProtectedRoute>
+          } />
+          <Route path="/seller/analytics" element={
+            <ProtectedRoute requireRole="seller">
+              <SellerAnalytics />
             </ProtectedRoute>
           } />
           <Route path="/auth/signin" element={<SignIn />} />
