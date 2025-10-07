@@ -6,6 +6,7 @@ import { useToast } from '../hooks/useToast';
 import { useWishlist } from '../hooks/useWishlist';
 import { ProductGallery } from '../components/product/ProductGallery';
 import { ReviewsList } from '../components/product/ReviewsList';
+import { Breadcrumb } from '../components/ui/Breadcrumb';
 import { supabase } from '../lib/supabase';
 import { formatCurrency } from '../utils/format';
 
@@ -22,6 +23,13 @@ interface Product {
   sku: string;
   features: string[];
   seller_id: string | null;
+  category_id: string;
+}
+
+interface Category {
+  id: string;
+  name: string;
+  slug: string;
 }
 
 interface Seller {
@@ -37,6 +45,7 @@ export function ProductDetail() {
   const { toggleWishlist, isInWishlist } = useWishlist();
   const [quantity, setQuantity] = useState(1);
   const [product, setProduct] = useState<Product | null>(null);
+  const [category, setCategory] = useState<Category | null>(null);
   const [seller, setSeller] = useState<Seller | null>(null);
   const [loading, setLoading] = useState(true);
   const [averageRating, setAverageRating] = useState(0);
@@ -53,13 +62,16 @@ export function ProductDetail() {
     try {
       const { data, error } = await supabase
         .from('products')
-        .select('*')
+        .select('*, category:categories(id, name, slug)')
         .eq('slug', slug)
         .maybeSingle();
 
       if (error) throw error;
       if (data) {
         setProduct(data);
+        if (data.category) {
+          setCategory(data.category as any);
+        }
         if (data.seller_id) {
           loadSeller(data.seller_id);
         }
@@ -164,6 +176,15 @@ export function ProductDetail() {
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {category && (
+          <Breadcrumb
+            items={[
+              { label: category.name, path: `/category/${category.slug}` },
+              { label: product?.title || '' },
+            ]}
+            className="mb-6"
+          />
+        )}
         <div className="grid md:grid-cols-2 gap-8">
           <div>
             <ProductGallery

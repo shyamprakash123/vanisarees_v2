@@ -30,10 +30,10 @@
   "features": [
     "Home with hero carousel (images + embedded YouTube videos as slides). Each slide supports CTA actions (link to collection, product, or external URL).",
     "Product catalog: categories, subcategories, filters (price, color, material), sort, pagination, featured products, trending, combos and offers sections on home.",
-    "Product detail page: images, gallery, product code(s), SKU, stock, price, variants (size/color), product description, YouTube video embed, ratings & reviews, seller info (if seller product).",
+    "Product detail page: images, gallery, product code(s), SKU, stock, price, variants (size/color), product description, YouTube video embed, ratings & reviews, seller info (if seller product), breadcrumb navigation.",
     "Search: global search by name or product code (exact and fuzzy). Search suggestions and highlighted matches.",
-    "Cart: persistent per-user cart stored server-side in Supabase; guest cart stored in localStorage merged on sign-in.",
-    "Checkout: address selection/management, shipping options, payment gateway, order summary, gift wrapping option, per-order notes (text), coupon code input, apply wallet balance, shipping charge calculations.",
+    "Cart: persistent per-user cart stored server-side in Supabase; guest cart stored in localStorage merged on sign-in. Breadcrumb navigation showing current path.",
+    "Checkout: Multi-step checkout flow (Address → Review → Payment) with progress indicator, address selection/management, shipping options, payment gateway, order summary, gift wrapping option, per-order notes (text), coupon code input, apply wallet balance, shipping charge calculations, breadcrumb navigation.",
     "Orders: order history, order status tracking (placed, confirmed, shipped, delivered, cancelled, refunded). Admin and seller order views.",
     "Auth: Sign-in / Sign-up with email/password and social login (Google). Remember me. OTP optional for phone.",
     "Role-based access control: roles = [admin, seller, user]. Role authoring resides in Supabase auth JWT -> app_metadata.role.",
@@ -47,6 +47,7 @@
     "Admin actions: accept/suspend users/sellers, edit products, adjust stock, manual orders creation, refund processing.",
     "Dark mode support and user settings (profile, addresses, notification preferences).",
     "Top sliding bar: top-nav announcement banner with dismiss and link actions.",
+    "Breadcrumb Navigation: Context-aware breadcrumb trail across all major pages (categories, products, cart, checkout) showing hierarchical navigation path from home.",
     "SEO: server-side metadata, social share cards, sitemap, robots.txt.",
     "Accessibility: WCAG friendly components (keyboard nav, ARIA).",
     "Mobile-first responsive design; PWA ready (manifest + service worker)."
@@ -89,6 +90,7 @@
     "AddToCartButton",
     "CartSidebar (slide-over)",
     "CheckoutForm",
+    "CheckoutSteps (multi-step progress indicator)",
     "PaymentForm",
     "ComboSlider (home)",
     "OffersGrid (home)",
@@ -100,7 +102,8 @@
     "Modal",
     "ConfirmDialog",
     "Pagination",
-    "LazyImage"
+    "LazyImage",
+    "Breadcrumb (navigation trail)"
   ],
 
   "supabase_schema": {

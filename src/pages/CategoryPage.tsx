@@ -3,6 +3,7 @@ import { useParams, useSearchParams } from 'react-router-dom';
 import { Filter, SlidersHorizontal } from 'lucide-react';
 import { ProductCard } from '../components/product/ProductCard';
 import { Pagination } from '../components/ui/Pagination';
+import { Breadcrumb } from '../components/ui/Breadcrumb';
 import { supabase } from '../lib/supabase';
 
 interface Product {
@@ -115,6 +116,12 @@ export function CategoryPage() {
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <Breadcrumb
+          items={[
+            { label: category?.name || slug?.replace(/-/g, ' ') || 'Products' },
+          ]}
+          className="mb-6"
+        />
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2 capitalize">
             {category?.name || slug?.replace(/-/g, ' ') || 'All Products'}

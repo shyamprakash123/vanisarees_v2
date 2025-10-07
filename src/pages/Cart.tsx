@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { Trash2, Plus, Minus, ShoppingBag, ArrowRight } from 'lucide-react';
 import { useCart } from '../contexts/CartContext';
+import { Breadcrumb } from '../components/ui/Breadcrumb';
 
 export function Cart() {
   const { items, updateQuantity, removeItem, total, itemCount } = useCart();
@@ -34,6 +35,7 @@ export function Cart() {
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <Breadcrumb items={[{ label: 'Shopping Cart' }]} className="mb-6" />
         <h1 className="text-3xl font-bold text-gray-900 mb-8">Shopping Cart</h1>
 
         <div className="grid lg:grid-cols-3 gap-8">
@@ -122,10 +124,13 @@ export function Cart() {
                 </div>
               </div>
 
-              <button className="w-full btn btn-primary flex items-center justify-center gap-2 mb-4">
+              <Link
+                to="/checkout"
+                className="w-full btn btn-primary flex items-center justify-center gap-2 mb-4"
+              >
                 Proceed to Checkout
                 <ArrowRight className="w-5 h-5" />
-              </button>
+              </Link>
 
               <Link
                 to="/"
