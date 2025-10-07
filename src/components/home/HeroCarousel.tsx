@@ -6,6 +6,8 @@ interface Slide {
   title: string;
   subtitle?: string;
   image_url?: string;
+  youtube_id?: string;
+  media_type?: 'image' | 'video';
   cta_text?: string;
   cta_link?: string;
 }
@@ -61,13 +63,25 @@ export function HeroCarousel({ slides }: HeroCarouselProps) {
               : 'opacity-0 translate-x-full'
           }`}
         >
-          <img
-            src={slide.image_url || 'https://images.pexels.com/photos/1164674/pexels-photo-1164674.jpeg'}
-            alt={slide.title}
-            className="w-full h-full object-cover"
-          />
+          {slide.media_type === 'video' && slide.youtube_id ? (
+            <div className="relative w-full h-full">
+              <iframe
+                src={`https://www.youtube.com/embed/${slide.youtube_id}?autoplay=${index === currentSlide ? 1 : 0}&mute=1&loop=1&playlist=${slide.youtube_id}&controls=0&showinfo=0&rel=0&modestbranding=1`}
+                className="w-full h-full"
+                allow="autoplay; encrypted-media"
+                allowFullScreen
+                style={{ border: 'none', pointerEvents: 'none' }}
+              />
+            </div>
+          ) : (
+            <img
+              src={slide.image_url || 'https://images.pexels.com/photos/1164674/pexels-photo-1164674.jpeg'}
+              alt={slide.title}
+              className="w-full h-full object-cover"
+            />
+          )}
 
-          <div className="absolute inset-0 bg-gradient-to-r from-black/60 to-transparent flex items-center">
+          <div className="absolute inset-0 bg-gradient-to-r from-black/60 to-transparent flex items-center pointer-events-none">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
               <div className="max-w-2xl text-white">
                 <h2 className="text-4xl md:text-6xl font-bold mb-4 animate-slideInLeft">
@@ -81,7 +95,7 @@ export function HeroCarousel({ slides }: HeroCarouselProps) {
                 {slide.cta_text && slide.cta_link && (
                   <a
                     href={slide.cta_link}
-                    className="inline-block bg-red-600 hover:bg-red-700 text-white font-semibold px-8 py-3 rounded-lg transition-all duration-300 hover:scale-105 hover:shadow-lg animate-slideInLeft animation-delay-400"
+                    className="inline-block bg-red-600 hover:bg-red-700 text-white font-semibold px-8 py-3 rounded-lg transition-all duration-300 hover:scale-105 hover:shadow-lg animate-slideInLeft animation-delay-400 pointer-events-auto"
                   >
                     {slide.cta_text}
                   </a>

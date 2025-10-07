@@ -6,6 +6,7 @@ import { Footer } from './components/layout/Footer';
 import { Home } from './pages/Home';
 import { CategoryPage } from './pages/CategoryPage';
 import { ProductDetail } from './pages/ProductDetail';
+import { ComboDetail } from './pages/ComboDetail';
 import { Cart } from './pages/Cart';
 import { SignIn } from './pages/SignIn';
 import { SignUp } from './pages/SignUp';
@@ -39,6 +40,7 @@ function AppContent() {
           <Route path="/search" element={<Search />} />
           <Route path="/category/:slug" element={<CategoryPage />} />
           <Route path="/product/:slug" element={<ProductDetail />} />
+          <Route path="/combo/:id" element={<ComboDetail />} />
           <Route path="/cart" element={<Cart />} />
           <Route path="/checkout" element={<Checkout />} />
           <Route path="/orders" element={<Orders />} />

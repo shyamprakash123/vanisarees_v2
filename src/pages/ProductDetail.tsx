@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
-import { ShoppingCart, Heart, Truck, Shield, Package, Star } from 'lucide-react';
+import { useParams, Link } from 'react-router-dom';
+import { ShoppingCart, Heart, Truck, Shield, Package, Star, Store } from 'lucide-react';
 import { useCart } from '../contexts/CartContext';
 import { useToast } from '../hooks/useToast';
+import { useWishlist } from '../hooks/useWishlist';
 import { ProductGallery } from '../components/product/ProductGallery';
 import { ReviewsList } from '../components/product/ReviewsList';
 import { supabase } from '../lib/supabase';
@@ -20,14 +21,23 @@ interface Product {
   codes: string[];
   sku: string;
   features: string[];
+  seller_id: string | null;
+}
+
+interface Seller {
+  id: string;
+  shop_name: string;
+  user_id: string;
 }
 
 export function ProductDetail() {
   const { slug } = useParams();
   const { addItem } = useCart();
   const toast = useToast();
+  const { toggleWishlist, isInWishlist } = useWishlist();
   const [quantity, setQuantity] = useState(1);
   const [product, setProduct] = useState<Product | null>(null);
+  const [seller, setSeller] = useState<Seller | null>(null);
   const [loading, setLoading] = useState(true);
   const [averageRating, setAverageRating] = useState(0);
   const [reviewCount, setReviewCount] = useState(0);
@@ -45,16 +55,36 @@ export function ProductDetail() {
         .from('products')
         .select('*')
         .eq('slug', slug)
-        .eq('active', true)
         .maybeSingle();
 
       if (error) throw error;
-      if (data) setProduct(data);
+      if (data) {
+        setProduct(data);
+        if (data.seller_id) {
+          loadSeller(data.seller_id);
+        }
+      }
     } catch (error) {
       console.error('Error loading product:', error);
       toast.error('Failed to load product');
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function loadSeller(sellerId: string) {
+    try {
+      const { data, error } = await supabase
+        .from('sellers')
+        .select('id, shop_name, user_id')
+        .eq('id', sellerId)
+        .eq('status', 'approved')
+        .maybeSingle();
+
+      if (error) throw error;
+      if (data) setSeller(data);
+    } catch (error) {
+      console.error('Error loading seller:', error);
     }
   }
 
@@ -224,6 +254,21 @@ export function ProductDetail() {
               </div>
             </div>
 
+            {seller && (
+              <div className="p-4 bg-gray-50 rounded-lg">
+                <div className="flex items-center gap-2 text-sm text-gray-600 mb-1">
+                  <Store className="w-4 h-4" />
+                  <span className="font-medium">Sold by</span>
+                </div>
+                <Link
+                  to={`/seller/${seller.id}`}
+                  className="text-red-600 hover:text-red-700 font-semibold"
+                >
+                  {seller.shop_name}
+                </Link>
+              </div>
+            )}
+
             <div className="flex gap-4">
               <button
                 onClick={handleAddToCart}
@@ -233,8 +278,22 @@ export function ProductDetail() {
                 <ShoppingCart className="w-5 h-5" />
                 {product.stock === 0 ? 'Out of Stock' : 'Add to Cart'}
               </button>
-              <button className="p-3 border-2 border-gray-300 rounded-lg hover:border-red-600 hover:text-red-600 transition-colors">
-                <Heart className="w-6 h-6" />
+              <button
+                onClick={async () => {
+                  try {
+                    await toggleWishlist(product.id);
+                    toast.success(isInWishlist(product.id) ? 'Removed from wishlist' : 'Added to wishlist');
+                  } catch (error: any) {
+                    toast.error(error.message || 'Failed to update wishlist');
+                  }
+                }}
+                className={`p-3 border-2 rounded-lg transition-colors ${
+                  isInWishlist(product.id)
+                    ? 'border-red-600 bg-red-50 text-red-600'
+                    : 'border-gray-300 hover:border-red-600 hover:text-red-600'
+                }`}
+              >
+                <Heart className={`w-6 h-6 ${isInWishlist(product.id) ? 'fill-red-600' : ''}`} />
               </button>
             </div>
 
