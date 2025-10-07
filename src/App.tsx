@@ -18,7 +18,14 @@ import { AccountSettings } from './pages/AccountSettings';
 import { Wallet } from './pages/Wallet';
 import { Addresses } from './pages/Addresses';
 import { AdminDashboard } from './pages/admin/Dashboard';
+import { AdminProducts } from './pages/admin/Products';
+import { AdminOrders } from './pages/admin/Orders';
+import { AdminSellers } from './pages/admin/Sellers';
+import { AdminUsers } from './pages/admin/Users';
+import { AdminAnalytics } from './pages/admin/Analytics';
 import { SellerDashboard } from './pages/seller/Dashboard';
+import { SellerProducts } from './pages/seller/Products';
+import { SellerOrders } from './pages/seller/Orders';
 import { ToastContainer } from './components/ui/Toast';
 import { TopSlidingBar } from './components/ui/TopSlidingBar';
 import { useToast } from './hooks/useToast';
@@ -50,8 +57,15 @@ function AppContent() {
           <Route path="/account/addresses" element={<Addresses />} />
           <Route path="/admin" element={<AdminDashboard />} />
           <Route path="/admin/dashboard" element={<AdminDashboard />} />
+          <Route path="/admin/products" element={<AdminProducts />} />
+          <Route path="/admin/orders" element={<AdminOrders />} />
+          <Route path="/admin/sellers" element={<AdminSellers />} />
+          <Route path="/admin/users" element={<AdminUsers />} />
+          <Route path="/admin/analytics" element={<AdminAnalytics />} />
           <Route path="/seller" element={<SellerDashboard />} />
           <Route path="/seller/dashboard" element={<SellerDashboard />} />
+          <Route path="/seller/products" element={<SellerProducts />} />
+          <Route path="/seller/orders" element={<SellerOrders />} />
           <Route path="/auth/signin" element={<SignIn />} />
           <Route path="/auth/signup" element={<SignUp />} />
         </Routes>
