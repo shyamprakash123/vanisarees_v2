@@ -1,8 +1,11 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
-import { Pencil, Trash2, Plus, Search } from 'lucide-react';
+import { Pencil, Trash2, Plus, Search, Eye } from 'lucide-react';
 import { useToast } from '../../hooks/useToast';
+import { Modal } from '../../components/ui/Modal';
+import { ProductForm } from '../../components/product/ProductForm';
+import { formatCurrency } from '../../utils/format';
 
 interface Product {
   id: string;
@@ -14,7 +17,17 @@ interface Product {
   mrp: number;
   stock: number;
   featured: boolean;
+  trending: boolean;
+  active: boolean;
+  seller_id: string | null;
+  category_id: string | null;
   created_at: string;
+  tax_slab: number;
+  hsn_code: string;
+  description: string;
+  features: string[];
+  images: string[];
+  youtube_ids: string[];
 }
 
 export function AdminProducts() {
@@ -23,6 +36,9 @@ export function AdminProducts() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [filterActive, setFilterActive] = useState<string>('all');
 
   useEffect(() => {
     fetchProducts();
@@ -45,6 +61,26 @@ export function AdminProducts() {
     }
   };
 
+  const openAddModal = () => {
+    setEditingProduct(null);
+    setIsModalOpen(true);
+  };
+
+  const openEditModal = (product: Product) => {
+    setEditingProduct(product);
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setEditingProduct(null);
+  };
+
+  const handleSuccess = () => {
+    closeModal();
+    fetchProducts();
+  };
+
   const toggleFeatured = async (productId: string, currentStatus: boolean) => {
     try {
       const { error } = await supabase
@@ -55,6 +91,23 @@ export function AdminProducts() {
       if (error) throw error;
 
       showToast('Product updated successfully', 'success');
+      fetchProducts();
+    } catch (error) {
+      console.error('Error updating product:', error);
+      showToast('Failed to update product', 'error');
+    }
+  };
+
+  const toggleActive = async (productId: string, currentStatus: boolean) => {
+    try {
+      const { error } = await supabase
+        .from('products')
+        .update({ active: !currentStatus })
+        .eq('id', productId);
+
+      if (error) throw error;
+
+      showToast('Product status updated', 'success');
       fetchProducts();
     } catch (error) {
       console.error('Error updating product:', error);
@@ -81,11 +134,18 @@ export function AdminProducts() {
     }
   };
 
-  const filteredProducts = products.filter(product =>
-    product.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    product.codes.some(code => code.toLowerCase().includes(searchQuery.toLowerCase())) ||
-    product.sku.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredProducts = products.filter(product => {
+    const matchesSearch = product.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      product.codes.some(code => code.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      product.sku.toLowerCase().includes(searchQuery.toLowerCase());
+
+    const matchesFilter = filterActive === 'all' ||
+      (filterActive === 'active' && product.active) ||
+      (filterActive === 'inactive' && !product.active) ||
+      (filterActive === 'featured' && product.featured);
+
+    return matchesSearch && matchesFilter;
+  });
 
   if (loading) {
     return (
@@ -111,9 +171,39 @@ export function AdminProducts() {
               className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-800 focus:border-transparent"
             />
           </div>
-          <button className="flex items-center gap-2 px-4 py-2 bg-red-800 text-white rounded-lg hover:bg-red-900">
+          <button
+            onClick={openAddModal}
+            className="flex items-center gap-2 px-4 py-2 bg-red-800 text-white rounded-lg hover:bg-red-900"
+          >
             <Plus size={20} />
             Add Product
+          </button>
+        </div>
+
+        <div className="flex gap-2 mb-6">
+          <button
+            onClick={() => setFilterActive('all')}
+            className={`px-4 py-2 rounded-lg ${filterActive === 'all' ? 'bg-red-800 text-white' : 'bg-gray-100 text-gray-700'}`}
+          >
+            All
+          </button>
+          <button
+            onClick={() => setFilterActive('active')}
+            className={`px-4 py-2 rounded-lg ${filterActive === 'active' ? 'bg-red-800 text-white' : 'bg-gray-100 text-gray-700'}`}
+          >
+            Active
+          </button>
+          <button
+            onClick={() => setFilterActive('inactive')}
+            className={`px-4 py-2 rounded-lg ${filterActive === 'inactive' ? 'bg-red-800 text-white' : 'bg-gray-100 text-gray-700'}`}
+          >
+            Inactive
+          </button>
+          <button
+            onClick={() => setFilterActive('featured')}
+            className={`px-4 py-2 rounded-lg ${filterActive === 'featured' ? 'bg-red-800 text-white' : 'bg-gray-100 text-gray-700'}`}
+          >
+            Featured
           </button>
         </div>
 
@@ -135,7 +225,7 @@ export function AdminProducts() {
                     Stock
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Featured
+                    Status
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Actions
@@ -146,17 +236,24 @@ export function AdminProducts() {
                 {filteredProducts.map((product) => (
                   <tr key={product.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4">
-                      <div className="text-sm font-medium text-gray-900">{product.title}</div>
-                      <div className="text-sm text-gray-500">{product.slug}</div>
+                      <div className="flex items-center gap-3">
+                        {product.images[0] && (
+                          <img src={product.images[0]} alt={product.title} className="w-12 h-12 object-cover rounded" />
+                        )}
+                        <div>
+                          <div className="text-sm font-medium text-gray-900">{product.title}</div>
+                          <div className="text-sm text-gray-500">{product.slug}</div>
+                        </div>
+                      </div>
                     </td>
                     <td className="px-6 py-4">
                       <div className="text-sm text-gray-900">{product.sku}</div>
-                      <div className="text-sm text-gray-500">{product.codes.join(', ')}</div>
+                      <div className="text-sm text-gray-500">{product.codes.slice(0, 2).join(', ')}</div>
                     </td>
                     <td className="px-6 py-4">
-                      <div className="text-sm text-gray-900">₹{product.price}</div>
+                      <div className="text-sm text-gray-900">{formatCurrency(product.price)}</div>
                       {product.mrp > product.price && (
-                        <div className="text-sm text-gray-500 line-through">₹{product.mrp}</div>
+                        <div className="text-sm text-gray-500 line-through">{formatCurrency(product.mrp)}</div>
                       )}
                     </td>
                     <td className="px-6 py-4">
@@ -165,25 +262,44 @@ export function AdminProducts() {
                       </span>
                     </td>
                     <td className="px-6 py-4">
-                      <button
-                        onClick={() => toggleFeatured(product.id, product.featured)}
-                        className={`px-3 py-1 text-xs font-semibold rounded-full ${
-                          product.featured
-                            ? 'bg-green-100 text-green-800'
-                            : 'bg-gray-100 text-gray-800'
-                        }`}
-                      >
-                        {product.featured ? 'Featured' : 'Regular'}
-                      </button>
+                      <div className="flex flex-col gap-1">
+                        <button
+                          onClick={() => toggleActive(product.id, product.active)}
+                          className={`px-2 py-1 text-xs font-semibold rounded-full ${
+                            product.active
+                              ? 'bg-green-100 text-green-800'
+                              : 'bg-gray-100 text-gray-800'
+                          }`}
+                        >
+                          {product.active ? 'Active' : 'Inactive'}
+                        </button>
+                        {product.featured && (
+                          <span className="px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
+                            Featured
+                          </span>
+                        )}
+                      </div>
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex gap-2">
-                        <button className="p-2 text-blue-600 hover:bg-blue-50 rounded">
+                        <button
+                          onClick={() => openEditModal(product)}
+                          className="p-2 text-blue-600 hover:bg-blue-50 rounded"
+                          title="Edit"
+                        >
                           <Pencil size={16} />
+                        </button>
+                        <button
+                          onClick={() => toggleFeatured(product.id, product.featured)}
+                          className="p-2 text-amber-600 hover:bg-amber-50 rounded"
+                          title="Toggle Featured"
+                        >
+                          <Eye size={16} />
                         </button>
                         <button
                           onClick={() => deleteProduct(product.id)}
                           className="p-2 text-red-600 hover:bg-red-50 rounded"
+                          title="Delete"
                         >
                           <Trash2 size={16} />
                         </button>
@@ -202,6 +318,21 @@ export function AdminProducts() {
           </div>
         )}
       </div>
+
+      <Modal
+        isOpen={isModalOpen}
+        onClose={closeModal}
+        title={editingProduct ? 'Edit Product' : 'Add New Product'}
+        size="large"
+      >
+        <ProductForm
+          productId={editingProduct?.id}
+          initialData={editingProduct || undefined}
+          onSuccess={handleSuccess}
+          onCancel={closeModal}
+          isSeller={false}
+        />
+      </Modal>
     </div>
   );
 }
