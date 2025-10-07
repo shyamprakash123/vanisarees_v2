@@ -4,6 +4,8 @@ import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import { formatCurrency, formatDateTime, getOrderStatusColor } from '../utils/format';
 import { Package, MapPin, CreditCard, FileText } from 'lucide-react';
+import { OrderTrackingTimeline } from '../components/order/OrderTrackingTimeline';
+import { Breadcrumb } from '../components/ui/Breadcrumb';
 
 interface Order {
   id: string;
@@ -73,6 +75,7 @@ export function OrderDetail() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
+      <Breadcrumb items={[{ label: 'Orders', path: '/orders' }, { label: order.order_number }]} className="mb-6" />
       <div className="mb-8">
         <div className="flex items-center justify-between mb-4">
           <h1 className="text-3xl font-bold">Order {order.order_number}</h1>
@@ -85,6 +88,8 @@ export function OrderDetail() {
 
       <div className="grid lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-6">
+          <OrderTrackingTimeline status={order.status} createdAt={order.created_at} />
+
           <div className="bg-white p-6 rounded-lg shadow">
             <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
               <Package className="h-5 w-5" />

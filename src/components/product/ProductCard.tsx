@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ShoppingCart, Heart } from 'lucide-react';
+import { ShoppingCart, Heart, Eye } from 'lucide-react';
 import { useCart } from '../../contexts/CartContext';
 import { useToast } from '../../hooks/useToast';
 
@@ -13,6 +13,7 @@ interface ProductCardProps {
   image: string;
   inStock: boolean;
   featured?: boolean;
+  onQuickView?: () => void;
 }
 
 export function ProductCard({
@@ -24,6 +25,7 @@ export function ProductCard({
   image,
   inStock,
   featured,
+  onQuickView,
 }: ProductCardProps) {
   const { addItem } = useCart();
   const toast = useToast();
@@ -90,15 +92,32 @@ export function ProductCard({
               isHovered ? 'opacity-100' : 'opacity-0'
             }`}
           >
+            {onQuickView && (
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  onQuickView();
+                }}
+                className="bg-white hover:bg-red-600 text-gray-900 hover:text-white p-3 rounded-full transition-all duration-300 hover:scale-110"
+                title="Quick View"
+              >
+                <Eye className="w-5 h-5" />
+              </button>
+            )}
+
             <button
               onClick={handleAddToCart}
               disabled={!inStock}
               className="bg-white hover:bg-red-600 text-gray-900 hover:text-white p-3 rounded-full transition-all duration-300 hover:scale-110 disabled:opacity-50"
+              title="Add to Cart"
             >
               <ShoppingCart className="w-5 h-5" />
             </button>
 
-            <button className="bg-white hover:bg-red-600 text-gray-900 hover:text-white p-3 rounded-full transition-all duration-300 hover:scale-110">
+            <button
+              className="bg-white hover:bg-red-600 text-gray-900 hover:text-white p-3 rounded-full transition-all duration-300 hover:scale-110"
+              title="Add to Wishlist"
+            >
               <Heart className="w-5 h-5" />
             </button>
           </div>

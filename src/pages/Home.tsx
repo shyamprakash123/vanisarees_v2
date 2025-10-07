@@ -5,6 +5,7 @@ import { HeroCarousel } from '../components/home/HeroCarousel';
 import { ComboSlider } from '../components/home/ComboSlider';
 import { OffersGrid } from '../components/home/OffersGrid';
 import { ProductCard } from '../components/product/ProductCard';
+import { RecentlyViewed } from '../components/product/RecentlyViewed';
 import { supabase } from '../lib/supabase';
 
 interface Product {
@@ -180,6 +181,8 @@ export function Home() {
           </section>
         )}
       </div>
+
+      <RecentlyViewed />
     </div>
   );
 }

@@ -4,6 +4,7 @@ import { ShoppingCart, Heart, Truck, Shield, Package, Star, Store } from 'lucide
 import { useCart } from '../contexts/CartContext';
 import { useToast } from '../hooks/useToast';
 import { useWishlist } from '../hooks/useWishlist';
+import { useRecentlyViewed } from '../hooks/useRecentlyViewed';
 import { ProductGallery } from '../components/product/ProductGallery';
 import { ReviewsList } from '../components/product/ReviewsList';
 import { Breadcrumb } from '../components/ui/Breadcrumb';
@@ -43,6 +44,7 @@ export function ProductDetail() {
   const { addItem } = useCart();
   const toast = useToast();
   const { toggleWishlist, isInWishlist } = useWishlist();
+  const { addRecentProduct } = useRecentlyViewed();
   const [quantity, setQuantity] = useState(1);
   const [product, setProduct] = useState<Product | null>(null);
   const [category, setCategory] = useState<Category | null>(null);
@@ -75,6 +77,14 @@ export function ProductDetail() {
         if (data.seller_id) {
           loadSeller(data.seller_id);
         }
+
+        addRecentProduct({
+          id: data.id,
+          slug: data.slug,
+          title: data.title,
+          price: data.price,
+          image: data.images[0],
+        });
       }
     } catch (error) {
       console.error('Error loading product:', error);

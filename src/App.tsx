@@ -17,6 +17,7 @@ import { OrderDetail } from './pages/OrderDetail';
 import { AccountSettings } from './pages/AccountSettings';
 import { Wallet } from './pages/Wallet';
 import { Addresses } from './pages/Addresses';
+import { Wishlist } from './pages/Wishlist';
 import { AdminDashboard } from './pages/admin/Dashboard';
 import { AdminProducts } from './pages/admin/Products';
 import { AdminOrders } from './pages/admin/Orders';
@@ -67,6 +68,11 @@ function AppContent() {
           <Route path="/account/addresses" element={
             <ProtectedRoute>
               <Addresses />
+            </ProtectedRoute>
+          } />
+          <Route path="/account/wishlist" element={
+            <ProtectedRoute>
+              <Wishlist />
             </ProtectedRoute>
           } />
           <Route path="/admin" element={
