@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ShoppingBag, Search, User, Menu, X, LogOut } from 'lucide-react';
+import { ShoppingBag, Search, User, Menu, X, LogOut, Settings, Wallet as WalletIcon, MapPin, Package } from 'lucide-react';
 import { useCart } from '../../contexts/CartContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { supabase } from '../../lib/supabase';
@@ -11,11 +11,20 @@ export function Header() {
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
     navigate('/');
     setUserMenuOpen(false);
+  };
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
+      setSearchQuery('');
+    }
   };
 
   return (
@@ -50,7 +59,20 @@ export function Header() {
           </nav>
 
           <div className="flex items-center gap-3">
-            <button className="p-2 rounded-lg hover:bg-gray-100 transition-colors">
+            <form onSubmit={handleSearch} className="hidden md:flex items-center gap-2">
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search products..."
+                className="px-4 py-2 border rounded-lg focus:ring-2 focus:ring-red-800 focus:border-transparent w-64"
+              />
+              <button type="submit" className="p-2 rounded-lg bg-red-800 text-white hover:bg-red-900 transition-colors">
+                <Search className="w-5 h-5" />
+              </button>
+            </form>
+
+            <button onClick={() => navigate('/search')} className="md:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors">
               <Search className="w-5 h-5 text-gray-700" />
             </button>
 
@@ -64,10 +86,43 @@ export function Header() {
                     <User className="w-5 h-5 text-gray-700" />
                   </button>
                   {userMenuOpen && (
-                    <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border py-1 z-50">
+                    <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border py-1 z-50">
+                      <Link
+                        to="/account/settings"
+                        onClick={() => setUserMenuOpen(false)}
+                        className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
+                      >
+                        <Settings className="w-4 h-4" />
+                        Account Settings
+                      </Link>
+                      <Link
+                        to="/orders"
+                        onClick={() => setUserMenuOpen(false)}
+                        className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
+                      >
+                        <Package className="w-4 h-4" />
+                        My Orders
+                      </Link>
+                      <Link
+                        to="/account/wallet"
+                        onClick={() => setUserMenuOpen(false)}
+                        className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
+                      >
+                        <WalletIcon className="w-4 h-4" />
+                        Wallet
+                      </Link>
+                      <Link
+                        to="/account/addresses"
+                        onClick={() => setUserMenuOpen(false)}
+                        className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
+                      >
+                        <MapPin className="w-4 h-4" />
+                        Addresses
+                      </Link>
+                      <div className="border-t my-1"></div>
                       <button
                         onClick={handleSignOut}
-                        className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
+                        className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-gray-100 flex items-center gap-2"
                       >
                         <LogOut className="w-4 h-4" />
                         Sign Out

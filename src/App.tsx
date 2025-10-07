@@ -9,7 +9,15 @@ import { ProductDetail } from './pages/ProductDetail';
 import { Cart } from './pages/Cart';
 import { SignIn } from './pages/SignIn';
 import { SignUp } from './pages/SignUp';
+import { Search } from './pages/Search';
+import { Checkout } from './pages/Checkout';
+import { Orders } from './pages/Orders';
+import { OrderDetail } from './pages/OrderDetail';
+import { AccountSettings } from './pages/AccountSettings';
+import { Wallet } from './pages/Wallet';
+import { Addresses } from './pages/Addresses';
 import { ToastContainer } from './components/ui/Toast';
+import { TopSlidingBar } from './components/ui/TopSlidingBar';
 import { useToast } from './hooks/useToast';
 
 function AppContent() {
@@ -17,13 +25,25 @@ function AppContent() {
 
   return (
     <div className="flex flex-col min-h-screen">
+      <TopSlidingBar
+        message="🎉 Welcome to VaniSarees! Free shipping on orders above ₹1000"
+        link="/"
+        linkText="Shop Now"
+      />
       <Header />
       <main className="flex-1">
         <Routes>
           <Route path="/" element={<Home />} />
+          <Route path="/search" element={<Search />} />
           <Route path="/category/:slug" element={<CategoryPage />} />
           <Route path="/product/:slug" element={<ProductDetail />} />
           <Route path="/cart" element={<Cart />} />
+          <Route path="/checkout" element={<Checkout />} />
+          <Route path="/orders" element={<Orders />} />
+          <Route path="/order/:id" element={<OrderDetail />} />
+          <Route path="/account/settings" element={<AccountSettings />} />
+          <Route path="/account/wallet" element={<Wallet />} />
+          <Route path="/account/addresses" element={<Addresses />} />
           <Route path="/auth/signin" element={<SignIn />} />
           <Route path="/auth/signup" element={<SignUp />} />
         </Routes>
