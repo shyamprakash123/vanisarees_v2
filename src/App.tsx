@@ -23,6 +23,7 @@ import { AdminOrders } from './pages/admin/Orders';
 import { AdminSellers } from './pages/admin/Sellers';
 import { AdminUsers } from './pages/admin/Users';
 import { AdminAnalytics } from './pages/admin/Analytics';
+import { AdminCategories } from './pages/admin/Categories';
 import { SellerDashboard } from './pages/seller/Dashboard';
 import { SellerProducts } from './pages/seller/Products';
 import { SellerOrders } from './pages/seller/Orders';
@@ -101,6 +102,11 @@ function AppContent() {
           <Route path="/admin/analytics" element={
             <ProtectedRoute requireRole="admin">
               <AdminAnalytics />
+            </ProtectedRoute>
+          } />
+          <Route path="/admin/categories" element={
+            <ProtectedRoute requireRole="admin">
+              <AdminCategories />
             </ProtectedRoute>
           } />
           <Route path="/seller" element={

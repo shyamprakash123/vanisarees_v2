@@ -38,7 +38,9 @@ export function ProtectedRoute({
     return null;
   }
 
-  if (requireRole && user.user_metadata?.role !== requireRole) {
+  const userRole = user.app_metadata?.role || 'user';
+
+  if (requireRole && userRole !== requireRole) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8 text-center">

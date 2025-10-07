@@ -1,13 +1,13 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ShoppingBag, Search, User, Menu, X, LogOut, Settings, Wallet as WalletIcon, MapPin, Package } from 'lucide-react';
+import { ShoppingBag, Search, User, Menu, X, LogOut, Settings, Wallet as WalletIcon, MapPin, Package, LayoutDashboard, Store } from 'lucide-react';
 import { useCart } from '../../contexts/CartContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { supabase } from '../../lib/supabase';
 
 export function Header() {
   const { itemCount } = useCart();
-  const { user } = useAuth();
+  const { user, role } = useAuth();
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
@@ -87,6 +87,32 @@ export function Header() {
                   </button>
                   {userMenuOpen && (
                     <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border py-1 z-50">
+                      {role === 'admin' && (
+                        <>
+                          <Link
+                            to="/admin/dashboard"
+                            onClick={() => setUserMenuOpen(false)}
+                            className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
+                          >
+                            <LayoutDashboard className="w-4 h-4" />
+                            Admin Dashboard
+                          </Link>
+                          <div className="border-t my-1"></div>
+                        </>
+                      )}
+                      {role === 'seller' && (
+                        <>
+                          <Link
+                            to="/seller/dashboard"
+                            onClick={() => setUserMenuOpen(false)}
+                            className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
+                          >
+                            <Store className="w-4 h-4" />
+                            Seller Dashboard
+                          </Link>
+                          <div className="border-t my-1"></div>
+                        </>
+                      )}
                       <Link
                         to="/account/settings"
                         onClick={() => setUserMenuOpen(false)}
