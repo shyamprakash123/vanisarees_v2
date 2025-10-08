@@ -160,7 +160,7 @@ export function AdminOrderDetail() {
       setOrder({
         ...order,
         tracking_number: trackingNumber,
-        status: "shipped",
+        status: "processing",
       });
     }
   };
@@ -277,7 +277,7 @@ export function AdminOrderDetail() {
         {canUpdateStatus && (
           <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
             <p className="text-sm font-medium text-blue-900 mb-3">
-              Update Order Status:
+              Order Actions:
             </p>
             <div className="flex gap-2 flex-wrap">
               {order.payment_status === "paid" &&
@@ -328,7 +328,8 @@ export function AdminOrderDetail() {
                 </>
               )}
               {["cancelled"].includes(order.status) &&
-                order.payment_status !== "refunded" && (
+                order.payment_status === "paid" &&
+                order.payment_method === "prepaid" && (
                   <button
                     onClick={() => {
                       if (
