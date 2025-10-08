@@ -23,6 +23,7 @@ import { Wishlist } from './pages/Wishlist';
 import { AdminDashboard } from './pages/admin/Dashboard';
 import { AdminProducts } from './pages/admin/Products';
 import { AdminOrders } from './pages/admin/Orders';
+import { AdminOrderDetail } from './pages/admin/OrderDetail';
 import { AdminSellers } from './pages/admin/Sellers';
 import { AdminUsers } from './pages/admin/Users';
 import { AdminAnalytics } from './pages/admin/Analytics';
@@ -30,6 +31,7 @@ import { AdminCategories } from './pages/admin/Categories';
 import { SellerDashboard } from './pages/seller/Dashboard';
 import { SellerProducts } from './pages/seller/Products';
 import { SellerOrders } from './pages/seller/Orders';
+import { SellerOrderDetail } from './pages/seller/OrderDetail';
 import { SellerCoupons } from './pages/seller/Coupons';
 import { SellerAnalytics } from './pages/seller/Analytics';
 import { SellerBankAccounts } from './pages/seller/BankAccounts';
@@ -101,6 +103,11 @@ function AppContent() {
               <AdminOrders />
             </ProtectedRoute>
           } />
+          <Route path="/admin/order/:id" element={
+            <ProtectedRoute requireRole="admin">
+              <AdminOrderDetail />
+            </ProtectedRoute>
+          } />
           <Route path="/admin/sellers" element={
             <ProtectedRoute requireRole="admin">
               <AdminSellers />
@@ -139,6 +146,11 @@ function AppContent() {
           <Route path="/seller/orders" element={
             <ProtectedRoute requireRole="seller">
               <SellerOrders />
+            </ProtectedRoute>
+          } />
+          <Route path="/seller/order/:id" element={
+            <ProtectedRoute requireRole="seller">
+              <SellerOrderDetail />
             </ProtectedRoute>
           } />
           <Route path="/seller/coupons" element={
