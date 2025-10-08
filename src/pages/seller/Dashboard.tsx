@@ -1,9 +1,16 @@
-import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { Package, ShoppingCart, TrendingUp, DollarSign, Tag, BarChart } from 'lucide-react';
-import { supabase } from '../../lib/supabase';
-import { useAuth } from '../../contexts/AuthContext';
-import { formatCurrency } from '../../utils/format';
+import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
+import {
+  Package,
+  ShoppingCart,
+  TrendingUp,
+  DollarSign,
+  Tag,
+  BarChart,
+} from "lucide-react";
+import { supabase } from "../../lib/supabase";
+import { useAuth } from "../../contexts/AuthContext";
+import { formatCurrency } from "../../utils/format";
 
 interface Stats {
   totalProducts: number;
@@ -32,9 +39,9 @@ export function SellerDashboard() {
 
     try {
       const { data: seller } = await supabase
-        .from('sellers')
-        .select('*')
-        .eq('user_id', user.id)
+        .from("sellers")
+        .select("*")
+        .eq("user_id", user.id)
         .maybeSingle();
 
       if (!seller) {
@@ -46,19 +53,22 @@ export function SellerDashboard() {
 
       const [productsRes, ordersRes] = await Promise.all([
         supabase
-          .from('products')
-          .select('id', { count: 'exact', head: true })
-          .eq('seller_id', seller.id),
+          .from("products")
+          .select("id", { count: "exact", head: true })
+          .eq("seller_id", seller.id),
         supabase
-          .from('orders')
-          .select('total, status')
-          .eq('seller_id', seller.id)
-          .neq('status', 'draft'),
+          .from("orders")
+          .select("total, status")
+          .eq("seller_id", seller.id)
+          .neq("status", "draft"),
       ]);
 
       const orders = ordersRes.data || [];
-      const totalRevenue = orders.reduce((sum, order) => sum + Number(order.total), 0);
-      const pendingOrders = orders.filter(o => o.status === 'pending').length;
+      const totalRevenue = orders.reduce(
+        (sum, order) => sum + Number(order.total),
+        0
+      );
+      const pendingOrders = orders.filter((o) => o.status === "pending").length;
 
       setStats({
         totalProducts: productsRes.count || 0,
@@ -67,7 +77,7 @@ export function SellerDashboard() {
         pendingOrders,
       });
     } catch (error) {
-      console.error('Error loading seller data:', error);
+      console.error("Error loading seller data:", error);
     } finally {
       setLoading(false);
     }
@@ -114,7 +124,7 @@ export function SellerDashboard() {
     );
   }
 
-  if (sellerInfo.status === 'pending') {
+  if (sellerInfo.status === "pending") {
     return (
       <div className="min-h-screen bg-gray-50 py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -124,7 +134,8 @@ export function SellerDashboard() {
               Application Pending
             </h2>
             <p className="text-gray-600">
-              Your seller application is under review. You'll be notified once it's approved.
+              Your seller application is under review. You'll be notified once
+              it's approved.
             </p>
           </div>
         </div>
@@ -132,7 +143,7 @@ export function SellerDashboard() {
     );
   }
 
-  if (sellerInfo.status === 'suspended') {
+  if (sellerInfo.status === "suspended") {
     return (
       <div className="min-h-screen bg-gray-50 py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -142,7 +153,8 @@ export function SellerDashboard() {
               Account Suspended
             </h2>
             <p className="text-gray-600">
-              Your seller account has been suspended. Please contact support for more information.
+              Your seller account has been suspended. Please contact support for
+              more information.
             </p>
           </div>
         </div>
@@ -152,32 +164,32 @@ export function SellerDashboard() {
 
   const statCards = [
     {
-      title: 'Total Products',
+      title: "Total Products",
       value: stats.totalProducts.toString(),
       icon: Package,
-      color: 'bg-red-600',
-      link: '/seller/products',
+      color: "bg-red-600",
+      link: "/seller/products",
     },
     {
-      title: 'Total Orders',
+      title: "Total Orders",
       value: stats.totalOrders.toString(),
       icon: ShoppingCart,
-      color: 'bg-blue-500',
-      link: '/seller/orders',
+      color: "bg-blue-500",
+      link: "/seller/orders",
     },
     {
-      title: 'Pending Orders',
+      title: "Pending Orders",
       value: stats.pendingOrders.toString(),
       icon: TrendingUp,
-      color: 'bg-yellow-500',
-      link: '/seller/orders?status=pending',
+      color: "bg-yellow-500",
+      link: "/seller/orders?status=pending",
     },
     {
-      title: 'Total Revenue',
+      title: "Total Revenue",
       value: formatCurrency(stats.totalRevenue),
       icon: DollarSign,
-      color: 'bg-green-500',
-      link: '/seller/analytics',
+      color: "bg-green-500",
+      link: "/seller/analytics",
     },
   ];
 
@@ -186,7 +198,9 @@ export function SellerDashboard() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900">Seller Dashboard</h1>
-          <p className="text-gray-600 mt-2">Welcome back, {sellerInfo.shop_name}!</p>
+          <p className="text-gray-600 mt-2">
+            Welcome back, {sellerInfo.shop_name}!
+          </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
@@ -201,7 +215,9 @@ export function SellerDashboard() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-gray-600 mb-1">{card.title}</p>
-                    <p className="text-2xl font-bold text-gray-900">{card.value}</p>
+                    <p className="text-2xl font-bold text-gray-900">
+                      {card.value}
+                    </p>
                   </div>
                   <div className={`${card.color} p-3 rounded-lg`}>
                     <Icon className="w-6 h-6 text-white" />
@@ -213,7 +229,9 @@ export function SellerDashboard() {
         </div>
 
         <div className="bg-white rounded-lg shadow-sm border p-6">
-          <h2 className="text-xl font-bold text-gray-900 mb-4">Quick Actions</h2>
+          <h2 className="text-xl font-bold text-gray-900 mb-4">
+            Quick Actions
+          </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             <Link
               to="/seller/products"
@@ -261,12 +279,12 @@ export function SellerDashboard() {
               </div>
             </Link>
             <Link
-              to="/account/settings"
+              to="/seller/settings"
               className="p-4 border rounded-lg hover:border-red-600 hover:bg-red-50 transition-colors"
             >
               <div className="flex items-center gap-3">
                 <Package className="w-5 h-5 text-red-600" />
-                <span className="font-medium">Account Settings</span>
+                <span className="font-medium">Seller Settings</span>
               </div>
             </Link>
           </div>

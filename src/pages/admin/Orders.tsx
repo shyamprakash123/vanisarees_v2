@@ -111,8 +111,8 @@ export function AdminOrders() {
           {[
             "draft",
             "pending",
-            "paid",
             "confirmed",
+            "processing",
             "shipped",
             "delivered",
             "cancelled",
@@ -190,8 +190,8 @@ export function AdminOrders() {
                       >
                         <option value="draft">Draft</option>
                         <option value="pending">Pending</option>
-                        <option value="paid">Paid</option>
                         <option value="confirmed">Confirmed</option>
+                        <option value="processing">Processing</option>
                         <option value="shipped">Shipped</option>
                         <option value="delivered">Delivered</option>
                         <option value="cancelled">Cancelled</option>

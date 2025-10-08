@@ -1,11 +1,15 @@
-import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
-import { supabase } from '../lib/supabase';
-import { formatCurrency, formatDateTime, getOrderStatusColor } from '../utils/format';
-import { Package, MapPin, CreditCard, FileText } from 'lucide-react';
-import { OrderTrackingTimeline } from '../components/order/OrderTrackingTimeline';
-import { Breadcrumb } from '../components/ui/Breadcrumb';
+import { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext";
+import { supabase } from "../lib/supabase";
+import {
+  formatCurrency,
+  formatDateTime,
+  getOrderStatusColor,
+} from "../utils/format";
+import { Package, MapPin, CreditCard, FileText } from "lucide-react";
+import { OrderTrackingTimeline } from "../components/order/OrderTrackingTimeline";
+import { Breadcrumb } from "../components/ui/Breadcrumb";
 
 interface Order {
   id: string;
@@ -38,7 +42,7 @@ export function OrderDetail() {
 
   useEffect(() => {
     if (!user) {
-      navigate('/auth/signin');
+      navigate("/auth/signin");
       return;
     }
     loadOrder();
@@ -47,17 +51,17 @@ export function OrderDetail() {
   const loadOrder = async () => {
     try {
       const { data, error } = await supabase
-        .from('orders')
-        .select('*')
-        .eq('id', id)
-        .eq('user_id', user!.id)
+        .from("orders")
+        .select("*")
+        .eq("id", id)
+        .eq("user_id", user!.id)
         .single();
 
       if (error) throw error;
       setOrder(data);
     } catch (error) {
-      console.error('Load order error:', error);
-      navigate('/orders');
+      console.error("Load order error:", error);
+      navigate("/orders");
     } finally {
       setLoading(false);
     }
@@ -75,20 +79,35 @@ export function OrderDetail() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
-      <Breadcrumb items={[{ label: 'Orders', path: '/orders' }, { label: order.order_number }]} className="mb-6" />
+      <Breadcrumb
+        items={[
+          { label: "Orders", path: "/orders" },
+          { label: order.order_number },
+        ]}
+        className="mb-6"
+      />
       <div className="mb-8">
         <div className="flex items-center justify-between mb-4">
           <h1 className="text-3xl font-bold">Order {order.order_number}</h1>
-          <span className={`px-4 py-2 rounded-full text-sm font-medium ${getOrderStatusColor(order.status)}`}>
+          <span
+            className={`px-4 py-2 rounded-full text-sm font-medium ${getOrderStatusColor(
+              order.status
+            )}`}
+          >
             {order.status.toUpperCase()}
           </span>
         </div>
-        <p className="text-gray-600">Placed on {formatDateTime(order.created_at)}</p>
+        <p className="text-gray-600">
+          Placed on {formatDateTime(order.created_at)}
+        </p>
       </div>
 
       <div className="grid lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-6">
-          <OrderTrackingTimeline status={order.status} createdAt={order.created_at} />
+          <OrderTrackingTimeline
+            status={order.status}
+            createdAt={order.created_at}
+          />
 
           <div className="bg-white p-6 rounded-lg shadow">
             <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
@@ -97,11 +116,18 @@ export function OrderDetail() {
             </h2>
             <div className="space-y-4">
               {order.items.map((item: any, index: number) => (
-                <div key={index} className="flex gap-4 pb-4 border-b last:border-0">
+                <div
+                  key={index}
+                  className="flex gap-4 pb-4 border-b last:border-0"
+                >
                   <div className="flex-1">
-                    <h3 className="font-medium">{item.title || 'Product'}</h3>
-                    <p className="text-sm text-gray-600">Quantity: {item.quantity}</p>
-                    <p className="text-sm font-semibold mt-1">{formatCurrency(item.price * item.quantity)}</p>
+                    <h3 className="font-medium">{item.title || "Product"}</h3>
+                    <p className="text-sm text-gray-600">
+                      Quantity: {item.quantity}
+                    </p>
+                    <p className="text-sm font-semibold mt-1">
+                      {formatCurrency(item.price * item.quantity)}
+                    </p>
                   </div>
                 </div>
               ))}
@@ -117,14 +143,18 @@ export function OrderDetail() {
               <p className="font-medium">{addr.name}</p>
               <p>{addr.address_line1}</p>
               {addr.address_line2 && <p>{addr.address_line2}</p>}
-              <p>{addr.city}, {addr.state} {addr.postal_code}</p>
+              <p>
+                {addr.city}, {addr.state} {addr.pincode}
+              </p>
               <p className="mt-2">Phone: {addr.phone}</p>
             </div>
           </div>
 
           {order.tracking_number && (
             <div className="bg-blue-50 p-4 rounded-lg">
-              <p className="text-sm font-medium text-blue-900 mb-1">Tracking Number</p>
+              <p className="text-sm font-medium text-blue-900 mb-1">
+                Tracking Number
+              </p>
               <p className="text-blue-700 font-mono">{order.tracking_number}</p>
             </div>
           )}
@@ -147,7 +177,11 @@ export function OrderDetail() {
               </div>
               <div className="flex justify-between">
                 <span>Shipping</span>
-                <span>{order.shipping === 0 ? 'FREE' : formatCurrency(order.shipping)}</span>
+                <span>
+                  {order.shipping === 0
+                    ? "FREE"
+                    : formatCurrency(order.shipping)}
+                </span>
               </div>
               {order.coupon_discount > 0 && (
                 <div className="flex justify-between text-green-600">
@@ -169,11 +203,17 @@ export function OrderDetail() {
 
             <div className="mt-4 pt-4 border-t">
               <p className="text-sm text-gray-600">
-                Payment Status: <span className="font-medium text-gray-900">{order.payment_status}</span>
+                Payment Status:{" "}
+                <span className="font-medium text-gray-900">
+                  {order.payment_status}
+                </span>
               </p>
               {order.payment_method && (
                 <p className="text-sm text-gray-600 mt-1">
-                  Payment Method: <span className="font-medium text-gray-900">{order.payment_method}</span>
+                  Payment Method:{" "}
+                  <span className="font-medium text-gray-900">
+                    {order.payment_method}
+                  </span>
                 </p>
               )}
             </div>
@@ -191,15 +231,21 @@ export function OrderDetail() {
               <h2 className="text-xl font-semibold mb-4">Additional Info</h2>
               {order.gift_wrap && (
                 <div className="mb-3">
-                  <p className="text-sm text-gray-600">Gift Wrap: <span className="text-green-600">Yes</span></p>
+                  <p className="text-sm text-gray-600">
+                    Gift Wrap: <span className="text-green-600">Yes</span>
+                  </p>
                   {order.gift_message && (
-                    <p className="text-sm text-gray-700 mt-1 italic">"{order.gift_message}"</p>
+                    <p className="text-sm text-gray-700 mt-1 italic">
+                      "{order.gift_message}"
+                    </p>
                   )}
                 </div>
               )}
               {order.notes && (
                 <div>
-                  <p className="text-sm font-medium text-gray-700 mb-1">Order Notes:</p>
+                  <p className="text-sm font-medium text-gray-700 mb-1">
+                    Order Notes:
+                  </p>
                   <p className="text-sm text-gray-600">{order.notes}</p>
                 </div>
               )}

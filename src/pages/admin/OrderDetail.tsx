@@ -416,7 +416,7 @@ export function AdminOrderDetail() {
                 <p>{addr.address_line1}</p>
                 {addr.address_line2 && <p>{addr.address_line2}</p>}
                 <p>
-                  {addr.city}, {addr.state} {addr.postal_code}
+                  {addr.city}, {addr.state} {addr.pincode}
                 </p>
                 <p>{addr.country || "India"}</p>
                 <p className="mt-2">Phone: {addr.phone}</p>
@@ -434,7 +434,7 @@ export function AdminOrderDetail() {
                   <p>{billAddr.address_line1}</p>
                   {billAddr.address_line2 && <p>{billAddr.address_line2}</p>}
                   <p>
-                    {billAddr.city}, {billAddr.state} {billAddr.postal_code}
+                    {billAddr.city}, {billAddr.state} {billAddr.pincode}
                   </p>
                   <p>{billAddr.country || "India"}</p>
                   <p className="mt-2">Phone: {billAddr.phone}</p>

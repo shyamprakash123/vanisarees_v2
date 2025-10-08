@@ -1,12 +1,23 @@
-import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { useAuth } from '../../contexts/AuthContext';
-import { supabase } from '../../lib/supabase';
-import { formatCurrency, formatDateTime, getOrderStatusColor } from '../../utils/format';
-import { Package, MapPin, CreditCard, FileText, Truck, AlertCircle } from 'lucide-react';
-import { OrderTrackingTimeline } from '../../components/order/OrderTrackingTimeline';
-import { Breadcrumb } from '../../components/ui/Breadcrumb';
-import { ShiprocketManager } from '../../components/shiprocket/ShiprocketManager';
+import { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { useAuth } from "../../contexts/AuthContext";
+import { supabase } from "../../lib/supabase";
+import {
+  formatCurrency,
+  formatDateTime,
+  getOrderStatusColor,
+} from "../../utils/format";
+import {
+  Package,
+  MapPin,
+  CreditCard,
+  FileText,
+  Truck,
+  AlertCircle,
+} from "lucide-react";
+import { OrderTrackingTimeline } from "../../components/order/OrderTrackingTimeline";
+import { Breadcrumb } from "../../components/ui/Breadcrumb";
+import { ShiprocketManager } from "../../components/shiprocket/ShiprocketManager";
 
 interface Order {
   id: string;
@@ -51,7 +62,7 @@ export function SellerOrderDetail() {
 
   useEffect(() => {
     if (!user) {
-      navigate('/auth/signin');
+      navigate("/auth/signin");
       return;
     }
     loadOrder();
@@ -60,36 +71,36 @@ export function SellerOrderDetail() {
   const loadOrder = async () => {
     try {
       const { data: sellerData } = await supabase
-        .from('sellers')
-        .select('id')
-        .eq('user_id', user!.id)
+        .from("sellers")
+        .select("id")
+        .eq("user_id", user!.id)
         .single();
 
       if (!sellerData) {
-        navigate('/seller/orders');
+        navigate("/seller/orders");
         return;
       }
 
       const { data, error } = await supabase
-        .from('orders')
-        .select('*')
-        .eq('id', id)
-        .eq('seller_id', sellerData.id)
+        .from("orders")
+        .select("*")
+        .eq("id", id)
+        .eq("seller_id", sellerData.id)
         .single();
 
       if (error) throw error;
 
       const { data: userData } = await supabase
-        .from('users')
-        .select('email, name, phone')
-        .eq('id', data.user_id)
+        .from("users")
+        .select("email, name, phone")
+        .eq("id", data.user_id)
         .single();
 
       setOrder(data);
       setUserProfile(userData || null);
     } catch (error) {
-      console.error('Load order error:', error);
-      navigate('/seller/orders');
+      console.error("Load order error:", error);
+      navigate("/seller/orders");
     } finally {
       setLoading(false);
     }
@@ -100,28 +111,31 @@ export function SellerOrderDetail() {
 
     setUpdating(true);
     try {
-      const updateData: any = { status: newStatus, updated_at: new Date().toISOString() };
+      const updateData: any = {
+        status: newStatus,
+        updated_at: new Date().toISOString(),
+      };
 
-      if (newStatus === 'shipped' && !order.shipped_at) {
+      if (newStatus === "shipped" && !order.shipped_at) {
         updateData.shipped_at = new Date().toISOString();
-      } else if (newStatus === 'delivered' && !order.delivered_at) {
+      } else if (newStatus === "delivered" && !order.delivered_at) {
         updateData.delivered_at = new Date().toISOString();
-      } else if (newStatus === 'cancelled' && !order.cancelled_at) {
+      } else if (newStatus === "cancelled" && !order.cancelled_at) {
         updateData.cancelled_at = new Date().toISOString();
       }
 
       const { error } = await supabase
-        .from('orders')
+        .from("orders")
         .update(updateData)
-        .eq('id', order.id);
+        .eq("id", order.id);
 
       if (error) throw error;
 
       setOrder({ ...order, ...updateData });
-      alert('Order status updated successfully');
+      alert("Order status updated successfully");
     } catch (error) {
-      console.error('Update status error:', error);
-      alert('Failed to update order status');
+      console.error("Update status error:", error);
+      alert("Failed to update order status");
     } finally {
       setUpdating(false);
     }
@@ -129,7 +143,11 @@ export function SellerOrderDetail() {
 
   const handleShipmentSuccess = (trackingNumber: string) => {
     if (order) {
-      setOrder({ ...order, tracking_number: trackingNumber, status: 'shipped' });
+      setOrder({
+        ...order,
+        tracking_number: trackingNumber,
+        status: "shipped",
+      });
     }
   };
 
@@ -150,16 +168,18 @@ export function SellerOrderDetail() {
   }
 
   const addr = order.shipping_address;
-  const canShip = ['paid', 'confirmed', 'processing'].includes(order.status);
-  const canUpdateStatus = !['delivered', 'cancelled', 'refunded'].includes(order.status);
+  const canShip = ["paid", "confirmed", "processing"].includes(order.status);
+  const canUpdateStatus = !["delivered", "cancelled", "refunded"].includes(
+    order.status
+  );
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
       <Breadcrumb
         items={[
-          { label: 'Seller Dashboard', path: '/seller/dashboard' },
-          { label: 'Orders', path: '/seller/orders' },
-          { label: order.order_number }
+          { label: "Seller Dashboard", path: "/seller/dashboard" },
+          { label: "Orders", path: "/seller/orders" },
+          { label: order.order_number },
         ]}
         className="mb-6"
       />
@@ -168,17 +188,32 @@ export function SellerOrderDetail() {
         <div className="flex items-center justify-between mb-4">
           <div>
             <h1 className="text-3xl font-bold">Order {order.order_number}</h1>
-            <p className="text-gray-600 mt-1">Placed on {formatDateTime(order.created_at)}</p>
+            <p className="text-gray-600 mt-1">
+              Placed on {formatDateTime(order.created_at)}
+            </p>
             {userProfile && (
               <div className="mt-2 text-sm text-gray-700">
-                <p><span className="font-medium">Customer:</span> {userProfile.name}</p>
-                <p><span className="font-medium">Email:</span> {userProfile.email}</p>
-                <p><span className="font-medium">Phone:</span> {userProfile.phone}</p>
+                <p>
+                  <span className="font-medium">Customer:</span>{" "}
+                  {userProfile.name}
+                </p>
+                <p>
+                  <span className="font-medium">Email:</span>{" "}
+                  {userProfile.email}
+                </p>
+                <p>
+                  <span className="font-medium">Phone:</span>{" "}
+                  {userProfile.phone}
+                </p>
               </div>
             )}
           </div>
           <div className="flex flex-col gap-2 items-end">
-            <span className={`px-4 py-2 rounded-full text-sm font-medium ${getOrderStatusColor(order.status)}`}>
+            <span
+              className={`px-4 py-2 rounded-full text-sm font-medium ${getOrderStatusColor(
+                order.status
+              )}`}
+            >
               {order.status.toUpperCase()}
             </span>
           </div>
@@ -186,40 +221,44 @@ export function SellerOrderDetail() {
 
         {canUpdateStatus && (
           <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-            <p className="text-sm font-medium text-blue-900 mb-3">Update Order Status:</p>
+            <p className="text-sm font-medium text-blue-900 mb-3">
+              Update Order Status:
+            </p>
             <div className="flex gap-2 flex-wrap">
-              {order.status === 'paid' && (
+              {order.status === "paid" && (
                 <button
-                  onClick={() => updateOrderStatus('confirmed')}
+                  onClick={() => updateOrderStatus("confirmed")}
                   disabled={updating}
                   className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 text-sm"
                 >
                   Confirm Order
                 </button>
               )}
-              {['confirmed', 'paid'].includes(order.status) && (
+              {["confirmed", "paid"].includes(order.status) && (
                 <button
-                  onClick={() => updateOrderStatus('processing')}
+                  onClick={() => updateOrderStatus("processing")}
                   disabled={updating}
                   className="px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 disabled:opacity-50 text-sm"
                 >
                   Start Processing
                 </button>
               )}
-              {order.status === 'shipped' && (
+              {order.status === "shipped" && (
                 <button
-                  onClick={() => updateOrderStatus('delivered')}
+                  onClick={() => updateOrderStatus("delivered")}
                   disabled={updating}
                   className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 text-sm"
                 >
                   Mark as Delivered
                 </button>
               )}
-              {!['shipped', 'delivered'].includes(order.status) && (
+              {!["shipped", "delivered"].includes(order.status) && (
                 <button
                   onClick={() => {
-                    if (confirm('Are you sure you want to cancel this order?')) {
-                      updateOrderStatus('cancelled');
+                    if (
+                      confirm("Are you sure you want to cancel this order?")
+                    ) {
+                      updateOrderStatus("cancelled");
                     }
                   }}
                   disabled={updating}
@@ -243,7 +282,10 @@ export function SellerOrderDetail() {
             />
           )}
 
-          <OrderTrackingTimeline status={order.status} createdAt={order.created_at} />
+          <OrderTrackingTimeline
+            status={order.status}
+            createdAt={order.created_at}
+          />
 
           <div className="bg-white p-6 rounded-lg shadow">
             <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
@@ -252,7 +294,10 @@ export function SellerOrderDetail() {
             </h2>
             <div className="space-y-4">
               {order.items.map((item: any, index: number) => (
-                <div key={index} className="flex gap-4 pb-4 border-b last:border-0">
+                <div
+                  key={index}
+                  className="flex gap-4 pb-4 border-b last:border-0"
+                >
                   {item.image_url && (
                     <img
                       src={item.image_url}
@@ -261,14 +306,18 @@ export function SellerOrderDetail() {
                     />
                   )}
                   <div className="flex-1">
-                    <h3 className="font-medium">{item.title || 'Product'}</h3>
+                    <h3 className="font-medium">{item.title || "Product"}</h3>
                     {item.variant && Object.keys(item.variant).length > 0 && (
                       <p className="text-sm text-gray-500">
                         Variant: {JSON.stringify(item.variant)}
                       </p>
                     )}
-                    <p className="text-sm text-gray-600">Quantity: {item.quantity}</p>
-                    <p className="text-sm text-gray-600">Unit Price: {formatCurrency(item.price)}</p>
+                    <p className="text-sm text-gray-600">
+                      Quantity: {item.quantity}
+                    </p>
+                    <p className="text-sm text-gray-600">
+                      Unit Price: {formatCurrency(item.price)}
+                    </p>
                     <p className="text-sm font-semibold mt-1">
                       Total: {formatCurrency(item.price * item.quantity)}
                     </p>
@@ -287,7 +336,9 @@ export function SellerOrderDetail() {
               <p className="font-medium">{addr.name}</p>
               <p>{addr.address_line1}</p>
               {addr.address_line2 && <p>{addr.address_line2}</p>}
-              <p>{addr.city}, {addr.state} {addr.postal_code}</p>
+              <p>
+                {addr.city}, {addr.state} {addr.pincode}
+              </p>
               <p className="mt-2">Phone: {addr.phone}</p>
             </div>
           </div>
@@ -296,9 +347,13 @@ export function SellerOrderDetail() {
             <div className="bg-green-50 p-4 rounded-lg border border-green-200">
               <div className="flex items-center gap-2 mb-2">
                 <Truck className="h-5 w-5 text-green-700" />
-                <p className="text-sm font-medium text-green-900">Tracking Information</p>
+                <p className="text-sm font-medium text-green-900">
+                  Tracking Information
+                </p>
               </div>
-              <p className="text-green-700 font-mono text-lg">{order.tracking_number}</p>
+              <p className="text-green-700 font-mono text-lg">
+                {order.tracking_number}
+              </p>
               {order.shipped_at && (
                 <p className="text-sm text-green-600 mt-1">
                   Shipped on {formatDateTime(order.shipped_at)}
@@ -325,7 +380,11 @@ export function SellerOrderDetail() {
               </div>
               <div className="flex justify-between">
                 <span>Shipping</span>
-                <span>{order.shipping === 0 ? 'FREE' : formatCurrency(order.shipping)}</span>
+                <span>
+                  {order.shipping === 0
+                    ? "FREE"
+                    : formatCurrency(order.shipping)}
+                </span>
               </div>
               {order.coupon_discount > 0 && (
                 <div className="flex justify-between text-green-600">
@@ -347,14 +406,23 @@ export function SellerOrderDetail() {
 
             <div className="mt-4 pt-4 border-t">
               <p className="text-sm text-gray-600">
-                Payment Status:{' '}
-                <span className={`font-medium ${order.payment_status === 'paid' ? 'text-green-600' : 'text-gray-900'}`}>
+                Payment Status:{" "}
+                <span
+                  className={`font-medium ${
+                    order.payment_status === "paid"
+                      ? "text-green-600"
+                      : "text-gray-900"
+                  }`}
+                >
                   {order.payment_status}
                 </span>
               </p>
               {order.payment_method && (
                 <p className="text-sm text-gray-600 mt-1">
-                  Payment Method: <span className="font-medium text-gray-900">{order.payment_method}</span>
+                  Payment Method:{" "}
+                  <span className="font-medium text-gray-900">
+                    {order.payment_method}
+                  </span>
                 </p>
               )}
             </div>
@@ -369,7 +437,8 @@ export function SellerOrderDetail() {
               {order.gift_wrap && (
                 <div className="mb-3">
                   <p className="text-sm text-gray-600">
-                    Gift Wrap: <span className="text-green-600 font-medium">Yes</span>
+                    Gift Wrap:{" "}
+                    <span className="text-green-600 font-medium">Yes</span>
                   </p>
                   {order.gift_message && (
                     <p className="text-sm text-gray-700 mt-1 italic bg-yellow-50 p-2 rounded">
@@ -380,8 +449,12 @@ export function SellerOrderDetail() {
               )}
               {order.notes && (
                 <div>
-                  <p className="text-sm font-medium text-gray-700 mb-1">Order Notes:</p>
-                  <p className="text-sm text-gray-600 bg-gray-50 p-2 rounded">{order.notes}</p>
+                  <p className="text-sm font-medium text-gray-700 mb-1">
+                    Order Notes:
+                  </p>
+                  <p className="text-sm text-gray-600 bg-gray-50 p-2 rounded">
+                    {order.notes}
+                  </p>
                 </div>
               )}
             </div>
