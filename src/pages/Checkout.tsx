@@ -53,6 +53,7 @@ export function Checkout() {
   const [giftWrap, setGiftWrap] = useState(false);
   const [giftMessage, setGiftMessage] = useState('');
   const [notes, setNotes] = useState('');
+  const [paymentMethod, setPaymentMethod] = useState('prepaid');
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState(false);
 
@@ -194,6 +195,7 @@ export function Checkout() {
         shipping,
         wallet_used: walletDeduction,
         total,
+        payment_method: paymentMethod,
         shipping_address: selectedAddr,
         gift_wrap: giftWrap,
         gift_message: giftMessage || null,
@@ -369,14 +371,70 @@ export function Checkout() {
             <div className="bg-white p-6 rounded-lg shadow space-y-6">
               <div className="flex items-center gap-2 mb-4">
                 <CreditCard className="h-6 w-6 text-red-800" />
-                <h2 className="text-xl font-semibold">Payment</h2>
+                <h2 className="text-xl font-semibold">Payment Method</h2>
               </div>
 
-              <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                <p className="text-sm text-blue-800">
-                  In production, this would integrate with payment gateways like Razorpay, Stripe, or PayU.
-                </p>
+              <div className="space-y-3">
+                <label
+                  className={`flex items-start gap-3 p-4 border-2 rounded-lg cursor-pointer transition-all ${
+                    paymentMethod === 'prepaid'
+                      ? 'border-red-800 bg-red-50'
+                      : 'border-gray-200 hover:border-red-300'
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="paymentMethod"
+                    value="prepaid"
+                    checked={paymentMethod === 'prepaid'}
+                    onChange={(e) => setPaymentMethod(e.target.value)}
+                    className="mt-1"
+                  />
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <CreditCard className="h-5 w-5 text-red-800" />
+                      <span className="font-semibold text-gray-900">Prepaid (Online Payment)</span>
+                    </div>
+                    <p className="text-sm text-gray-600">
+                      Pay securely using UPI, Credit/Debit Card, Net Banking, or Wallet
+                    </p>
+                  </div>
+                </label>
+
+                <label
+                  className={`flex items-start gap-3 p-4 border-2 rounded-lg cursor-pointer transition-all ${
+                    paymentMethod === 'cod'
+                      ? 'border-red-800 bg-red-50'
+                      : 'border-gray-200 hover:border-red-300'
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="paymentMethod"
+                    value="cod"
+                    checked={paymentMethod === 'cod'}
+                    onChange={(e) => setPaymentMethod(e.target.value)}
+                    className="mt-1"
+                  />
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <Wallet className="h-5 w-5 text-red-800" />
+                      <span className="font-semibold text-gray-900">Cash on Delivery (COD)</span>
+                    </div>
+                    <p className="text-sm text-gray-600">
+                      Pay with cash when your order is delivered to your doorstep
+                    </p>
+                  </div>
+                </label>
               </div>
+
+              {paymentMethod === 'prepaid' && (
+                <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                  <p className="text-sm text-blue-800">
+                    You will be redirected to a secure payment gateway to complete your transaction.
+                  </p>
+                </div>
+              )}
 
               <div className="flex justify-between pt-4">
                 <button
@@ -391,7 +449,7 @@ export function Checkout() {
                   disabled={processing}
                   className="px-6 py-2 bg-red-800 text-white rounded-lg hover:bg-red-900 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {processing ? 'Processing...' : 'Place Order'}
+                  {processing ? 'Processing...' : paymentMethod === 'cod' ? 'Place Order' : 'Proceed to Payment'}
                 </button>
               </div>
             </div>
