@@ -357,7 +357,7 @@ export function SellerOrders() {
                             </div>
                           )}
                           <Link
-                            to={`/order/${order.id}`}
+                            to={`/seller/order/${order.id}`}
                             className="p-2 text-blue-600 hover:bg-blue-50 rounded inline-block"
                             title="View Details"
                           >
