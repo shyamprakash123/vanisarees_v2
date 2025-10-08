@@ -36,6 +36,7 @@ import { SellerCoupons } from './pages/seller/Coupons';
 import { SellerAnalytics } from './pages/seller/Analytics';
 import { SellerBankAccounts } from './pages/seller/BankAccounts';
 import { SellerWithdrawals } from './pages/seller/Withdrawals';
+import { SellerSettings } from './pages/seller/Settings';
 import { ToastContainer } from './components/ui/Toast';
 import { TopSlidingBar } from './components/ui/TopSlidingBar';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
@@ -171,6 +172,11 @@ function AppContent() {
           <Route path="/seller/withdrawals" element={
             <ProtectedRoute requireRole="seller">
               <SellerWithdrawals />
+            </ProtectedRoute>
+          } />
+          <Route path="/seller/settings" element={
+            <ProtectedRoute requireRole="seller">
+              <SellerSettings />
             </ProtectedRoute>
           } />
           <Route path="/auth/signin" element={<SignIn />} />

@@ -6,7 +6,7 @@ import { formatCurrency, formatDateTime, getOrderStatusColor } from '../../utils
 import { Package, MapPin, CreditCard, FileText, Truck, AlertCircle } from 'lucide-react';
 import { OrderTrackingTimeline } from '../../components/order/OrderTrackingTimeline';
 import { Breadcrumb } from '../../components/ui/Breadcrumb';
-import { ShiprocketButton } from '../../components/order/ShiprocketButton';
+import { ShiprocketManager } from '../../components/shiprocket/ShiprocketManager';
 
 interface Order {
   id: string;
@@ -181,13 +181,6 @@ export function SellerOrderDetail() {
             <span className={`px-4 py-2 rounded-full text-sm font-medium ${getOrderStatusColor(order.status)}`}>
               {order.status.toUpperCase()}
             </span>
-            {canShip && (
-              <ShiprocketButton
-                orderId={order.id}
-                orderNumber={order.order_number}
-                onSuccess={handleShipmentSuccess}
-              />
-            )}
           </div>
         </div>
 
@@ -242,6 +235,14 @@ export function SellerOrderDetail() {
 
       <div className="grid lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-6">
+          {canShip && !order.tracking_number && (
+            <ShiprocketManager
+              orderId={order.id}
+              order={order}
+              onSuccess={handleShipmentSuccess}
+            />
+          )}
+
           <OrderTrackingTimeline status={order.status} createdAt={order.created_at} />
 
           <div className="bg-white p-6 rounded-lg shadow">

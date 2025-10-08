@@ -19,7 +19,7 @@ import {
 } from "lucide-react";
 import { OrderTrackingTimeline } from "../../components/order/OrderTrackingTimeline";
 import { Breadcrumb } from "../../components/ui/Breadcrumb";
-import { ShiprocketButton } from "../../components/order/ShiprocketButton";
+import { ShiprocketManager } from "../../components/shiprocket/ShiprocketManager";
 
 interface Order {
   id: string;
@@ -215,13 +215,6 @@ export function AdminOrderDetail() {
             >
               {order.status.toUpperCase()}
             </span>
-            {canShip && (
-              <ShiprocketButton
-                orderId={order.id}
-                orderNumber={order.order_number}
-                onSuccess={handleShipmentSuccess}
-              />
-            )}
           </div>
         </div>
 
@@ -351,6 +344,14 @@ export function AdminOrderDetail() {
 
       <div className="grid lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-6">
+          {canShip && !order.tracking_number && (
+            <ShiprocketManager
+              orderId={order.id}
+              order={order}
+              onSuccess={handleShipmentSuccess}
+            />
+          )}
+
           <OrderTrackingTimeline
             status={order.status}
             createdAt={order.created_at}
