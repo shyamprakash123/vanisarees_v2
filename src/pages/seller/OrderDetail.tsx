@@ -57,6 +57,7 @@ export function SellerOrderDetail() {
   const navigate = useNavigate();
   const [order, setOrder] = useState<Order | null>(null);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const [shipmentData, setShipmentData] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
 
@@ -70,37 +71,37 @@ export function SellerOrderDetail() {
 
   const loadOrder = async () => {
     try {
-      const { data: sellerData } = await supabase
-        .from("sellers")
-        .select("id")
-        .eq("user_id", user!.id)
-        .single();
-
-      if (!sellerData) {
-        navigate("/seller/orders");
-        return;
-      }
-
       const { data, error } = await supabase
         .from("orders")
-        .select("*")
+        .select(
+          `
+      *,
+      users: user_id (
+        email,
+        name,
+        phone
+      )
+    `
+        )
         .eq("id", id)
-        .eq("seller_id", sellerData.id)
         .single();
+
+      if (data && data.shiprocket_shipment_id) {
+        const { data: shipmentData, error: shipmentError } = await supabase
+          .from("shiprocket_shipments")
+          .select("*")
+          .eq("order_id", data.id)
+          .single();
+        setShipmentData(shipmentData || null);
+      }
 
       if (error) throw error;
 
-      const { data: userData } = await supabase
-        .from("users")
-        .select("email, name, phone")
-        .eq("id", data.user_id)
-        .single();
-
       setOrder(data);
-      setUserProfile(userData || null);
+      setUserProfile(data.users || null);
     } catch (error) {
       console.error("Load order error:", error);
-      navigate("/seller/orders");
+      navigate("/admin/orders");
     } finally {
       setLoading(false);
     }
@@ -209,6 +210,14 @@ export function SellerOrderDetail() {
             )}
           </div>
           <div className="flex flex-col gap-2 items-end">
+            {canShip && !order.tracking_number && (
+              <ShiprocketManager
+                orderId={order.id}
+                order={order}
+                shipmentData={shipmentData}
+                onSuccess={handleShipmentSuccess}
+              />
+            )}
             <span
               className={`px-4 py-2 rounded-full text-sm font-medium ${getOrderStatusColor(
                 order.status
@@ -274,14 +283,6 @@ export function SellerOrderDetail() {
 
       <div className="grid lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-6">
-          {canShip && !order.tracking_number && (
-            <ShiprocketManager
-              orderId={order.id}
-              order={order}
-              onSuccess={handleShipmentSuccess}
-            />
-          )}
-
           <OrderTrackingTimeline
             status={order.status}
             createdAt={order.created_at}

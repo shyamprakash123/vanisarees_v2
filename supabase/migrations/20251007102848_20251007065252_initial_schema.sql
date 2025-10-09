@@ -39,7 +39,7 @@ CREATE TABLE IF NOT EXISTS users (
 
 CREATE TABLE IF NOT EXISTS sellers (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id uuid REFERENCES users(id) ON DELETE CASCADE NOT NULL UNIQUE,
+  id uuid REFERENCES users(id) ON DELETE CASCADE NOT NULL UNIQUE,
   shop_name text NOT NULL,
   status text DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'suspended')),
   kyc jsonb DEFAULT '{}',
@@ -238,7 +238,7 @@ CREATE TABLE IF NOT EXISTS reviews (
 );
 
 CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
-CREATE INDEX IF NOT EXISTS idx_sellers_user_id ON sellers(user_id);
+CREATE INDEX IF NOT EXISTS idx_sellers_id ON sellers(id);
 CREATE INDEX IF NOT EXISTS idx_products_slug ON products(slug);
 CREATE INDEX IF NOT EXISTS idx_products_title_trgm ON products USING gin(lower(title) gin_trgm_ops);
 CREATE INDEX IF NOT EXISTS idx_products_codes ON products USING gin(codes);

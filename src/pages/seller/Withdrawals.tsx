@@ -1,9 +1,9 @@
-import { useEffect, useState } from 'react';
-import { useAuth } from '../../contexts/AuthContext';
-import { supabase } from '../../lib/supabase';
-import { useToast } from '../../hooks/useToast';
-import { Wallet, Plus, Clock, CheckCircle, XCircle } from 'lucide-react';
-import { Modal } from '../../components/ui/Modal';
+import { useEffect, useState } from "react";
+import { useAuth } from "../../contexts/AuthContext";
+import { supabase } from "../../lib/supabase";
+import { useToast } from "../../hooks/useToast";
+import { Wallet, Plus, Clock, CheckCircle, XCircle } from "lucide-react";
+import { Modal } from "../../components/ui/Modal";
 
 interface BankAccount {
   id: string;
@@ -42,8 +42,9 @@ export function SellerWithdrawals() {
   const [bankAccounts, setBankAccounts] = useState<BankAccount[]>([]);
   const [loading, setLoading] = useState(true);
   const [showWithdrawModal, setShowWithdrawModal] = useState(false);
-  const [withdrawAmount, setWithdrawAmount] = useState('');
-  const [selectedBankAccountId, setSelectedBankAccountId] = useState<string>('');
+  const [withdrawAmount, setWithdrawAmount] = useState("");
+  const [selectedBankAccountId, setSelectedBankAccountId] =
+    useState<string>("");
 
   useEffect(() => {
     fetchSellerData();
@@ -56,9 +57,9 @@ export function SellerWithdrawals() {
 
     try {
       const { data, error } = await supabase
-        .from('sellers')
-        .select('id, seller_wallet_balance')
-        .eq('user_id', user.id)
+        .from("sellers")
+        .select("id, seller_wallet_balance")
+        .eq("id", user.id)
         .maybeSingle();
 
       if (error) throw error;
@@ -67,8 +68,8 @@ export function SellerWithdrawals() {
         setSeller(data);
       }
     } catch (error) {
-      console.error('Error fetching seller:', error);
-      toast.error('Failed to load seller data');
+      console.error("Error fetching seller:", error);
+      toast.error("Failed to load seller data");
     } finally {
       setLoading(false);
     }
@@ -79,24 +80,24 @@ export function SellerWithdrawals() {
 
     try {
       const { data: sellerData } = await supabase
-        .from('sellers')
-        .select('id')
-        .eq('user_id', user.id)
+        .from("sellers")
+        .select("id")
+        .eq("id", user.id)
         .maybeSingle();
 
       if (!sellerData) return;
 
       const { data, error } = await supabase
-        .from('seller_withdrawal_requests')
-        .select('*')
-        .eq('seller_id', sellerData.id)
-        .order('created_at', { ascending: false });
+        .from("seller_withdrawal_requests")
+        .select("*")
+        .eq("seller_id", sellerData.id)
+        .order("created_at", { ascending: false });
 
       if (error) throw error;
       setWithdrawals(data || []);
     } catch (error) {
-      console.error('Error fetching withdrawals:', error);
-      toast.error('Failed to load withdrawal requests');
+      console.error("Error fetching withdrawals:", error);
+      toast.error("Failed to load withdrawal requests");
     }
   };
 
@@ -105,61 +106,63 @@ export function SellerWithdrawals() {
 
     try {
       const { data: sellerData } = await supabase
-        .from('sellers')
-        .select('id')
-        .eq('user_id', user.id)
+        .from("sellers")
+        .select("id")
+        .eq("id", user.id)
         .maybeSingle();
 
       if (!sellerData) return;
 
       const { data, error } = await supabase
-        .from('seller_bank_accounts')
-        .select('*')
-        .eq('seller_id', sellerData.id)
-        .order('is_default', { ascending: false });
+        .from("seller_bank_accounts")
+        .select("*")
+        .eq("seller_id", sellerData.id)
+        .order("is_default", { ascending: false });
 
       if (error) throw error;
 
       const accounts = data || [];
       setBankAccounts(accounts);
 
-      const defaultAccount = accounts.find(acc => acc.is_default);
+      const defaultAccount = accounts.find((acc) => acc.is_default);
       if (defaultAccount) {
         setSelectedBankAccountId(defaultAccount.id);
       } else if (accounts.length > 0) {
         setSelectedBankAccountId(accounts[0].id);
       }
     } catch (error) {
-      console.error('Error fetching bank accounts:', error);
+      console.error("Error fetching bank accounts:", error);
     }
   };
 
   const handleWithdrawRequest = async () => {
     if (!seller || !withdrawAmount || Number(withdrawAmount) <= 0) {
-      toast.error('Please enter a valid amount');
+      toast.error("Please enter a valid amount");
       return;
     }
 
     if (!selectedBankAccountId) {
-      toast.error('Please select a bank account');
+      toast.error("Please select a bank account");
       return;
     }
 
     if (Number(withdrawAmount) > seller.seller_wallet_balance) {
-      toast.error('Insufficient wallet balance');
+      toast.error("Insufficient wallet balance");
       return;
     }
 
     try {
       const { data: session } = await supabase.auth.getSession();
       if (!session?.session) {
-        toast.error('Session expired');
+        toast.error("Session expired");
         return;
       }
 
-      const selectedAccount = bankAccounts.find(acc => acc.id === selectedBankAccountId);
+      const selectedAccount = bankAccounts.find(
+        (acc) => acc.id === selectedBankAccountId
+      );
       if (!selectedAccount) {
-        toast.error('Selected bank account not found');
+        toast.error("Selected bank account not found");
         return;
       }
 
@@ -172,12 +175,14 @@ export function SellerWithdrawals() {
         account_type: selectedAccount.account_type,
       };
 
-      const apiUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/seller-withdrawal`;
+      const apiUrl = `${
+        import.meta.env.VITE_SUPABASE_URL
+      }/functions/v1/seller-withdrawal`;
       const response = await fetch(apiUrl, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Authorization': `Bearer ${session.session.access_token}`,
-          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session.session.access_token}`,
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           seller_id: seller.id,
@@ -190,28 +195,28 @@ export function SellerWithdrawals() {
       const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(result.error || 'Failed to create withdrawal request');
+        throw new Error(result.error || "Failed to create withdrawal request");
       }
 
-      toast.success('Withdrawal request submitted successfully');
+      toast.success("Withdrawal request submitted successfully");
       setShowWithdrawModal(false);
-      setWithdrawAmount('');
+      setWithdrawAmount("");
       fetchSellerData();
       fetchWithdrawals();
     } catch (error: any) {
-      console.error('Error creating withdrawal:', error);
-      toast.error(error.message || 'Failed to create withdrawal request');
+      console.error("Error creating withdrawal:", error);
+      toast.error(error.message || "Failed to create withdrawal request");
     }
   };
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'pending':
-      case 'approved':
+      case "pending":
+      case "approved":
         return <Clock className="h-5 w-5 text-yellow-600" />;
-      case 'completed':
+      case "completed":
         return <CheckCircle className="h-5 w-5 text-green-600" />;
-      case 'rejected':
+      case "rejected":
         return <XCircle className="h-5 w-5 text-red-600" />;
       default:
         return null;
@@ -220,15 +225,15 @@ export function SellerWithdrawals() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'pending':
-      case 'approved':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'completed':
-        return 'bg-green-100 text-green-800';
-      case 'rejected':
-        return 'bg-red-100 text-red-800';
+      case "pending":
+      case "approved":
+        return "bg-yellow-100 text-yellow-800";
+      case "completed":
+        return "bg-green-100 text-green-800";
+      case "rejected":
+        return "bg-red-100 text-red-800";
       default:
-        return 'bg-gray-100 text-gray-800';
+        return "bg-gray-100 text-gray-800";
     }
   };
 
@@ -243,7 +248,9 @@ export function SellerWithdrawals() {
   if (!seller) {
     return (
       <div className="container mx-auto px-4 py-8">
-        <div className="text-center text-gray-500">Seller account not found</div>
+        <div className="text-center text-gray-500">
+          Seller account not found
+        </div>
       </div>
     );
   }
@@ -258,14 +265,16 @@ export function SellerWithdrawals() {
             <div>
               <p className="text-red-200 mb-2">Available Balance</p>
               <p className="text-4xl font-bold">
-                ₹{seller.seller_wallet_balance?.toFixed(2) || '0.00'}
+                ₹{seller.seller_wallet_balance?.toFixed(2) || "0.00"}
               </p>
             </div>
             <Wallet className="h-16 w-16 text-red-200" />
           </div>
           <button
             onClick={() => setShowWithdrawModal(true)}
-            disabled={!seller.seller_wallet_balance || seller.seller_wallet_balance <= 0}
+            disabled={
+              !seller.seller_wallet_balance || seller.seller_wallet_balance <= 0
+            }
             className="mt-6 px-6 py-2 bg-white text-red-800 rounded-lg font-semibold hover:bg-red-50 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Plus className="h-5 w-5" />
@@ -342,17 +351,19 @@ export function SellerWithdrawals() {
                           {withdrawal.bank_details?.bank_name}
                         </div>
                         <div className="text-xs text-gray-500">
-                          {withdrawal.bank_details?.account_number?.slice(-4).padStart(
-                            withdrawal.bank_details?.account_number.length,
-                            '*'
-                          )}
+                          {withdrawal.bank_details?.account_number
+                            ?.slice(-4)
+                            .padStart(
+                              withdrawal.bank_details?.account_number.length,
+                              "*"
+                            )}
                         </div>
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-500">
                         {new Date(withdrawal.created_at).toLocaleString()}
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-500">
-                        {withdrawal.transaction_id || '-'}
+                        {withdrawal.transaction_id || "-"}
                       </td>
                     </tr>
                   ))}
@@ -367,7 +378,7 @@ export function SellerWithdrawals() {
         isOpen={showWithdrawModal}
         onClose={() => {
           setShowWithdrawModal(false);
-          setWithdrawAmount('');
+          setWithdrawAmount("");
         }}
         title="Request Withdrawal"
       >
@@ -377,7 +388,7 @@ export function SellerWithdrawals() {
               Available Balance
             </label>
             <div className="text-2xl font-bold text-gray-900">
-              ₹{seller.seller_wallet_balance?.toFixed(2) || '0.00'}
+              ₹{seller.seller_wallet_balance?.toFixed(2) || "0.00"}
             </div>
           </div>
 
@@ -398,11 +409,15 @@ export function SellerWithdrawals() {
           </div>
 
           <div className="border-t pt-4">
-            <h3 className="text-sm font-medium text-gray-700 mb-3">Bank Account</h3>
+            <h3 className="text-sm font-medium text-gray-700 mb-3">
+              Bank Account
+            </h3>
 
             {bankAccounts.length === 0 ? (
               <div className="text-center py-6 bg-gray-50 rounded-lg">
-                <p className="text-sm text-gray-600 mb-3">No bank accounts found</p>
+                <p className="text-sm text-gray-600 mb-3">
+                  No bank accounts found
+                </p>
                 <a
                   href="/seller/bank-accounts"
                   className="text-sm text-red-800 hover:underline"
@@ -423,23 +438,38 @@ export function SellerWithdrawals() {
                 >
                   {bankAccounts.map((account) => (
                     <option key={account.id} value={account.id}>
-                      {account.bank_name} - {account.account_number.slice(-4).padStart(account.account_number.length, '*')}
-                      {account.is_default ? ' (Default)' : ''}
-                      {account.is_verified ? ' ✓' : ''}
+                      {account.bank_name} -{" "}
+                      {account.account_number
+                        .slice(-4)
+                        .padStart(account.account_number.length, "*")}
+                      {account.is_default ? " (Default)" : ""}
+                      {account.is_verified ? " ✓" : ""}
                     </option>
                   ))}
                 </select>
-                {selectedBankAccountId && (() => {
-                  const account = bankAccounts.find(acc => acc.id === selectedBankAccountId);
-                  if (!account) return null;
-                  return (
-                    <div className="mt-3 p-3 bg-gray-50 rounded text-xs space-y-1">
-                      <p><span className="font-medium">Holder:</span> {account.account_holder}</p>
-                      <p><span className="font-medium">IFSC:</span> {account.ifsc_code}</p>
-                      <p><span className="font-medium">Type:</span> {account.account_type}</p>
-                    </div>
-                  );
-                })()}
+                {selectedBankAccountId &&
+                  (() => {
+                    const account = bankAccounts.find(
+                      (acc) => acc.id === selectedBankAccountId
+                    );
+                    if (!account) return null;
+                    return (
+                      <div className="mt-3 p-3 bg-gray-50 rounded text-xs space-y-1">
+                        <p>
+                          <span className="font-medium">Holder:</span>{" "}
+                          {account.account_holder}
+                        </p>
+                        <p>
+                          <span className="font-medium">IFSC:</span>{" "}
+                          {account.ifsc_code}
+                        </p>
+                        <p>
+                          <span className="font-medium">Type:</span>{" "}
+                          {account.account_type}
+                        </p>
+                      </div>
+                    );
+                  })()}
               </div>
             )}
           </div>
@@ -448,7 +478,7 @@ export function SellerWithdrawals() {
             <button
               onClick={() => {
                 setShowWithdrawModal(false);
-                setWithdrawAmount('');
+                setWithdrawAmount("");
               }}
               className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
             >

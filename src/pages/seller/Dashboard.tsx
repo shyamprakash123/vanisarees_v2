@@ -41,7 +41,7 @@ export function SellerDashboard() {
       const { data: seller } = await supabase
         .from("sellers")
         .select("*")
-        .eq("user_id", user.id)
+        .eq("id", user.id)
         .maybeSingle();
 
       if (!seller) {

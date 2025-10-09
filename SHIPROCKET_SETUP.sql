@@ -95,7 +95,7 @@ CREATE POLICY "Sellers can view own credentials"
     EXISTS (
       SELECT 1 FROM sellers
       WHERE sellers.id = shiprocket_credentials.seller_id
-      AND sellers.user_id = auth.uid()
+      AND sellers.id = auth.uid()
     )
   );
 
@@ -107,7 +107,7 @@ CREATE POLICY "Sellers can insert own credentials"
     EXISTS (
       SELECT 1 FROM sellers
       WHERE sellers.id = shiprocket_credentials.seller_id
-      AND sellers.user_id = auth.uid()
+      AND sellers.id = auth.uid()
     )
   );
 
@@ -119,14 +119,14 @@ CREATE POLICY "Sellers can update own credentials"
     EXISTS (
       SELECT 1 FROM sellers
       WHERE sellers.id = shiprocket_credentials.seller_id
-      AND sellers.user_id = auth.uid()
+      AND sellers.id = auth.uid()
     )
   )
   WITH CHECK (
     EXISTS (
       SELECT 1 FROM sellers
       WHERE sellers.id = shiprocket_credentials.seller_id
-      AND sellers.user_id = auth.uid()
+      AND sellers.id = auth.uid()
     )
   );
 
@@ -138,7 +138,7 @@ CREATE POLICY "Admins can view all credentials"
     EXISTS (
       SELECT 1 FROM users
       WHERE users.id = auth.uid()
-      AND users.role = 'admin'
+      AND is_admin()
     )
   );
 
@@ -155,7 +155,7 @@ CREATE POLICY "Sellers can view own shipments"
       SELECT 1 FROM orders
       JOIN sellers ON sellers.id = orders.seller_id
       WHERE orders.id = shiprocket_shipments.order_id
-      AND sellers.user_id = auth.uid()
+      AND sellers.id = auth.uid()
     )
   );
 
@@ -168,7 +168,7 @@ CREATE POLICY "Sellers can create shipments for own orders"
       SELECT 1 FROM orders
       JOIN sellers ON sellers.id = orders.seller_id
       WHERE orders.id = shiprocket_shipments.order_id
-      AND sellers.user_id = auth.uid()
+      AND sellers.id = auth.uid()
     )
   );
 
@@ -181,7 +181,7 @@ CREATE POLICY "Sellers can update own shipments"
       SELECT 1 FROM orders
       JOIN sellers ON sellers.id = orders.seller_id
       WHERE orders.id = shiprocket_shipments.order_id
-      AND sellers.user_id = auth.uid()
+      AND sellers.id = auth.uid()
     )
   )
   WITH CHECK (
@@ -189,7 +189,7 @@ CREATE POLICY "Sellers can update own shipments"
       SELECT 1 FROM orders
       JOIN sellers ON sellers.id = orders.seller_id
       WHERE orders.id = shiprocket_shipments.order_id
-      AND sellers.user_id = auth.uid()
+      AND sellers.id = auth.uid()
     )
   );
 
@@ -201,7 +201,7 @@ CREATE POLICY "Admins can view all shipments"
     EXISTS (
       SELECT 1 FROM users
       WHERE users.id = auth.uid()
-      AND users.role = 'admin'
+      AND is_admin()
     )
   );
 
@@ -213,7 +213,7 @@ CREATE POLICY "Admins can create all shipments"
     EXISTS (
       SELECT 1 FROM users
       WHERE users.id = auth.uid()
-      AND users.role = 'admin'
+      AND is_admin()
     )
   );
 
@@ -225,14 +225,14 @@ CREATE POLICY "Admins can update all shipments"
     EXISTS (
       SELECT 1 FROM users
       WHERE users.id = auth.uid()
-      AND users.role = 'admin'
+      AND is_admin()
     )
   )
   WITH CHECK (
     EXISTS (
       SELECT 1 FROM users
       WHERE users.id = auth.uid()
-      AND users.role = 'admin'
+      AND is_admin()
     )
   );
 

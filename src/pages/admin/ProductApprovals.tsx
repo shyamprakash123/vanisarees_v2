@@ -19,7 +19,7 @@ interface Product {
   seller_id: string;
   sellers?: {
     business_name: string;
-    user_id: string;
+    id: string;
     users?: {
       name: string;
       email: string;
@@ -34,7 +34,9 @@ export function ProductApprovals() {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [approvalNotes, setApprovalNotes] = useState("");
-  const [filter, setFilter] = useState<"pending" | "approved" | "rejected">("pending");
+  const [filter, setFilter] = useState<"pending" | "approved" | "rejected">(
+    "pending"
+  );
 
   useEffect(() => {
     fetchProducts();
@@ -44,17 +46,21 @@ export function ProductApprovals() {
     try {
       let query = supabase
         .from("products")
-        .select("*, sellers(business_name, user_id, users(name, email))");
+        .select("*, sellers(business_name, id, users(name, email))");
 
       if (filter === "pending") {
-        query = query.is("admin_approved", null).not("submitted_for_approval_at", "is", null);
+        query = query
+          .is("admin_approved", null)
+          .not("submitted_for_approval_at", "is", null);
       } else if (filter === "approved") {
         query = query.eq("admin_approved", true);
       } else if (filter === "rejected") {
         query = query.eq("admin_approved", false);
       }
 
-      const { data, error } = await query.order("submitted_for_approval_at", { ascending: false });
+      const { data, error } = await query.order("submitted_for_approval_at", {
+        ascending: false,
+      });
 
       if (error) throw error;
       setProducts(data || []);
@@ -79,7 +85,9 @@ export function ProductApprovals() {
       if (error) throw error;
 
       if (data?.success) {
-        toast.success(approved ? "Product approved successfully" : "Product rejected");
+        toast.success(
+          approved ? "Product approved successfully" : "Product rejected"
+        );
         setShowModal(false);
         setSelectedProduct(null);
         setApprovalNotes("");
@@ -116,15 +124,25 @@ export function ProductApprovals() {
           <button
             onClick={() => setFilter("pending")}
             className={`px-4 py-2 rounded-lg ${
-              filter === "pending" ? "bg-red-800 text-white" : "bg-gray-100 text-gray-700"
+              filter === "pending"
+                ? "bg-red-800 text-white"
+                : "bg-gray-100 text-gray-700"
             }`}
           >
-            Pending ({products.filter(p => !p.admin_approved && p.submitted_for_approval_at).length})
+            Pending (
+            {
+              products.filter(
+                (p) => !p.admin_approved && p.submitted_for_approval_at
+              ).length
+            }
+            )
           </button>
           <button
             onClick={() => setFilter("approved")}
             className={`px-4 py-2 rounded-lg ${
-              filter === "approved" ? "bg-red-800 text-white" : "bg-gray-100 text-gray-700"
+              filter === "approved"
+                ? "bg-red-800 text-white"
+                : "bg-gray-100 text-gray-700"
             }`}
           >
             Approved
@@ -132,7 +150,9 @@ export function ProductApprovals() {
           <button
             onClick={() => setFilter("rejected")}
             className={`px-4 py-2 rounded-lg ${
-              filter === "rejected" ? "bg-red-800 text-white" : "bg-gray-100 text-gray-700"
+              filter === "rejected"
+                ? "bg-red-800 text-white"
+                : "bg-gray-100 text-gray-700"
             }`}
           >
             Rejected
@@ -180,7 +200,9 @@ export function ProductApprovals() {
                           />
                         )}
                         <div>
-                          <div className="text-sm font-medium text-gray-900">{product.title}</div>
+                          <div className="text-sm font-medium text-gray-900">
+                            {product.title}
+                          </div>
                           <div className="text-sm text-gray-500 truncate max-w-xs">
                             {product.description?.substring(0, 50)}...
                           </div>
@@ -196,13 +218,19 @@ export function ProductApprovals() {
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <div className="text-sm font-medium text-gray-900">₹{product.price}</div>
+                      <div className="text-sm font-medium text-gray-900">
+                        ₹{product.price}
+                      </div>
                       {product.mrp && product.mrp > product.price && (
-                        <div className="text-sm text-gray-500 line-through">₹{product.mrp}</div>
+                        <div className="text-sm text-gray-500 line-through">
+                          ₹{product.mrp}
+                        </div>
                       )}
                     </td>
                     <td className="px-6 py-4">
-                      <div className="text-sm text-gray-900">{product.stock}</div>
+                      <div className="text-sm text-gray-900">
+                        {product.stock}
+                      </div>
                     </td>
                     <td className="px-6 py-4">
                       <span
@@ -223,7 +251,9 @@ export function ProductApprovals() {
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-500">
                       {product.submitted_for_approval_at
-                        ? new Date(product.submitted_for_approval_at).toLocaleDateString()
+                        ? new Date(
+                            product.submitted_for_approval_at
+                          ).toLocaleDateString()
                         : "N/A"}
                     </td>
                     <td className="px-6 py-4">
@@ -269,7 +299,9 @@ export function ProductApprovals() {
         </div>
 
         {products.length === 0 && (
-          <div className="text-center py-8 text-gray-500">No products found</div>
+          <div className="text-center py-8 text-gray-500">
+            No products found
+          </div>
         )}
       </div>
 
@@ -277,8 +309,12 @@ export function ProductApprovals() {
         <Modal onClose={() => setShowModal(false)} title="Review Product">
           <div className="space-y-4">
             <div>
-              <h3 className="text-lg font-semibold mb-2">{selectedProduct.title}</h3>
-              <p className="text-gray-600 mb-4">{selectedProduct.description}</p>
+              <h3 className="text-lg font-semibold mb-2">
+                {selectedProduct.title}
+              </h3>
+              <p className="text-gray-600 mb-4">
+                {selectedProduct.description}
+              </p>
 
               {selectedProduct.images?.[0] && (
                 <img

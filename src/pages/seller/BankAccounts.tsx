@@ -1,9 +1,16 @@
-import { useEffect, useState } from 'react';
-import { useAuth } from '../../contexts/AuthContext';
-import { supabase } from '../../lib/supabase';
-import { useToast } from '../../hooks/useToast';
-import { Plus, Pencil, Trash2, CreditCard, CheckCircle, XCircle } from 'lucide-react';
-import { Modal } from '../../components/ui/Modal';
+import { useEffect, useState } from "react";
+import { useAuth } from "../../contexts/AuthContext";
+import { supabase } from "../../lib/supabase";
+import { useToast } from "../../hooks/useToast";
+import {
+  Plus,
+  Pencil,
+  Trash2,
+  CreditCard,
+  CheckCircle,
+  XCircle,
+} from "lucide-react";
+import { Modal } from "../../components/ui/Modal";
 
 interface BankAccount {
   id: string;
@@ -12,7 +19,7 @@ interface BankAccount {
   ifsc_code: string;
   bank_name: string;
   branch_name?: string;
-  account_type: 'savings' | 'current';
+  account_type: "savings" | "current";
   is_default: boolean;
   is_verified: boolean;
   verified_at?: string;
@@ -26,15 +33,17 @@ export function SellerBankAccounts() {
   const [accounts, setAccounts] = useState<BankAccount[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
-  const [editingAccount, setEditingAccount] = useState<BankAccount | null>(null);
+  const [editingAccount, setEditingAccount] = useState<BankAccount | null>(
+    null
+  );
 
   const [formData, setFormData] = useState({
-    account_holder: '',
-    account_number: '',
-    ifsc_code: '',
-    bank_name: '',
-    branch_name: '',
-    account_type: 'savings' as 'savings' | 'current',
+    account_holder: "",
+    account_number: "",
+    ifsc_code: "",
+    bank_name: "",
+    branch_name: "",
+    account_type: "savings" as "savings" | "current",
     is_default: false,
   });
 
@@ -47,9 +56,9 @@ export function SellerBankAccounts() {
 
     try {
       const { data: seller } = await supabase
-        .from('sellers')
-        .select('id')
-        .eq('user_id', user.id)
+        .from("sellers")
+        .select("id")
+        .eq("id", user.id)
         .maybeSingle();
 
       if (seller) {
@@ -57,8 +66,8 @@ export function SellerBankAccounts() {
         await fetchAccounts(seller.id);
       }
     } catch (error) {
-      console.error('Error loading seller:', error);
-      toast.error('Failed to load seller data');
+      console.error("Error loading seller:", error);
+      toast.error("Failed to load seller data");
     } finally {
       setLoading(false);
     }
@@ -70,29 +79,29 @@ export function SellerBankAccounts() {
 
     try {
       const { data, error } = await supabase
-        .from('seller_bank_accounts')
-        .select('*')
-        .eq('seller_id', id)
-        .order('is_default', { ascending: false })
-        .order('created_at', { ascending: false });
+        .from("seller_bank_accounts")
+        .select("*")
+        .eq("seller_id", id)
+        .order("is_default", { ascending: false })
+        .order("created_at", { ascending: false });
 
       if (error) throw error;
       setAccounts(data || []);
     } catch (error) {
-      console.error('Error fetching accounts:', error);
-      toast.error('Failed to load bank accounts');
+      console.error("Error fetching accounts:", error);
+      toast.error("Failed to load bank accounts");
     }
   };
 
   const openAddModal = () => {
     setEditingAccount(null);
     setFormData({
-      account_holder: '',
-      account_number: '',
-      ifsc_code: '',
-      bank_name: '',
-      branch_name: '',
-      account_type: 'savings',
+      account_holder: "",
+      account_number: "",
+      ifsc_code: "",
+      bank_name: "",
+      branch_name: "",
+      account_type: "savings",
       is_default: accounts.length === 0,
     });
     setShowModal(true);
@@ -105,7 +114,7 @@ export function SellerBankAccounts() {
       account_number: account.account_number,
       ifsc_code: account.ifsc_code,
       bank_name: account.bank_name,
-      branch_name: account.branch_name || '',
+      branch_name: account.branch_name || "",
       account_type: account.account_type,
       is_default: account.is_default,
     });
@@ -116,12 +125,17 @@ export function SellerBankAccounts() {
     e.preventDefault();
 
     if (!sellerId) {
-      toast.error('Seller account not found');
+      toast.error("Seller account not found");
       return;
     }
 
-    if (!formData.account_holder || !formData.account_number || !formData.ifsc_code || !formData.bank_name) {
-      toast.error('Please fill in all required fields');
+    if (
+      !formData.account_holder ||
+      !formData.account_number ||
+      !formData.ifsc_code ||
+      !formData.bank_name
+    ) {
+      toast.error("Please fill in all required fields");
       return;
     }
 
@@ -139,45 +153,45 @@ export function SellerBankAccounts() {
 
       if (editingAccount) {
         const { error } = await supabase
-          .from('seller_bank_accounts')
+          .from("seller_bank_accounts")
           .update(accountData)
-          .eq('id', editingAccount.id);
+          .eq("id", editingAccount.id);
 
         if (error) throw error;
-        toast.success('Bank account updated successfully');
+        toast.success("Bank account updated successfully");
       } else {
         const { error } = await supabase
-          .from('seller_bank_accounts')
+          .from("seller_bank_accounts")
           .insert(accountData);
 
         if (error) throw error;
-        toast.success('Bank account added successfully');
+        toast.success("Bank account added successfully");
       }
 
       setShowModal(false);
       fetchAccounts();
     } catch (error: any) {
-      console.error('Error saving account:', error);
-      toast.error(error.message || 'Failed to save bank account');
+      console.error("Error saving account:", error);
+      toast.error(error.message || "Failed to save bank account");
     }
   };
 
   const deleteAccount = async (accountId: string) => {
-    if (!confirm('Are you sure you want to delete this bank account?')) return;
+    if (!confirm("Are you sure you want to delete this bank account?")) return;
 
     try {
       const { error } = await supabase
-        .from('seller_bank_accounts')
+        .from("seller_bank_accounts")
         .delete()
-        .eq('id', accountId);
+        .eq("id", accountId);
 
       if (error) throw error;
 
-      toast.success('Bank account deleted successfully');
+      toast.success("Bank account deleted successfully");
       fetchAccounts();
     } catch (error) {
-      console.error('Error deleting account:', error);
-      toast.error('Failed to delete bank account');
+      console.error("Error deleting account:", error);
+      toast.error("Failed to delete bank account");
     }
   };
 
@@ -186,23 +200,23 @@ export function SellerBankAccounts() {
 
     try {
       const { error } = await supabase
-        .from('seller_bank_accounts')
+        .from("seller_bank_accounts")
         .update({ is_default: true })
-        .eq('id', accountId);
+        .eq("id", accountId);
 
       if (error) throw error;
 
-      toast.success('Default account updated');
+      toast.success("Default account updated");
       fetchAccounts();
     } catch (error) {
-      console.error('Error setting default:', error);
-      toast.error('Failed to set default account');
+      console.error("Error setting default:", error);
+      toast.error("Failed to set default account");
     }
   };
 
   const maskAccountNumber = (accountNumber: string) => {
     if (accountNumber.length <= 4) return accountNumber;
-    return '*'.repeat(accountNumber.length - 4) + accountNumber.slice(-4);
+    return "*".repeat(accountNumber.length - 4) + accountNumber.slice(-4);
   };
 
   if (loading) {
@@ -242,7 +256,7 @@ export function SellerBankAccounts() {
             <div
               key={account.id}
               className={`bg-white rounded-lg shadow-sm border-2 hover:shadow-md transition-shadow p-6 ${
-                account.is_default ? 'border-red-800' : 'border-gray-200'
+                account.is_default ? "border-red-800" : "border-gray-200"
               }`}
             >
               <div className="flex items-start justify-between mb-4">
@@ -251,7 +265,9 @@ export function SellerBankAccounts() {
                   <div>
                     <h3 className="font-bold text-lg">{account.bank_name}</h3>
                     {account.branch_name && (
-                      <p className="text-sm text-gray-600">{account.branch_name}</p>
+                      <p className="text-sm text-gray-600">
+                        {account.branch_name}
+                      </p>
                     )}
                   </div>
                 </div>
@@ -276,22 +292,29 @@ export function SellerBankAccounts() {
                 </div>
                 <div>
                   <p className="text-xs text-gray-600">Account Number</p>
-                  <p className="font-mono font-medium">{maskAccountNumber(account.account_number)}</p>
+                  <p className="font-mono font-medium">
+                    {maskAccountNumber(account.account_number)}
+                  </p>
                 </div>
                 <div className="grid grid-cols-2 gap-2">
                   <div>
                     <p className="text-xs text-gray-600">IFSC Code</p>
-                    <p className="font-mono text-sm font-medium">{account.ifsc_code}</p>
+                    <p className="font-mono text-sm font-medium">
+                      {account.ifsc_code}
+                    </p>
                   </div>
                   <div>
                     <p className="text-xs text-gray-600">Type</p>
-                    <p className="text-sm font-medium capitalize">{account.account_type}</p>
+                    <p className="text-sm font-medium capitalize">
+                      {account.account_type}
+                    </p>
                   </div>
                 </div>
                 {account.is_verified && account.verified_at && (
                   <div>
                     <p className="text-xs text-green-600">
-                      Verified on {new Date(account.verified_at).toLocaleDateString()}
+                      Verified on{" "}
+                      {new Date(account.verified_at).toLocaleDateString()}
                     </p>
                   </div>
                 )}
@@ -329,7 +352,10 @@ export function SellerBankAccounts() {
         {accounts.length === 0 && (
           <div className="text-center py-12 text-gray-500">
             <CreditCard className="mx-auto mb-4 text-gray-300" size={48} />
-            <p>No bank accounts added yet. Add your first bank account for withdrawals!</p>
+            <p>
+              No bank accounts added yet. Add your first bank account for
+              withdrawals!
+            </p>
           </div>
         )}
       </div>
@@ -337,7 +363,7 @@ export function SellerBankAccounts() {
       <Modal
         isOpen={showModal}
         onClose={() => setShowModal(false)}
-        title={editingAccount ? 'Edit Bank Account' : 'Add Bank Account'}
+        title={editingAccount ? "Edit Bank Account" : "Add Bank Account"}
       >
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
@@ -347,7 +373,9 @@ export function SellerBankAccounts() {
             <input
               type="text"
               value={formData.account_holder}
-              onChange={(e) => setFormData({ ...formData, account_holder: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, account_holder: e.target.value })
+              }
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-800 focus:border-red-800"
               placeholder="Full name as per bank"
               required
@@ -361,7 +389,9 @@ export function SellerBankAccounts() {
             <input
               type="text"
               value={formData.account_number}
-              onChange={(e) => setFormData({ ...formData, account_number: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, account_number: e.target.value })
+              }
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-800 focus:border-red-800"
               placeholder="Account number"
               required
@@ -375,7 +405,12 @@ export function SellerBankAccounts() {
             <input
               type="text"
               value={formData.ifsc_code}
-              onChange={(e) => setFormData({ ...formData, ifsc_code: e.target.value.toUpperCase() })}
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  ifsc_code: e.target.value.toUpperCase(),
+                })
+              }
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-800 focus:border-red-800"
               placeholder="IFSC code"
               maxLength={11}
@@ -390,7 +425,9 @@ export function SellerBankAccounts() {
             <input
               type="text"
               value={formData.bank_name}
-              onChange={(e) => setFormData({ ...formData, bank_name: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, bank_name: e.target.value })
+              }
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-800 focus:border-red-800"
               placeholder="Bank name"
               required
@@ -404,7 +441,9 @@ export function SellerBankAccounts() {
             <input
               type="text"
               value={formData.branch_name}
-              onChange={(e) => setFormData({ ...formData, branch_name: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, branch_name: e.target.value })
+              }
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-800 focus:border-red-800"
               placeholder="Branch name (optional)"
             />
@@ -416,7 +455,12 @@ export function SellerBankAccounts() {
             </label>
             <select
               value={formData.account_type}
-              onChange={(e) => setFormData({ ...formData, account_type: e.target.value as 'savings' | 'current' })}
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  account_type: e.target.value as "savings" | "current",
+                })
+              }
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-800 focus:border-red-800"
               required
             >
@@ -430,10 +474,15 @@ export function SellerBankAccounts() {
               type="checkbox"
               id="is_default"
               checked={formData.is_default}
-              onChange={(e) => setFormData({ ...formData, is_default: e.target.checked })}
+              onChange={(e) =>
+                setFormData({ ...formData, is_default: e.target.checked })
+              }
               className="w-4 h-4 text-red-800 border-gray-300 rounded focus:ring-red-800"
             />
-            <label htmlFor="is_default" className="text-sm font-medium text-gray-700">
+            <label
+              htmlFor="is_default"
+              className="text-sm font-medium text-gray-700"
+            >
               Set as default account for withdrawals
             </label>
           </div>
@@ -450,7 +499,7 @@ export function SellerBankAccounts() {
               type="submit"
               className="px-4 py-2 bg-red-800 text-white rounded-lg hover:bg-red-900"
             >
-              {editingAccount ? 'Update Account' : 'Add Account'}
+              {editingAccount ? "Update Account" : "Add Account"}
             </button>
           </div>
         </form>

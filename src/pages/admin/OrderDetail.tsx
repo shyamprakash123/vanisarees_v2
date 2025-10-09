@@ -72,6 +72,7 @@ export function AdminOrderDetail() {
   const [sellerProfile, setSellerProfile] = useState<SellerProfile | null>(
     null
   );
+  const [shipmentData, setShipmentData] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
 
@@ -87,31 +88,38 @@ export function AdminOrderDetail() {
     try {
       const { data, error } = await supabase
         .from("orders")
-        .select("*")
+        .select(
+          `
+      *,
+      sellers: seller_id (
+        business_name,
+        email,
+        phone
+      ),
+      users: user_id (
+        email,
+        name,
+        phone
+      )
+    `
+        )
         .eq("id", id)
         .single();
 
-      if (error) throw error;
-
-      const { data: userData } = await supabase
-        .from("users")
-        .select("email, name, phone")
-        .eq("id", data.user_id)
-        .single();
-
-      setUserProfile(userData || null);
-
-      if (data.seller_id) {
-        const { data: sellerData } = await supabase
-          .from("sellers")
-          .select("business_name, email, phone")
-          .eq("id", data.seller_id)
+      if (data && data.shiprocket_shipment_id) {
+        const { data: shipmentData, error: shipmentError } = await supabase
+          .from("shiprocket_shipments")
+          .select("*")
+          .eq("order_id", data.id)
           .single();
-
-        setSellerProfile(sellerData || null);
+        setShipmentData(shipmentData || null);
       }
 
+      if (error) throw error;
+
       setOrder(data);
+      setUserProfile(data.users || null);
+      setSellerProfile(data.sellers || null);
     } catch (error) {
       console.error("Load order error:", error);
       navigate("/admin/orders");
@@ -348,6 +356,7 @@ export function AdminOrderDetail() {
             <ShiprocketManager
               orderId={order.id}
               order={order}
+              shipmentData={shipmentData}
               onSuccess={handleShipmentSuccess}
             />
           )}

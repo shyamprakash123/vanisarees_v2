@@ -1,15 +1,23 @@
-import { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
-import { ShoppingCart, Heart, Truck, Shield, Package, Star, Store } from 'lucide-react';
-import { useCart } from '../contexts/CartContext';
-import { useToast } from '../hooks/useToast';
-import { useWishlist } from '../hooks/useWishlist';
-import { useRecentlyViewed } from '../hooks/useRecentlyViewed';
-import { ProductGallery } from '../components/product/ProductGallery';
-import { ReviewsList } from '../components/product/ReviewsList';
-import { Breadcrumb } from '../components/ui/Breadcrumb';
-import { supabase } from '../lib/supabase';
-import { formatCurrency } from '../utils/format';
+import { useState, useEffect } from "react";
+import { useParams, Link } from "react-router-dom";
+import {
+  ShoppingCart,
+  Heart,
+  Truck,
+  Shield,
+  Package,
+  Star,
+  Store,
+} from "lucide-react";
+import { useCart } from "../contexts/CartContext";
+import { useToast } from "../hooks/useToast";
+import { useWishlist } from "../hooks/useWishlist";
+import { useRecentlyViewed } from "../hooks/useRecentlyViewed";
+import { ProductGallery } from "../components/product/ProductGallery";
+import { ReviewsList } from "../components/product/ReviewsList";
+import { Breadcrumb } from "../components/ui/Breadcrumb";
+import { supabase } from "../lib/supabase";
+import { formatCurrency } from "../utils/format";
 
 interface Product {
   id: string;
@@ -36,7 +44,6 @@ interface Category {
 interface Seller {
   id: string;
   shop_name: string;
-  user_id: string;
 }
 
 export function ProductDetail() {
@@ -63,9 +70,9 @@ export function ProductDetail() {
   async function loadProduct() {
     try {
       const { data, error } = await supabase
-        .from('products')
-        .select('*, category:categories(id, name, slug)')
-        .eq('slug', slug)
+        .from("products")
+        .select("*, category:categories(id, name, slug)")
+        .eq("slug", slug)
         .maybeSingle();
 
       if (error) throw error;
@@ -87,8 +94,8 @@ export function ProductDetail() {
         });
       }
     } catch (error) {
-      console.error('Error loading product:', error);
-      toast.error('Failed to load product');
+      console.error("Error loading product:", error);
+      toast.error("Failed to load product");
     } finally {
       setLoading(false);
     }
@@ -97,43 +104,44 @@ export function ProductDetail() {
   async function loadSeller(sellerId: string) {
     try {
       const { data, error } = await supabase
-        .from('sellers')
-        .select('id, shop_name, user_id')
-        .eq('id', sellerId)
-        .eq('status', 'approved')
+        .from("sellers")
+        .select("id, shop_name")
+        .eq("id", sellerId)
+        .eq("status", "approved")
         .maybeSingle();
 
       if (error) throw error;
       if (data) setSeller(data);
     } catch (error) {
-      console.error('Error loading seller:', error);
+      console.error("Error loading seller:", error);
     }
   }
 
   async function loadReviews() {
     try {
       const { data: productData } = await supabase
-        .from('products')
-        .select('id')
-        .eq('slug', slug)
+        .from("products")
+        .select("id")
+        .eq("slug", slug)
         .maybeSingle();
 
       if (!productData) return;
 
       const { data, error } = await supabase
-        .from('reviews')
-        .select('rating')
-        .eq('product_id', productData.id)
-        .eq('status', 'approved');
+        .from("reviews")
+        .select("rating")
+        .eq("product_id", productData.id)
+        .eq("status", "approved");
 
       if (error) throw error;
       if (data && data.length > 0) {
-        const avg = data.reduce((sum, review) => sum + review.rating, 0) / data.length;
+        const avg =
+          data.reduce((sum, review) => sum + review.rating, 0) / data.length;
         setAverageRating(avg);
         setReviewCount(data.length);
       }
     } catch (error) {
-      console.error('Error loading reviews:', error);
+      console.error("Error loading reviews:", error);
     }
   }
 
@@ -158,14 +166,20 @@ export function ProductDetail() {
     return (
       <div className="min-h-screen bg-gray-50 py-8 flex items-center justify-center">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Product not found</h2>
-          <p className="text-gray-600">The product you're looking for doesn't exist.</p>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">
+            Product not found
+          </h2>
+          <p className="text-gray-600">
+            The product you're looking for doesn't exist.
+          </p>
         </div>
       </div>
     );
   }
 
-  const discount = Math.round(((product.mrp - product.price) / product.mrp) * 100);
+  const discount = Math.round(
+    ((product.mrp - product.price) / product.mrp) * 100
+  );
 
   const handleAddToCart = async () => {
     try {
@@ -177,9 +191,9 @@ export function ProductDetail() {
         variant: {},
         quantity,
       });
-      toast.success('Added to cart!');
+      toast.success("Added to cart!");
     } catch (error) {
-      toast.error('Failed to add to cart');
+      toast.error("Failed to add to cart");
     }
   };
 
@@ -190,7 +204,7 @@ export function ProductDetail() {
           <Breadcrumb
             items={[
               { label: category.name, path: `/category/${category.slug}` },
-              { label: product?.title || '' },
+              { label: product?.title || "" },
             ]}
             className="mb-6"
           />
@@ -206,11 +220,13 @@ export function ProductDetail() {
 
           <div className="space-y-6">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">{product.title}</h1>
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                {product.title}
+              </h1>
 
               {product.codes.length > 0 && (
                 <p className="text-sm text-gray-600 mb-4">
-                  Product Code: {product.codes.join(', ')}
+                  Product Code: {product.codes.join(", ")}
                 </p>
               )}
 
@@ -222,8 +238,8 @@ export function ProductDetail() {
                         key={i}
                         className={`w-4 h-4 ${
                           i < Math.round(averageRating)
-                            ? 'text-yellow-400 fill-yellow-400'
-                            : 'text-gray-300'
+                            ? "text-yellow-400 fill-yellow-400"
+                            : "text-gray-300"
                         }`}
                       />
                     ))}
@@ -242,12 +258,16 @@ export function ProductDetail() {
                   {formatCurrency(product.mrp)}
                 </span>
                 {discount > 0 && (
-                  <span className="text-green-600 font-semibold">Save {discount}%</span>
+                  <span className="text-green-600 font-semibold">
+                    Save {discount}%
+                  </span>
                 )}
               </div>
 
               {product.stock > 0 ? (
-                <p className="text-green-600 font-medium mb-4">In Stock ({product.stock} available)</p>
+                <p className="text-green-600 font-medium mb-4">
+                  In Stock ({product.stock} available)
+                </p>
               ) : (
                 <p className="text-red-600 font-medium mb-4">Out of Stock</p>
               )}
@@ -256,7 +276,9 @@ export function ProductDetail() {
 
               {product.features && product.features.length > 0 && (
                 <div className="mb-6">
-                  <h3 className="font-semibold text-gray-900 mb-2">Features:</h3>
+                  <h3 className="font-semibold text-gray-900 mb-2">
+                    Features:
+                  </h3>
                   <ul className="list-disc list-inside space-y-1 text-gray-600">
                     {product.features.map((feature, index) => (
                       <li key={index}>{feature}</li>
@@ -277,7 +299,9 @@ export function ProductDetail() {
                 </button>
                 <span className="px-4 py-2 border-x">{quantity}</span>
                 <button
-                  onClick={() => setQuantity(Math.min(product.stock, quantity + 1))}
+                  onClick={() =>
+                    setQuantity(Math.min(product.stock, quantity + 1))
+                  }
                   className="px-4 py-2 hover:bg-gray-100 transition-colors"
                 >
                   +
@@ -307,24 +331,32 @@ export function ProductDetail() {
                 className="flex-1 btn btn-primary flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <ShoppingCart className="w-5 h-5" />
-                {product.stock === 0 ? 'Out of Stock' : 'Add to Cart'}
+                {product.stock === 0 ? "Out of Stock" : "Add to Cart"}
               </button>
               <button
                 onClick={async () => {
                   try {
                     await toggleWishlist(product.id);
-                    toast.success(isInWishlist(product.id) ? 'Removed from wishlist' : 'Added to wishlist');
+                    toast.success(
+                      isInWishlist(product.id)
+                        ? "Removed from wishlist"
+                        : "Added to wishlist"
+                    );
                   } catch (error: any) {
-                    toast.error(error.message || 'Failed to update wishlist');
+                    toast.error(error.message || "Failed to update wishlist");
                   }
                 }}
                 className={`p-3 border-2 rounded-lg transition-colors ${
                   isInWishlist(product.id)
-                    ? 'border-red-600 bg-red-50 text-red-600'
-                    : 'border-gray-300 hover:border-red-600 hover:text-red-600'
+                    ? "border-red-600 bg-red-50 text-red-600"
+                    : "border-gray-300 hover:border-red-600 hover:text-red-600"
                 }`}
               >
-                <Heart className={`w-6 h-6 ${isInWishlist(product.id) ? 'fill-red-600' : ''}`} />
+                <Heart
+                  className={`w-6 h-6 ${
+                    isInWishlist(product.id) ? "fill-red-600" : ""
+                  }`}
+                />
               </button>
             </div>
 

@@ -8,7 +8,6 @@ import { ConfirmDialog } from "../../components/ui/ConfirmDialog";
 
 interface Seller {
   id: string;
-  user_id: string;
   shop_name: string;
   status: string;
   kyc: any;
@@ -46,7 +45,7 @@ export function AdminSellers() {
     try {
       const { data, error } = await supabase
         .from("sellers")
-        .select("*, users:sellers_user_id_fkey(email, name, phone)")
+        .select("*, users:sellers_id_fkey(email, name, phone)")
         .order("created_at", { ascending: false });
 
       if (error) throw error;

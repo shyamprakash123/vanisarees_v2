@@ -54,7 +54,7 @@ export function SellerOrders() {
       const { data: seller } = await supabase
         .from("sellers")
         .select("id")
-        .eq("user_id", user.id)
+        .eq("id", user.id)
         .maybeSingle();
 
       if (seller) {
@@ -89,10 +89,16 @@ export function SellerOrders() {
 
   const updateOrderStatus = async (orderId: string, newStatus: string) => {
     try {
-      const updateData: any = { status: newStatus, updated_at: new Date().toISOString() };
+      const updateData: any = {
+        status: newStatus,
+        updated_at: new Date().toISOString(),
+      };
 
       if (newStatus === "shipped" && !selectedOrder?.tracking_number) {
-        addToast("Please add tracking number before marking as shipped", "error");
+        addToast(
+          "Please add tracking number before marking as shipped",
+          "error"
+        );
         return;
       }
 
@@ -136,7 +142,7 @@ export function SellerOrders() {
         .update({
           tracking_number: trackingNumber,
           status: "shipped",
-          shipped_at: new Date().toISOString()
+          shipped_at: new Date().toISOString(),
         })
         .eq("id", selectedOrder.id)
         .eq("seller_id", sellerId);
@@ -233,22 +239,24 @@ export function SellerOrders() {
           >
             All Orders ({orders.length})
           </button>
-          {["paid", "confirmed", "processing", "shipped", "delivered"].map((status) => {
-            const count = orders.filter((o) => o.status === status).length;
-            return (
-              <button
-                key={status}
-                onClick={() => setStatusFilter(status)}
-                className={`px-4 py-2 rounded-lg capitalize ${
-                  statusFilter === status
-                    ? "bg-red-800 text-white"
-                    : "bg-gray-100 text-gray-700"
-                }`}
-              >
-                {status} ({count})
-              </button>
-            );
-          })}
+          {["paid", "confirmed", "processing", "shipped", "delivered"].map(
+            (status) => {
+              const count = orders.filter((o) => o.status === status).length;
+              return (
+                <button
+                  key={status}
+                  onClick={() => setStatusFilter(status)}
+                  className={`px-4 py-2 rounded-lg capitalize ${
+                    statusFilter === status
+                      ? "bg-red-800 text-white"
+                      : "bg-gray-100 text-gray-700"
+                  }`}
+                >
+                  {status} ({count})
+                </button>
+              );
+            }
+          )}
         </div>
 
         <div className="bg-white rounded-lg shadow overflow-hidden">
@@ -302,7 +310,8 @@ export function SellerOrders() {
                       </td>
                       <td className="px-6 py-4">
                         <div className="text-sm text-gray-900">
-                          {Array.isArray(order.items) ? order.items.length : 0} items
+                          {Array.isArray(order.items) ? order.items.length : 0}{" "}
+                          items
                         </div>
                       </td>
                       <td className="px-6 py-4">
@@ -323,14 +332,22 @@ export function SellerOrders() {
                       <td className="px-6 py-4">
                         {order.awb_code ? (
                           <div className="text-sm">
-                            <div className="font-medium text-gray-900">{order.awb_code}</div>
-                            <div className="text-xs text-gray-500">{order.courier_name}</div>
-                            <div className={`text-xs mt-1 inline-block px-2 py-1 rounded-full ${
-                              order.shipment_status === 'delivered' ? 'bg-green-100 text-green-800' :
-                              order.shipment_status === 'in_transit' ? 'bg-blue-100 text-blue-800' :
-                              'bg-gray-100 text-gray-800'
-                            }`}>
-                              {order.shipment_status || 'pending'}
+                            <div className="font-medium text-gray-900">
+                              {order.awb_code}
+                            </div>
+                            <div className="text-xs text-gray-500">
+                              {order.courier_name}
+                            </div>
+                            <div
+                              className={`text-xs mt-1 inline-block px-2 py-1 rounded-full ${
+                                order.shipment_status === "delivered"
+                                  ? "bg-green-100 text-green-800"
+                                  : order.shipment_status === "in_transit"
+                                  ? "bg-blue-100 text-blue-800"
+                                  : "bg-gray-100 text-gray-800"
+                              }`}
+                            >
+                              {order.shipment_status || "pending"}
                             </div>
                           </div>
                         ) : order.tracking_number ? (
@@ -364,7 +381,9 @@ export function SellerOrders() {
                               {nextStatuses.map((nextStatus) => (
                                 <button
                                   key={nextStatus}
-                                  onClick={() => updateOrderStatus(order.id, nextStatus)}
+                                  onClick={() =>
+                                    updateOrderStatus(order.id, nextStatus)
+                                  }
                                   className="px-2 py-1 text-xs bg-green-100 text-green-800 rounded hover:bg-green-200 capitalize"
                                   title={`Mark as ${nextStatus}`}
                                 >
@@ -414,7 +433,8 @@ export function SellerOrders() {
               Order Number
             </label>
             <div className="text-gray-900 font-medium">
-              #{selectedOrder?.order_number || selectedOrder?.id.substring(0, 8)}
+              #
+              {selectedOrder?.order_number || selectedOrder?.id.substring(0, 8)}
             </div>
           </div>
           <div>
@@ -431,7 +451,8 @@ export function SellerOrders() {
           </div>
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
             <p className="text-sm text-blue-800">
-              Adding a tracking number will automatically mark the order as "Shipped"
+              Adding a tracking number will automatically mark the order as
+              "Shipped"
             </p>
           </div>
           <div className="flex gap-3 justify-end">

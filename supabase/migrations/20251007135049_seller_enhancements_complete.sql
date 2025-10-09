@@ -38,8 +38,8 @@
 -- Extend sellers table
 DO $$
 BEGIN
-  ALTER TABLE sellers DROP CONSTRAINT IF EXISTS sellers_status_check;
-  ALTER TABLE sellers ADD CONSTRAINT sellers_status_check
+  ALTER TABLE sellers DROP CONSTRAINT IF EXISTS status;
+  ALTER TABLE sellers ADD CONSTRAINT status
     CHECK (status IN ('pending', 'approved', 'suspended', 'rejected'));
 
   IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'sellers' AND column_name = 'rejection_reason') THEN
@@ -178,7 +178,7 @@ CREATE POLICY "Sellers can view own bank accounts"
     EXISTS (
       SELECT 1 FROM sellers
       WHERE sellers.id = seller_bank_accounts.seller_id
-      AND sellers.user_id = auth.uid()
+      AND sellers.id = auth.uid()
     )
   );
 
@@ -189,7 +189,7 @@ CREATE POLICY "Sellers can create own bank accounts"
     EXISTS (
       SELECT 1 FROM sellers
       WHERE sellers.id = seller_bank_accounts.seller_id
-      AND sellers.user_id = auth.uid()
+      AND sellers.id = auth.uid()
       AND sellers.status = 'approved'
     )
   );
@@ -201,7 +201,7 @@ CREATE POLICY "Sellers can update own bank accounts"
     EXISTS (
       SELECT 1 FROM sellers
       WHERE sellers.id = seller_bank_accounts.seller_id
-      AND sellers.user_id = auth.uid()
+      AND sellers.id = auth.uid()
     )
   );
 
@@ -212,7 +212,7 @@ CREATE POLICY "Sellers can delete own bank accounts"
     EXISTS (
       SELECT 1 FROM sellers
       WHERE sellers.id = seller_bank_accounts.seller_id
-      AND sellers.user_id = auth.uid()
+      AND sellers.id = auth.uid()
     )
   );
 
@@ -246,7 +246,7 @@ CREATE POLICY "Sellers can view own withdrawal requests"
     EXISTS (
       SELECT 1 FROM sellers
       WHERE sellers.id = seller_withdrawal_requests.seller_id
-      AND sellers.user_id = auth.uid()
+      AND sellers.id = auth.uid()
     )
   );
 
@@ -257,7 +257,7 @@ CREATE POLICY "Sellers can create withdrawal requests"
     EXISTS (
       SELECT 1 FROM sellers
       WHERE sellers.id = seller_withdrawal_requests.seller_id
-      AND sellers.user_id = auth.uid()
+      AND sellers.id = auth.uid()
       AND sellers.status = 'approved'
     )
   );
@@ -298,7 +298,7 @@ CREATE POLICY "Sellers can view own coupons"
     EXISTS (
       SELECT 1 FROM sellers
       WHERE sellers.id = coupons.seller_id
-      AND sellers.user_id = auth.uid()
+      AND sellers.id = auth.uid()
     )
   );
 
@@ -310,7 +310,7 @@ CREATE POLICY "Sellers can create own coupons"
     EXISTS (
       SELECT 1 FROM sellers
       WHERE sellers.id = coupons.seller_id
-      AND sellers.user_id = auth.uid()
+      AND sellers.id = auth.uid()
       AND sellers.status = 'approved'
     )
   );
@@ -323,7 +323,7 @@ CREATE POLICY "Sellers can update own coupons"
     EXISTS (
       SELECT 1 FROM sellers
       WHERE sellers.id = coupons.seller_id
-      AND sellers.user_id = auth.uid()
+      AND sellers.id = auth.uid()
     )
   );
 
@@ -334,7 +334,7 @@ CREATE POLICY "Sellers can delete own coupons"
     EXISTS (
       SELECT 1 FROM sellers
       WHERE sellers.id = coupons.seller_id
-      AND sellers.user_id = auth.uid()
+      AND sellers.id = auth.uid()
     )
   );
 

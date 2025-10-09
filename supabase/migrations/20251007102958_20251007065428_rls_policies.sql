@@ -207,7 +207,7 @@ CREATE POLICY "Users can view own orders"
   USING (
     auth.uid() = user_id OR 
     is_admin() OR 
-    seller_id IN (SELECT id FROM sellers WHERE user_id = auth.uid())
+    seller_id IN (SELECT id FROM sellers WHERE id = auth.uid())
   );
 
 CREATE POLICY "Users can create orders"
@@ -220,11 +220,11 @@ CREATE POLICY "Admins and sellers can update orders"
   TO authenticated
   USING (
     is_admin() OR 
-    seller_id IN (SELECT id FROM sellers WHERE user_id = auth.uid())
+    seller_id IN (SELECT id FROM sellers WHERE id = auth.uid())
   )
   WITH CHECK (
     is_admin() OR 
-    seller_id IN (SELECT id FROM sellers WHERE user_id = auth.uid())
+    seller_id IN (SELECT id FROM sellers WHERE id = auth.uid())
   );
 
 CREATE POLICY "Users can view own invoices"

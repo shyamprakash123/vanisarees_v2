@@ -64,7 +64,7 @@ export function SellerAnalytics() {
       const { data: seller } = await supabase
         .from("sellers")
         .select("id, seller_wallet_balance")
-        .eq("user_id", user.id)
+        .eq("id", user.id)
         .maybeSingle();
 
       if (seller) {
@@ -107,19 +107,20 @@ export function SellerAnalytics() {
         .eq("id", sellerId)
         .single();
 
-      const completedOrders = orders?.filter(
-        (o) => o.status === "delivered"
-      ) || [];
-      const pendingOrders = orders?.filter(
-        (o) => ["paid", "confirmed", "processing", "shipped"].includes(o.status)
-      ) || [];
+      const completedOrders =
+        orders?.filter((o) => o.status === "delivered") || [];
+      const pendingOrders =
+        orders?.filter((o) =>
+          ["paid", "confirmed", "processing", "shipped"].includes(o.status)
+        ) || [];
 
       const totalRevenue = completedOrders.reduce(
         (sum, order) => sum + Number(order.total),
         0
       );
       const totalOrders = orders?.length || 0;
-      const averageOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
+      const averageOrderValue =
+        totalOrders > 0 ? totalRevenue / totalOrders : 0;
 
       const prevStartDate = new Date(startDate);
       prevStartDate.setDate(prevStartDate.getDate() - daysAgo);
@@ -131,14 +132,23 @@ export function SellerAnalytics() {
         .gte("created_at", prevStartDate.toISOString())
         .lt("created_at", startDate.toISOString());
 
-      const prevRevenue = prevOrders?.reduce(
-        (sum, o) => (o.status === "delivered" ? sum + Number(o.total) : sum),
-        0
-      ) || 0;
-      const revenueChange = prevRevenue > 0 ? ((totalRevenue - prevRevenue) / prevRevenue) * 100 : 0;
-      const ordersChange = prevOrders?.length ? ((totalOrders - prevOrders.length) / prevOrders.length) * 100 : 0;
+      const prevRevenue =
+        prevOrders?.reduce(
+          (sum, o) => (o.status === "delivered" ? sum + Number(o.total) : sum),
+          0
+        ) || 0;
+      const revenueChange =
+        prevRevenue > 0
+          ? ((totalRevenue - prevRevenue) / prevRevenue) * 100
+          : 0;
+      const ordersChange = prevOrders?.length
+        ? ((totalOrders - prevOrders.length) / prevOrders.length) * 100
+        : 0;
 
-      const productSales = new Map<string, { title: string; count: number; revenue: number }>();
+      const productSales = new Map<
+        string,
+        { title: string; count: number; revenue: number }
+      >();
       orders?.forEach((order) => {
         if (Array.isArray(order.items)) {
           order.items.forEach((item: any) => {
@@ -164,7 +174,10 @@ export function SellerAnalytics() {
         .sort((a, b) => b.revenue - a.revenue)
         .slice(0, 5);
 
-      const revenueByMonth = new Map<string, { revenue: number; orders: number }>();
+      const revenueByMonth = new Map<
+        string,
+        { revenue: number; orders: number }
+      >();
       completedOrders.forEach((order) => {
         const month = new Date(order.created_at).toLocaleDateString("en-US", {
           year: "numeric",
@@ -195,14 +208,18 @@ export function SellerAnalytics() {
         revenueChange,
         ordersChange,
         topProducts,
-        revenueByMonth: Array.from(revenueByMonth.entries()).map(([month, data]) => ({
-          month,
-          ...data,
-        })),
-        ordersByStatus: Array.from(ordersByStatus.entries()).map(([status, count]) => ({
-          status,
-          count,
-        })),
+        revenueByMonth: Array.from(revenueByMonth.entries()).map(
+          ([month, data]) => ({
+            month,
+            ...data,
+          })
+        ),
+        ordersByStatus: Array.from(ordersByStatus.entries()).map(
+          ([status, count]) => ({
+            status,
+            count,
+          })
+        ),
       });
     } catch (error) {
       console.error("Error fetching analytics:", error);
@@ -386,7 +403,9 @@ export function SellerAnalytics() {
                         {index + 1}
                       </div>
                       <div>
-                        <div className="font-medium">{product.product_title}</div>
+                        <div className="font-medium">
+                          {product.product_title}
+                        </div>
                         <div className="text-sm text-gray-500">
                           {product.order_count} units sold
                         </div>
@@ -401,7 +420,9 @@ export function SellerAnalytics() {
                 ))}
               </div>
             ) : (
-              <p className="text-gray-500 text-center py-8">No sales data yet</p>
+              <p className="text-gray-500 text-center py-8">
+                No sales data yet
+              </p>
             )}
           </div>
 
@@ -416,7 +437,9 @@ export function SellerAnalytics() {
                   >
                     <div>
                       <div className="font-medium">{data.month}</div>
-                      <div className="text-sm text-gray-500">{data.orders} orders</div>
+                      <div className="text-sm text-gray-500">
+                        {data.orders} orders
+                      </div>
                     </div>
                     <div className="font-bold text-green-600">
                       {formatCurrency(data.revenue)}
@@ -425,7 +448,9 @@ export function SellerAnalytics() {
                 ))}
               </div>
             ) : (
-              <p className="text-gray-500 text-center py-8">No revenue data yet</p>
+              <p className="text-gray-500 text-center py-8">
+                No revenue data yet
+              </p>
             )}
           </div>
         </div>

@@ -52,7 +52,7 @@ export function SellerProducts() {
       const { data: seller } = await supabase
         .from("sellers")
         .select("id")
-        .eq("user_id", user.id)
+        .eq("id", user.id)
         .maybeSingle();
 
       if (seller) {
@@ -171,9 +171,12 @@ export function SellerProducts() {
 
   const submitForApproval = async (productId: string) => {
     try {
-      const { data, error } = await supabase.rpc("submit_product_for_approval", {
-        product_id: productId,
-      });
+      const { data, error } = await supabase.rpc(
+        "submit_product_for_approval",
+        {
+          product_id: productId,
+        }
+      );
 
       if (error) throw error;
 
@@ -353,7 +356,9 @@ export function SellerProducts() {
                             Rejected
                           </span>
                           {product.approval_notes && (
-                            <div className="text-xs text-gray-500 mt-1">{product.approval_notes}</div>
+                            <div className="text-xs text-gray-500 mt-1">
+                              {product.approval_notes}
+                            </div>
                           )}
                         </div>
                       ) : product.submitted_for_approval_at ? (

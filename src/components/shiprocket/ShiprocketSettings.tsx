@@ -1,15 +1,18 @@
-import { useState, useEffect } from 'react';
-import { supabase } from '../../lib/supabase';
-import { Settings, Save, Loader, Eye, EyeOff } from 'lucide-react';
+import { useState, useEffect } from "react";
+import { supabase } from "../../lib/supabase";
+import { Settings, Save, Loader, Eye, EyeOff } from "lucide-react";
 
 export function ShiprocketSettings() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [pickupLocation, setPickupLocation] = useState('Primary');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [pickupLocation, setPickupLocation] = useState("Primary");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [message, setMessage] = useState<{
+    type: "success" | "error";
+    text: string;
+  } | null>(null);
 
   useEffect(() => {
     loadCredentials();
@@ -22,27 +25,27 @@ export function ShiprocketSettings() {
       if (!userData.user) return;
 
       const { data: sellerData } = await supabase
-        .from('sellers')
-        .select('id')
-        .eq('user_id', userData.user.id)
+        .from("sellers")
+        .select("id")
+        .eq("id", userData.user.id)
         .maybeSingle();
 
       if (!sellerData) return;
 
       const { data } = await supabase
-        .from('shiprocket_credentials')
-        .select('*')
-        .eq('seller_id', sellerData.id)
-        .eq('active', true)
+        .from("shiprocket_credentials")
+        .select("*")
+        .eq("seller_id", sellerData.id)
+        .eq("active", true)
         .maybeSingle();
 
       if (data) {
         setEmail(data.email);
         setPassword(data.password);
-        setPickupLocation(data.pickup_location || 'Primary');
+        setPickupLocation(data.pickup_location || "Primary");
       }
     } catch (err) {
-      console.error('Load credentials error:', err);
+      console.error("Load credentials error:", err);
     } finally {
       setLoading(false);
     }
@@ -50,7 +53,7 @@ export function ShiprocketSettings() {
 
   const handleSave = async () => {
     if (!email || !password) {
-      setMessage({ type: 'error', text: 'Please fill in all required fields' });
+      setMessage({ type: "error", text: "Please fill in all required fields" });
       return;
     }
 
@@ -59,54 +62,55 @@ export function ShiprocketSettings() {
 
     try {
       const { data: userData } = await supabase.auth.getUser();
-      if (!userData.user) throw new Error('User not authenticated');
+      if (!userData.user) throw new Error("User not authenticated");
 
       const { data: sellerData } = await supabase
-        .from('sellers')
-        .select('id')
-        .eq('user_id', userData.user.id)
+        .from("sellers")
+        .select("id")
+        .eq("id", userData.user.id)
         .maybeSingle();
 
-      if (!sellerData) throw new Error('Seller account not found');
+      if (!sellerData) throw new Error("Seller account not found");
 
       const { data: existingCreds } = await supabase
-        .from('shiprocket_credentials')
-        .select('id')
-        .eq('seller_id', sellerData.id)
+        .from("shiprocket_credentials")
+        .select("id")
+        .eq("seller_id", sellerData.id)
         .maybeSingle();
 
       if (existingCreds) {
         const { error } = await supabase
-          .from('shiprocket_credentials')
+          .from("shiprocket_credentials")
           .update({
             email,
             password,
             pickup_location: pickupLocation,
             updated_at: new Date().toISOString(),
           })
-          .eq('id', existingCreds.id);
+          .eq("id", existingCreds.id);
 
         if (error) throw error;
       } else {
-        const { error } = await supabase
-          .from('shiprocket_credentials')
-          .insert({
-            seller_id: sellerData.id,
-            email,
-            password,
-            pickup_location: pickupLocation,
-            active: true,
-          });
+        const { error } = await supabase.from("shiprocket_credentials").insert({
+          seller_id: sellerData.id,
+          email,
+          password,
+          pickup_location: pickupLocation,
+          active: true,
+        });
 
         if (error) throw error;
       }
 
-      setMessage({ type: 'success', text: 'Shiprocket credentials saved successfully' });
-    } catch (err) {
-      console.error('Save credentials error:', err);
       setMessage({
-        type: 'error',
-        text: err instanceof Error ? err.message : 'Failed to save credentials',
+        type: "success",
+        text: "Shiprocket credentials saved successfully",
+      });
+    } catch (err) {
+      console.error("Save credentials error:", err);
+      setMessage({
+        type: "error",
+        text: err instanceof Error ? err.message : "Failed to save credentials",
       });
     } finally {
       setSaving(false);
@@ -132,7 +136,10 @@ export function ShiprocketSettings() {
 
       <div className="space-y-4">
         <div>
-          <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+          <label
+            htmlFor="email"
+            className="block text-sm font-medium text-gray-700 mb-1"
+          >
             Shiprocket Email *
           </label>
           <input
@@ -146,12 +153,15 @@ export function ShiprocketSettings() {
         </div>
 
         <div>
-          <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+          <label
+            htmlFor="password"
+            className="block text-sm font-medium text-gray-700 mb-1"
+          >
             Shiprocket Password *
           </label>
           <div className="relative">
             <input
-              type={showPassword ? 'text' : 'password'}
+              type={showPassword ? "text" : "password"}
               id="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
@@ -163,13 +173,20 @@ export function ShiprocketSettings() {
               onClick={() => setShowPassword(!showPassword)}
               className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
             >
-              {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+              {showPassword ? (
+                <EyeOff className="h-5 w-5" />
+              ) : (
+                <Eye className="h-5 w-5" />
+              )}
             </button>
           </div>
         </div>
 
         <div>
-          <label htmlFor="pickupLocation" className="block text-sm font-medium text-gray-700 mb-1">
+          <label
+            htmlFor="pickupLocation"
+            className="block text-sm font-medium text-gray-700 mb-1"
+          >
             Pickup Location Name *
           </label>
           <input
@@ -181,7 +198,8 @@ export function ShiprocketSettings() {
             placeholder="Primary"
           />
           <p className="text-xs text-gray-500 mt-1">
-            This should match the pickup location name configured in your Shiprocket account
+            This should match the pickup location name configured in your
+            Shiprocket account
           </p>
         </div>
 
@@ -206,9 +224,9 @@ export function ShiprocketSettings() {
         {message && (
           <div
             className={`p-3 rounded-lg text-sm ${
-              message.type === 'success'
-                ? 'bg-green-50 text-green-800 border border-green-200'
-                : 'bg-red-50 text-red-800 border border-red-200'
+              message.type === "success"
+                ? "bg-green-50 text-green-800 border border-green-200"
+                : "bg-red-50 text-red-800 border border-red-200"
             }`}
           >
             {message.text}
@@ -216,12 +234,20 @@ export function ShiprocketSettings() {
         )}
 
         <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
-          <h3 className="text-sm font-semibold text-blue-900 mb-2">How to get your credentials:</h3>
+          <h3 className="text-sm font-semibold text-blue-900 mb-2">
+            How to get your credentials:
+          </h3>
           <ol className="text-xs text-blue-800 space-y-1 list-decimal list-inside">
             <li>Log in to your Shiprocket account at shiprocket.in</li>
             <li>Use the same email and password you use to log in</li>
-            <li>Make sure you have added at least one pickup location in your Shiprocket account</li>
-            <li>The pickup location name should exactly match the name in your Shiprocket account</li>
+            <li>
+              Make sure you have added at least one pickup location in your
+              Shiprocket account
+            </li>
+            <li>
+              The pickup location name should exactly match the name in your
+              Shiprocket account
+            </li>
           </ol>
         </div>
       </div>

@@ -19,7 +19,10 @@ import {
   CheckCircle,
   XCircle,
   AlertCircle,
+  ArrowLeftRight,
 } from "lucide-react";
+import { Modal } from "../ui/Modal";
+import { useAuth } from "../../contexts/AuthContext";
 
 interface Order {
   id: string;
@@ -39,14 +42,50 @@ interface Order {
 interface ShiprocketManagerProps {
   orderId: string;
   order: Order;
+  shipmentData: any | null;
   onSuccess?: (trackingNumber: string) => void;
 }
 
 export function ShiprocketManager({
   orderId,
   order,
+  shipmentData,
   onSuccess,
 }: ShiprocketManagerProps) {
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <>
+      <button
+        onClick={() => setIsOpen(true)}
+        className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 text-sm"
+      >
+        Shipping Manager
+      </button>
+      <Modal
+        isOpen={isOpen}
+        onClose={() => setIsOpen(false)}
+        title={`Shiprocket Shipment for Order #${order.order_number}`}
+        size="lg"
+      >
+        <ShiprocketComponent
+          orderId={orderId}
+          order={order}
+          shipmentData={shipmentData}
+          onSuccess={onSuccess}
+        />
+      </Modal>
+    </>
+  );
+}
+
+function ShiprocketComponent({
+  orderId,
+  order,
+  shipmentData,
+  onSuccess,
+}: ShiprocketManagerProps) {
+  const { user } = useAuth();
   const [credentials, setCredentials] = useState<ShiprocketCredentials | null>(
     null
   );
@@ -55,12 +94,23 @@ export function ShiprocketManager({
   const [checkingCouriers, setCheckingCouriers] = useState(false);
   const [couriers, setCouriers] = useState<CourierServiceability[]>([]);
   const [selectedCourier, setSelectedCourier] =
-    useState<CourierServiceability | null>(null);
+    useState<CourierServiceability | null>(() => {
+      if (shipmentData && shipmentData.courier_id) {
+        return {
+          courier_company_id: shipmentData.courier_id,
+          courier_name: shipmentData.courier_name,
+          freight_charge: shipmentData.freight_charge,
+          cod_charges: shipmentData.cod_charges,
+          estimated_delivery_days: shipmentData.estimated_delivery_days,
+        };
+      }
+      return null;
+    });
   const [step, setStep] = useState<
     "credentials" | "couriers" | "confirm" | "complete"
   >("credentials");
-  const [shipmentId, setShipmentId] = useState<number | null>(
-    order.shiprocket_shipment_id || null
+  const [shipmentDataState, setShipmentDataState] = useState<any | null>(
+    shipmentData
   );
   const [awbCode, setAwbCode] = useState<string | null>(
     order.tracking_number || null
@@ -71,23 +121,20 @@ export function ShiprocketManager({
     loadCredentials();
     if (order.shiprocket_shipment_id && order.tracking_number) {
       setStep("complete");
+    } else if (shipmentData && shipmentData.shipment_id) {
+      setStep("confirm");
     }
+    console.log("Shipment Data:", shipmentData);
   }, []);
 
   const loadCredentials = async () => {
     try {
-      const { data: sellerData } = await supabase
-        .from("sellers")
-        .select("id")
-        .eq("user_id", (await supabase.auth.getUser()).data.user?.id)
-        .maybeSingle();
-
-      if (!sellerData) return;
+      if (!user) return;
 
       const { data } = await supabase
         .from("shiprocket_credentials")
         .select("*")
-        .eq("seller_id", sellerData.id)
+        .eq("seller_id", user.id)
         .eq("active", true)
         .maybeSingle();
 
@@ -206,17 +253,7 @@ export function ShiprocketManager({
       const result = await createShiprocketOrder(credentials, orderPayload);
 
       if (result.order_id && result.shipment_id) {
-        setShipmentId(result.shipment_id);
-
-        await supabase
-          .from("orders")
-          .update({
-            shiprocket_order_id: result.order_id.toString(),
-            shiprocket_shipment_id: result.shipment_id,
-          })
-          .eq("id", orderId);
-
-        await supabase.from("shiprocket_shipments").insert({
+        const shippingDetails = {
           order_id: orderId,
           shiprocket_order_id: result.order_id.toString(),
           shipment_id: result.shipment_id,
@@ -227,6 +264,20 @@ export function ShiprocketManager({
           estimated_delivery_days: selectedCourier.estimated_delivery_days,
           status: "created",
           metadata: result,
+        };
+
+        setShipmentDataState(shippingDetails);
+
+        await supabase
+          .from("orders")
+          .update({
+            shiprocket_order_id: result.order_id.toString(),
+            shiprocket_shipment_id: result.shipment_id,
+          })
+          .eq("id", orderId);
+
+        await supabase.from("shiprocket_shipments").insert({
+          ...shippingDetails,
         });
 
         setStep("confirm");
@@ -241,8 +292,51 @@ export function ShiprocketManager({
     }
   };
 
+  const updateShipment = async () => {
+    if (!credentials || !selectedCourier) return;
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      if (
+        shipmentDataState?.shiprocket_order_id &&
+        shipmentDataState?.shipment_id
+      ) {
+        const shippingDetails = {
+          order_id: orderId,
+          shiprocket_order_id: shipmentDataState.shiprocket_order_id.toString(),
+          shipment_id: shipmentDataState.shipment_id,
+          courier_id: selectedCourier.courier_company_id,
+          courier_name: selectedCourier.courier_name,
+          freight_charge: selectedCourier.freight_charge,
+          cod_charges: selectedCourier.cod_charges,
+          estimated_delivery_days: selectedCourier.estimated_delivery_days,
+        };
+
+        setShipmentDataState(shippingDetails);
+
+        await supabase
+          .from("shiprocket_shipments")
+          .update({
+            ...shippingDetails,
+          })
+          .eq("id", shipmentDataState.id);
+
+        setStep("confirm");
+      }
+    } catch (err) {
+      console.error("Create order error:", err);
+      setError(
+        err instanceof Error ? err.message : "Failed to create Shiprocket order"
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleAssignAWB = async () => {
-    if (!credentials || !shipmentId || !selectedCourier) return;
+    if (!credentials || !shipmentDataState || !selectedCourier) return;
 
     setLoading(true);
     setError(null);
@@ -250,7 +344,7 @@ export function ShiprocketManager({
     try {
       const result = await assignAWB(
         credentials,
-        shipmentId,
+        shipmentDataState.shipment_id,
         selectedCourier.courier_company_id
       );
 
@@ -272,9 +366,9 @@ export function ShiprocketManager({
             awb_code: awb,
             status: "pickup_scheduled",
           })
-          .eq("shipment_id", shipmentId);
+          .eq("shipment_id", shipmentDataState.shipment_id);
 
-        await generatePickup(credentials, [shipmentId]);
+        await generatePickup(credentials, [shipmentDataState.shipment_id]);
 
         setStep("complete");
 
@@ -548,23 +642,55 @@ export function ShiprocketManager({
               </div>
             ))}
           </div>
-          <button
-            onClick={handleCreateOrder}
-            disabled={!selectedCourier || loading}
-            className="mt-4 w-full flex items-center justify-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
-          >
-            {loading ? (
-              <>
-                <Loader className="h-4 w-4 animate-spin" />
-                Creating Shipment...
-              </>
-            ) : (
-              <>
-                <CheckCircle className="h-4 w-4" />
-                Create Shipment with Selected Courier
-              </>
-            )}
-          </button>
+          {shipmentDataState ? (
+            <div className="sticky bottom-0 flex space-x-4 bg-white pt-4 pb-10 mt-4 border-t">
+              <button
+                onClick={updateShipment}
+                disabled={!selectedCourier || loading}
+                className="mt-4 w-full flex items-center justify-center gap-2 px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 disabled:opacity-50"
+              >
+                {loading ? (
+                  <>
+                    <Loader className="h-4 w-4 animate-spin" />
+                    Updating Shipment...
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle className="h-4 w-4" />
+                    Update Shipment with Selected Courier
+                  </>
+                )}
+              </button>
+              <button
+                onClick={() => setStep("confirm")}
+                disabled={!selectedCourier || loading}
+                className="mt-4 w-full flex items-center justify-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50"
+              >
+                <>
+                  <XCircle className="h-4 w-4" />
+                  Discard & Continue to Confirmation
+                </>
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={handleCreateOrder}
+              disabled={!selectedCourier || loading}
+              className="mt-4 w-full flex items-center justify-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
+            >
+              {loading ? (
+                <>
+                  <Loader className="h-4 w-4 animate-spin" />
+                  Creating Shipment...
+                </>
+              ) : (
+                <>
+                  <CheckCircle className="h-4 w-4" />
+                  Create Shipment with Selected Courier
+                </>
+              )}
+            </button>
+          )}
         </div>
       )}
 
@@ -579,7 +705,7 @@ export function ShiprocketManager({
         </div>
       )}
 
-      {step === "confirm" && shipmentId && (
+      {step === "confirm" && shipmentDataState && (
         <div className="bg-white p-6 rounded-lg border">
           <h3 className="text-lg font-semibold mb-4">Assign AWB Number</h3>
           <div className="bg-blue-50 p-4 rounded-lg border border-blue-200 mb-4">
@@ -588,27 +714,59 @@ export function ShiprocketManager({
               number and schedule pickup.
             </p>
             <div className="mt-2 text-xs text-blue-600">
-              <p>Shipment ID: {shipmentId}</p>
+              <p>Shipment ID: {shipmentDataState.shipment_id}</p>
               <p>Courier: {selectedCourier?.courier_name}</p>
+              <p>
+                Freight Charge:{" "}
+                <span className="font-semibold">
+                  {formatCurrency(shipmentDataState?.freight_charge || 0)}
+                </span>
+              </p>
+              {shipmentDataState?.cod_charges > 0 && (
+                <p>
+                  COD Charges:{" "}
+                  <span className="font-semibold">
+                    {formatCurrency(shipmentDataState?.cod_charges || 0)}
+                  </span>
+                </p>
+              )}
+              <p>
+                Estimated Delivery: {shipmentDataState?.etd} (
+                {shipmentDataState?.estimated_delivery_days} working days)
+              </p>
             </div>
           </div>
-          <button
-            onClick={handleAssignAWB}
-            disabled={loading}
-            className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
-          >
-            {loading ? (
-              <>
-                <Loader className="h-4 w-4 animate-spin" />
-                Assigning AWB...
-              </>
-            ) : (
-              <>
-                <CheckCircle className="h-4 w-4" />
-                Assign AWB & Schedule Pickup
-              </>
+          <div className="flex space-x-4">
+            <button
+              onClick={handleAssignAWB}
+              disabled={loading}
+              className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
+            >
+              {loading ? (
+                <>
+                  <Loader className="h-4 w-4 animate-spin" />
+                  Assigning AWB...
+                </>
+              ) : (
+                <>
+                  <CheckCircle className="h-4 w-4" />
+                  Assign AWB & Schedule Pickup
+                </>
+              )}
+            </button>
+            {!loading && (
+              <button
+                onClick={handleCheckCouriers}
+                disabled={loading}
+                className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50"
+              >
+                <>
+                  <ArrowLeftRight className="h-4 w-4" />
+                  Change Courier partner
+                </>
+              </button>
             )}
-          </button>
+          </div>
         </div>
       )}
 

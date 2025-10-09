@@ -1,23 +1,23 @@
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { Mail, Lock, User, Eye, EyeOff, Phone, Store } from 'lucide-react';
-import { supabase } from '../lib/supabase';
-import { useToast } from '../hooks/useToast';
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { Mail, Lock, User, Eye, EyeOff, Phone, Store } from "lucide-react";
+import { supabase } from "../lib/supabase";
+import { useToast } from "../hooks/useToast";
 
-type AccountRole = 'user' | 'seller';
+type AccountRole = "user" | "seller";
 
 export function SignUp() {
   const navigate = useNavigate();
   const { addToast } = useToast();
-  const [accountType, setAccountType] = useState<AccountRole>('user');
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [phone, setPhone] = useState('');
-  const [shopName, setShopName] = useState('');
-  const [gstin, setGstin] = useState('');
-  const [shopAddress, setShopAddress] = useState('');
+  const [accountType, setAccountType] = useState<AccountRole>("user");
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [phone, setPhone] = useState("");
+  const [shopName, setShopName] = useState("");
+  const [gstin, setGstin] = useState("");
+  const [shopAddress, setShopAddress] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -25,12 +25,12 @@ export function SignUp() {
     e.preventDefault();
 
     if (password !== confirmPassword) {
-      addToast('Passwords do not match', 'error');
+      addToast("Passwords do not match", "error");
       return;
     }
 
     if (password.length < 6) {
-      addToast('Password must be at least 6 characters', 'error');
+      addToast("Password must be at least 6 characters", "error");
       return;
     }
 
@@ -44,6 +44,10 @@ export function SignUp() {
           data: {
             name,
             phone,
+            accountType,
+            gstin,
+            shopName,
+            shopAddress,
           },
         },
       });
@@ -51,49 +55,19 @@ export function SignUp() {
       if (error) throw error;
 
       if (data.user) {
-        const { error: profileError } = await supabase
-          .from('users')
-          .insert({
-            id: data.user.id,
-            email: data.user.email!,
-            name,
-            phone,
-            gstin: accountType === 'seller' ? gstin : null,
-          });
-
-        if (profileError) {
-          console.error('Profile creation error:', profileError);
-          throw profileError;
-        }
-
-        if (accountType === 'seller') {
-          const { error: sellerError } = await supabase
-            .from('sellers')
-            .insert({
-              user_id: data.user.id,
-              shop_name: shopName,
-              status: 'pending',
-              kyc: {
-                gstin,
-                address: shopAddress,
-                phone,
-              },
-            });
-
-          if (sellerError) {
-            console.error('Seller application error:', sellerError);
-            throw sellerError;
-          }
-
-          addToast('Seller application submitted! Awaiting admin approval.', 'success');
+        if (accountType === "seller") {
+          addToast(
+            "Seller application submitted! Awaiting admin approval.",
+            "success"
+          );
         } else {
-          addToast('Account created successfully!', 'success');
+          addToast("Account created successfully!", "success");
         }
 
-        navigate('/');
+        navigate("/");
       }
     } catch (error: any) {
-      addToast(error.message || 'Failed to sign up', 'error');
+      addToast(error.message || "Failed to sign up", "error");
     } finally {
       setLoading(false);
     }
@@ -107,7 +81,7 @@ export function SignUp() {
             Create your account
           </h2>
           <p className="mt-2 text-center text-sm text-gray-600">
-            Or{' '}
+            Or{" "}
             <Link
               to="/auth/signin"
               className="font-medium text-red-700 hover:text-red-800"
@@ -126,29 +100,41 @@ export function SignUp() {
               <div className="grid grid-cols-2 gap-4">
                 <button
                   type="button"
-                  onClick={() => setAccountType('user')}
+                  onClick={() => setAccountType("user")}
                   className={`p-4 border-2 rounded-lg text-left transition-all ${
-                    accountType === 'user'
-                      ? 'border-red-700 bg-red-50'
-                      : 'border-gray-300 hover:border-gray-400'
+                    accountType === "user"
+                      ? "border-red-700 bg-red-50"
+                      : "border-gray-300 hover:border-gray-400"
                   }`}
                 >
-                  <User className={`h-6 w-6 mb-2 ${accountType === 'user' ? 'text-red-700' : 'text-gray-600'}`} />
+                  <User
+                    className={`h-6 w-6 mb-2 ${
+                      accountType === "user" ? "text-red-700" : "text-gray-600"
+                    }`}
+                  />
                   <div className="font-medium">Customer</div>
                   <div className="text-xs text-gray-500 mt-1">Buy products</div>
                 </button>
                 <button
                   type="button"
-                  onClick={() => setAccountType('seller')}
+                  onClick={() => setAccountType("seller")}
                   className={`p-4 border-2 rounded-lg text-left transition-all ${
-                    accountType === 'seller'
-                      ? 'border-red-700 bg-red-50'
-                      : 'border-gray-300 hover:border-gray-400'
+                    accountType === "seller"
+                      ? "border-red-700 bg-red-50"
+                      : "border-gray-300 hover:border-gray-400"
                   }`}
                 >
-                  <Store className={`h-6 w-6 mb-2 ${accountType === 'seller' ? 'text-red-700' : 'text-gray-600'}`} />
+                  <Store
+                    className={`h-6 w-6 mb-2 ${
+                      accountType === "seller"
+                        ? "text-red-700"
+                        : "text-gray-600"
+                    }`}
+                  />
                   <div className="font-medium">Seller</div>
-                  <div className="text-xs text-gray-500 mt-1">Sell products</div>
+                  <div className="text-xs text-gray-500 mt-1">
+                    Sell products
+                  </div>
                 </button>
               </div>
             </div>
@@ -219,7 +205,7 @@ export function SignUp() {
               </div>
             </div>
 
-            {accountType === 'seller' && (
+            {accountType === "seller" && (
               <>
                 <div>
                   <label htmlFor="shopName" className="sr-only">
@@ -286,7 +272,7 @@ export function SignUp() {
                 <input
                   id="password"
                   name="password"
-                  type={showPassword ? 'text' : 'password'}
+                  type={showPassword ? "text" : "password"}
                   autoComplete="new-password"
                   required
                   value={password}
@@ -319,7 +305,7 @@ export function SignUp() {
                 <input
                   id="confirm-password"
                   name="confirm-password"
-                  type={showPassword ? 'text' : 'password'}
+                  type={showPassword ? "text" : "password"}
                   autoComplete="new-password"
                   required
                   value={confirmPassword}
@@ -331,10 +317,11 @@ export function SignUp() {
             </div>
           </div>
 
-          {accountType === 'seller' && (
+          {accountType === "seller" && (
             <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
               <p className="text-sm text-amber-800">
-                Your seller application will be reviewed by our admin team. You'll receive an email once approved.
+                Your seller application will be reviewed by our admin team.
+                You'll receive an email once approved.
               </p>
             </div>
           )}
@@ -345,7 +332,11 @@ export function SignUp() {
               disabled={loading}
               className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-red-700 hover:bg-red-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loading ? 'Creating account...' : accountType === 'seller' ? 'Submit Application' : 'Create account'}
+              {loading
+                ? "Creating account..."
+                : accountType === "seller"
+                ? "Submit Application"
+                : "Create account"}
             </button>
           </div>
         </form>

@@ -1,8 +1,16 @@
-import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { Package, ShoppingCart, Users, TrendingUp, DollarSign, FolderTree } from 'lucide-react';
-import { supabase } from '../../lib/supabase';
-import { formatCurrency } from '../../utils/format';
+import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
+import {
+  Package,
+  ShoppingCart,
+  Users,
+  TrendingUp,
+  DollarSign,
+  FolderTree,
+  Store,
+} from "lucide-react";
+import { supabase } from "../../lib/supabase";
+import { formatCurrency } from "../../utils/format";
 
 interface Stats {
   totalOrders: number;
@@ -31,17 +39,17 @@ export function AdminDashboard() {
   async function loadStats() {
     try {
       const [ordersRes, productsRes, usersRes] = await Promise.all([
-        supabase
-          .from('orders')
-          .select('total, status')
-          .neq('status', 'draft'),
-        supabase.from('products').select('id', { count: 'exact', head: true }),
-        supabase.from('users').select('id', { count: 'exact', head: true }),
+        supabase.from("orders").select("total, status").neq("status", "draft"),
+        supabase.from("products").select("id", { count: "exact", head: true }),
+        supabase.from("users").select("id", { count: "exact", head: true }),
       ]);
 
       const orders = ordersRes.data || [];
-      const totalRevenue = orders.reduce((sum, order) => sum + Number(order.total), 0);
-      const pendingOrders = orders.filter(o => o.status === 'pending').length;
+      const totalRevenue = orders.reduce(
+        (sum, order) => sum + Number(order.total),
+        0
+      );
+      const pendingOrders = orders.filter((o) => o.status === "pending").length;
 
       setStats({
         totalOrders: orders.length,
@@ -52,7 +60,7 @@ export function AdminDashboard() {
         averageOrderValue: orders.length > 0 ? totalRevenue / orders.length : 0,
       });
     } catch (error) {
-      console.error('Error loading stats:', error);
+      console.error("Error loading stats:", error);
     } finally {
       setLoading(false);
     }
@@ -60,46 +68,46 @@ export function AdminDashboard() {
 
   const statCards = [
     {
-      title: 'Total Revenue',
+      title: "Total Revenue",
       value: formatCurrency(stats.totalRevenue),
       icon: DollarSign,
-      color: 'bg-green-500',
-      link: '/admin/analytics',
+      color: "bg-green-500",
+      link: "/admin/analytics",
     },
     {
-      title: 'Total Orders',
+      title: "Total Orders",
       value: stats.totalOrders.toString(),
       icon: ShoppingCart,
-      color: 'bg-blue-500',
-      link: '/admin/orders',
+      color: "bg-blue-500",
+      link: "/admin/orders",
     },
     {
-      title: 'Pending Orders',
+      title: "Pending Orders",
       value: stats.pendingOrders.toString(),
       icon: Package,
-      color: 'bg-yellow-500',
-      link: '/admin/orders?status=pending',
+      color: "bg-yellow-500",
+      link: "/admin/orders?status=pending",
     },
     {
-      title: 'Total Products',
+      title: "Total Products",
       value: stats.totalProducts.toString(),
       icon: Package,
-      color: 'bg-red-600',
-      link: '/admin/products',
+      color: "bg-red-600",
+      link: "/admin/products",
     },
     {
-      title: 'Total Users',
+      title: "Total Users",
       value: stats.totalUsers.toString(),
       icon: Users,
-      color: 'bg-purple-500',
-      link: '/admin/users',
+      color: "bg-purple-500",
+      link: "/admin/users",
     },
     {
-      title: 'Avg Order Value',
+      title: "Avg Order Value",
       value: formatCurrency(stats.averageOrderValue),
       icon: TrendingUp,
-      color: 'bg-indigo-500',
-      link: '/admin/analytics',
+      color: "bg-indigo-500",
+      link: "/admin/analytics",
     },
   ];
 
@@ -125,7 +133,9 @@ export function AdminDashboard() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
-          <p className="text-gray-600 mt-2">Overview of your store performance</p>
+          <p className="text-gray-600 mt-2">
+            Overview of your store performance
+          </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
@@ -140,7 +150,9 @@ export function AdminDashboard() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-gray-600 mb-1">{card.title}</p>
-                    <p className="text-2xl font-bold text-gray-900">{card.value}</p>
+                    <p className="text-2xl font-bold text-gray-900">
+                      {card.value}
+                    </p>
                   </div>
                   <div className={`${card.color} p-3 rounded-lg`}>
                     <Icon className="w-6 h-6 text-white" />
@@ -153,7 +165,9 @@ export function AdminDashboard() {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div className="bg-white rounded-lg shadow-sm border p-6">
-            <h2 className="text-xl font-bold text-gray-900 mb-4">Quick Actions</h2>
+            <h2 className="text-xl font-bold text-gray-900 mb-4">
+              Quick Actions
+            </h2>
             <div className="space-y-3">
               <Link
                 to="/admin/products/new"
@@ -191,23 +205,46 @@ export function AdminDashboard() {
                   <span className="font-medium">Manage Users</span>
                 </div>
               </Link>
+              <Link
+                to="/admin/sellers"
+                className="block p-4 border rounded-lg hover:border-red-600 hover:bg-red-50 transition-colors"
+              >
+                <div className="flex items-center gap-3">
+                  <Store className="w-5 h-5 text-red-600" />
+                  <span className="font-medium">Manage Sellers</span>
+                </div>
+              </Link>
             </div>
           </div>
 
           <div className="bg-white rounded-lg shadow-sm border p-6">
-            <h2 className="text-xl font-bold text-gray-900 mb-4">System Status</h2>
+            <h2 className="text-xl font-bold text-gray-900 mb-4">
+              System Status
+            </h2>
             <div className="space-y-3">
               <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
-                <span className="text-sm font-medium text-green-900">Database</span>
-                <span className="text-xs bg-green-200 text-green-800 px-2 py-1 rounded">Active</span>
+                <span className="text-sm font-medium text-green-900">
+                  Database
+                </span>
+                <span className="text-xs bg-green-200 text-green-800 px-2 py-1 rounded">
+                  Active
+                </span>
               </div>
               <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
-                <span className="text-sm font-medium text-green-900">Payment Gateway</span>
-                <span className="text-xs bg-green-200 text-green-800 px-2 py-1 rounded">Active</span>
+                <span className="text-sm font-medium text-green-900">
+                  Payment Gateway
+                </span>
+                <span className="text-xs bg-green-200 text-green-800 px-2 py-1 rounded">
+                  Active
+                </span>
               </div>
               <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
-                <span className="text-sm font-medium text-green-900">Storage</span>
-                <span className="text-xs bg-green-200 text-green-800 px-2 py-1 rounded">Active</span>
+                <span className="text-sm font-medium text-green-900">
+                  Storage
+                </span>
+                <span className="text-xs bg-green-200 text-green-800 px-2 py-1 rounded">
+                  Active
+                </span>
               </div>
             </div>
           </div>

@@ -54,7 +54,7 @@ export function SellerCoupons() {
       const { data: seller } = await supabase
         .from("sellers")
         .select("id")
-        .eq("user_id", user.id)
+        .eq("id", user.id)
         .maybeSingle();
 
       if (seller) {

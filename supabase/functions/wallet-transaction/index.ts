@@ -4,13 +4,14 @@ import { createClient } from "npm:@supabase/supabase-js@2.57.4";
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Client-Info, Apikey",
+  "Access-Control-Allow-Headers":
+    "Content-Type, Authorization, X-Client-Info, Apikey",
 };
 
 interface TransactionRequest {
   user_id?: string;
   seller_id?: string;
-  type: 'credit' | 'debit';
+  type: "credit" | "debit";
   amount: number;
   description: string;
   reference_type?: string;
@@ -35,24 +36,37 @@ Deno.serve(async (req: Request) => {
 
     const authHeader = req.headers.get("Authorization")!;
     const token = authHeader.replace("Bearer ", "");
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser(token);
 
     if (authError || !user) {
-      return new Response(
-        JSON.stringify({ error: "Unauthorized" }),
-        {
-          status: 401,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
-      );
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     const requestData: TransactionRequest = await req.json();
-    const { user_id, seller_id, type, amount, description, reference_type, reference_id, order_id, commission_rate, gst_amount } = requestData;
+    const {
+      user_id,
+      seller_id,
+      type,
+      amount,
+      description,
+      reference_type,
+      reference_id,
+      order_id,
+      commission_rate,
+      gst_amount,
+    } = requestData;
 
     if (!type || !amount || amount <= 0) {
       return new Response(
-        JSON.stringify({ error: "Valid type and positive amount are required" }),
+        JSON.stringify({
+          error: "Valid type and positive amount are required",
+        }),
         {
           status: 400,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -72,8 +86,8 @@ Deno.serve(async (req: Request) => {
 
     let currentBalance = 0;
     let newBalance = 0;
-    let tableName = '';
-    let targetId = '';
+    let tableName = "";
+    let targetId = "";
 
     if (user_id) {
       const { data: userData } = await supabase
@@ -83,17 +97,14 @@ Deno.serve(async (req: Request) => {
         .maybeSingle();
 
       if (!userData) {
-        return new Response(
-          JSON.stringify({ error: "User not found" }),
-          {
-            status: 404,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-          }
-        );
+        return new Response(JSON.stringify({ error: "User not found" }), {
+          status: 404,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
       }
 
       currentBalance = Number(userData.wallet_balance);
-      tableName = 'users';
+      tableName = "users";
       targetId = user_id;
     } else if (seller_id) {
       const { data: sellerData } = await supabase
@@ -103,52 +114,46 @@ Deno.serve(async (req: Request) => {
         .maybeSingle();
 
       if (!sellerData) {
-        return new Response(
-          JSON.stringify({ error: "Seller not found" }),
-          {
-            status: 404,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-          }
-        );
+        return new Response(JSON.stringify({ error: "Seller not found" }), {
+          status: 404,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
       }
 
       currentBalance = Number(sellerData.seller_wallet_balance);
-      tableName = 'sellers';
+      tableName = "sellers";
       targetId = seller_id;
     }
 
-    if (type === 'debit') {
+    if (type === "debit") {
       if (currentBalance < amount) {
-        return new Response(
-          JSON.stringify({ error: "Insufficient balance" }),
-          {
-            status: 400,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-          }
-        );
+        return new Response(JSON.stringify({ error: "Insufficient balance" }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
       }
       newBalance = currentBalance - amount;
     } else {
       newBalance = currentBalance + amount;
     }
 
-    const walletColumn = tableName === 'users' ? 'wallet_balance' : 'seller_wallet_balance';
+    const walletColumn =
+      tableName === "users" ? "wallet_balance" : "seller_wallet_balance";
     const { error: updateError } = await supabase
       .from(tableName)
       .update({ [walletColumn]: newBalance })
       .eq("id", targetId);
 
     if (updateError) {
-      return new Response(
-        JSON.stringify({ error: updateError.message }),
-        {
-          status: 500,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
-      );
+      return new Response(JSON.stringify({ error: updateError.message }), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
-    const commission_amount = commission_rate ? (amount * commission_rate / 100) : null;
+    const commission_amount = commission_rate
+      ? (amount * commission_rate) / 100
+      : null;
 
     const transactionData: any = {
       type,
@@ -178,13 +183,10 @@ Deno.serve(async (req: Request) => {
       .single();
 
     if (transactionError) {
-      return new Response(
-        JSON.stringify({ error: transactionError.message }),
-        {
-          status: 500,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
-      );
+      return new Response(JSON.stringify({ error: transactionError.message }), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     return new Response(
@@ -192,7 +194,7 @@ Deno.serve(async (req: Request) => {
         success: true,
         transaction,
         new_balance: newBalance,
-        message: `Wallet ${type} successful`
+        message: `Wallet ${type} successful`,
       }),
       {
         status: 200,
@@ -200,12 +202,9 @@ Deno.serve(async (req: Request) => {
       }
     );
   } catch (error) {
-    return new Response(
-      JSON.stringify({ error: error.message }),
-      {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
-    );
+    return new Response(JSON.stringify({ error: error.message }), {
+      status: 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   }
 });

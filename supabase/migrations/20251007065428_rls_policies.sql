@@ -58,25 +58,25 @@ CREATE POLICY "Admins have full access to users"
   USING (is_admin())
   WITH CHECK (is_admin());
 
-CREATE POLICY "Anyone can view approved sellers"
-  ON sellers FOR SELECT
-  USING (status = 'approved' OR auth.uid() = user_id OR is_admin());
-
-CREATE POLICY "Users can create seller application"
-  ON sellers FOR INSERT
-  TO authenticated
-  WITH CHECK (auth.uid() = user_id);
-
-CREATE POLICY "Sellers can update own profile"
-  ON sellers FOR UPDATE
-  TO authenticated
-  USING (auth.uid() = user_id OR is_admin())
-  WITH CHECK (auth.uid() = user_id OR is_admin());
-
 CREATE POLICY "Admins can delete sellers"
   ON sellers FOR DELETE
   TO authenticated
   USING (is_admin());
+
+CREATE POLICY "Anyone can view approved sellers"
+  ON sellers FOR SELECT
+  USING (status = 'approved' OR auth.uid() = id OR is_admin());
+
+CREATE POLICY "Users can create seller application"
+  ON sellers FOR INSERT
+  TO authenticated
+  WITH CHECK (auth.uid() = id);
+
+CREATE POLICY "Sellers can update own profile"
+  ON sellers FOR UPDATE
+  TO authenticated
+  USING (auth.uid() = id OR is_admin())
+  WITH CHECK (auth.uid() = id OR is_admin());
 
 CREATE POLICY "Anyone can view categories"
   ON categories FOR SELECT
@@ -97,7 +97,7 @@ CREATE POLICY "Sellers can insert own products"
   TO authenticated
   WITH CHECK (
     is_seller() AND seller_id IN (
-      SELECT id FROM sellers WHERE user_id = auth.uid() AND status = 'approved'
+      SELECT id FROM sellers WHERE id = auth.uid() AND status = 'approved'
     )
   );
 
@@ -105,10 +105,10 @@ CREATE POLICY "Sellers can update own products"
   ON products FOR UPDATE
   TO authenticated
   USING (
-    seller_id IN (SELECT id FROM sellers WHERE user_id = auth.uid()) OR is_admin()
+    seller_id IN (SELECT id FROM sellers WHERE id = auth.uid()) OR is_admin()
   )
   WITH CHECK (
-    seller_id IN (SELECT id FROM sellers WHERE user_id = auth.uid()) OR is_admin()
+    seller_id IN (SELECT id FROM sellers WHERE id = auth.uid()) OR is_admin()
   );
 
 CREATE POLICY "Admins can delete products"
@@ -189,13 +189,13 @@ CREATE POLICY "Users can delete from own cart"
   TO authenticated
   USING (auth.uid() = user_id);
 
-CREATE POLICY "Users can view own orders"
+CREATE POLICY "Users, admins, sellers can view orders"
   ON orders FOR SELECT
   TO authenticated
   USING (
     auth.uid() = user_id OR 
     is_admin() OR 
-    seller_id IN (SELECT id FROM sellers WHERE user_id = auth.uid())
+    (is_seller() AND (seller_id IN (SELECT id FROM sellers WHERE id = auth.uid() AND status = 'approved')))
   );
 
 CREATE POLICY "Users can create orders"
@@ -208,11 +208,11 @@ CREATE POLICY "Admins and sellers can update orders"
   TO authenticated
   USING (
     is_admin() OR 
-    seller_id IN (SELECT id FROM sellers WHERE user_id = auth.uid())
+    (is_seller() AND (seller_id IN (SELECT id FROM sellers WHERE id = auth.uid() AND status = 'approved')))
   )
   WITH CHECK (
     is_admin() OR 
-    seller_id IN (SELECT id FROM sellers WHERE user_id = auth.uid())
+    (is_seller() AND (seller_id IN (SELECT id FROM sellers WHERE id = auth.uid() AND status = 'approved')))
   );
 
 CREATE POLICY "Users can view own invoices"

@@ -124,7 +124,7 @@
       "sellers": {
         "columns": [
           "id uuid",
-          "user_id uuid",
+          "id uuid",
           "shop_name text",
           "status text (pending/approved/suspended)",
           "kyc jsonb",
