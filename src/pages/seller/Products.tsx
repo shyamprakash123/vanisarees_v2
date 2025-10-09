@@ -26,6 +26,9 @@ interface Product {
   features: string[];
   images: string[];
   youtube_ids: string[];
+  admin_approved: boolean | null;
+  approval_notes: string | null;
+  submitted_for_approval_at: string | null;
 }
 
 export function SellerProducts() {
@@ -166,6 +169,28 @@ export function SellerProducts() {
     }
   };
 
+  const submitForApproval = async (productId: string) => {
+    try {
+      const { data, error } = await supabase.rpc("submit_product_for_approval", {
+        product_id: productId,
+      });
+
+      if (error) throw error;
+
+      if (data?.success) {
+        toast.success("Product submitted for approval");
+        if (sellerId) {
+          fetchProducts(sellerId);
+        }
+      } else {
+        toast.error(data?.error || "Failed to submit product");
+      }
+    } catch (error) {
+      console.error("Error submitting product:", error);
+      toast.error("Failed to submit product");
+    }
+  };
+
   const filteredProducts = products.filter(
     (product) =>
       product.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -244,6 +269,9 @@ export function SellerProducts() {
                     Status
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Approval
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Actions
                   </th>
                 </tr>
@@ -315,11 +343,39 @@ export function SellerProducts() {
                       </button>
                     </td>
                     <td className="px-6 py-4">
+                      {product.admin_approved === true ? (
+                        <span className="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                          Approved
+                        </span>
+                      ) : product.admin_approved === false ? (
+                        <div>
+                          <span className="px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">
+                            Rejected
+                          </span>
+                          {product.approval_notes && (
+                            <div className="text-xs text-gray-500 mt-1">{product.approval_notes}</div>
+                          )}
+                        </div>
+                      ) : product.submitted_for_approval_at ? (
+                        <span className="px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                          Pending
+                        </span>
+                      ) : (
+                        <button
+                          onClick={() => submitForApproval(product.id)}
+                          className="text-xs text-blue-600 hover:underline"
+                        >
+                          Submit for Approval
+                        </button>
+                      )}
+                    </td>
+                    <td className="px-6 py-4">
                       <div className="flex gap-2">
                         <button
                           onClick={() => openEditModal(product)}
                           className="p-2 text-blue-600 hover:bg-blue-50 rounded"
                           title="Edit"
+                          disabled={product.admin_approved === true}
                         >
                           <Pencil size={16} />
                         </button>
