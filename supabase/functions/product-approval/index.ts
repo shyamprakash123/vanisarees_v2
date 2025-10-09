@@ -4,7 +4,8 @@ import { createClient } from "npm:@supabase/supabase-js@2.57.4";
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Client-Info, Apikey",
+  "Access-Control-Allow-Headers":
+    "Content-Type, Authorization, X-Client-Info, Apikey",
 };
 
 interface ApprovalRequest {
@@ -32,7 +33,10 @@ Deno.serve(async (req: Request) => {
     }
 
     const token = authHeader.replace("Bearer ", "");
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser(token);
 
     if (authError || !user) {
       throw new Error("Unauthorized");
@@ -55,7 +59,7 @@ Deno.serve(async (req: Request) => {
 
     const { data: product, error: productError } = await supabase
       .from("products")
-      .select("*, sellers(id, business_name, users(email, name))")
+      .select("*, sellers(id, shop_name, users!sellers_id_fkey(email, name))")
       .eq("id", product_id)
       .maybeSingle();
 
@@ -79,7 +83,7 @@ Deno.serve(async (req: Request) => {
       .from("products")
       .update(updateData)
       .eq("id", product_id)
-      .select("*, sellers(id, business_name, users(email, name))")
+      .select("*, sellers(id, shop_name, users!sellers_id_fkey(email, name))")
       .single();
 
     if (updateError) {

@@ -264,6 +264,7 @@ function ShiprocketComponent({
           estimated_delivery_days: selectedCourier.estimated_delivery_days,
           status: "created",
           metadata: result,
+          shipment_metadata: selectedCourier,
         };
 
         setShipmentDataState(shippingDetails);
@@ -312,6 +313,7 @@ function ShiprocketComponent({
           freight_charge: selectedCourier.freight_charge,
           cod_charges: selectedCourier.cod_charges,
           estimated_delivery_days: selectedCourier.estimated_delivery_days,
+          shipment_metadata: selectedCourier,
         };
 
         setShipmentDataState(shippingDetails);
@@ -713,27 +715,228 @@ function ShiprocketComponent({
               Shiprocket order created successfully. Click below to assign AWB
               number and schedule pickup.
             </p>
-            <div className="mt-2 text-xs text-blue-600">
-              <p>Shipment ID: {shipmentDataState.shipment_id}</p>
-              <p>Courier: {selectedCourier?.courier_name}</p>
-              <p>
-                Freight Charge:{" "}
-                <span className="font-semibold">
-                  {formatCurrency(shipmentDataState?.freight_charge || 0)}
-                </span>
-              </p>
-              {shipmentDataState?.cod_charges > 0 && (
-                <p>
-                  COD Charges:{" "}
-                  <span className="font-semibold">
-                    {formatCurrency(shipmentDataState?.cod_charges || 0)}
-                  </span>
-                </p>
-              )}
-              <p>
-                Estimated Delivery: {shipmentDataState?.etd} (
-                {shipmentDataState?.estimated_delivery_days} working days)
-              </p>
+            <div
+              key={shipmentDataState.shipment_metadata.courier_company_id}
+              className={`p-5 border rounded-lg cursor-pointer transition-all border-blue-500 bg-blue-50`}
+            >
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  {/* Header with courier name and key indicators */}
+                  <div className="flex items-center gap-2 mb-3">
+                    <h4 className="font-semibold text-gray-900 text-lg">
+                      {shipmentDataState.shipment_metadata.courier_name}
+                    </h4>
+                    {shipmentDataState.shipment_metadata.realtime_tracking ===
+                      "Real Time" && (
+                      <span className="px-2 py-0.5 text-xs bg-green-100 text-green-700 rounded-full">
+                        Live Tracking
+                      </span>
+                    )}
+                    {shipmentDataState.shipment_metadata
+                      .call_before_delivery === "Available" && (
+                      <span className="px-2 py-0.5 text-xs bg-blue-100 text-blue-700 rounded-full">
+                        Call Before Delivery
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Performance metrics */}
+                  <div className="grid grid-cols-3 gap-3 mb-3">
+                    <div className="text-center p-2 bg-gray-50 rounded">
+                      <div className="text-sm font-semibold text-gray-900">
+                        {shipmentDataState.shipment_metadata.rating}/5
+                      </div>
+                      <div className="text-xs text-gray-600">
+                        Overall Rating
+                      </div>
+                    </div>
+                    <div className="text-center p-2 bg-gray-50 rounded">
+                      <div className="text-sm font-semibold text-gray-900">
+                        {shipmentDataState.shipment_metadata.pickup_performance}
+                        /5
+                      </div>
+                      <div className="text-xs text-gray-600">
+                        Pickup Performance
+                      </div>
+                    </div>
+                    <div className="text-center p-2 bg-gray-50 rounded">
+                      <div className="text-sm font-semibold text-gray-900">
+                        {
+                          shipmentDataState.shipment_metadata
+                            .delivery_performance
+                        }
+                        /5
+                      </div>
+                      <div className="text-xs text-gray-600">
+                        Delivery Performance
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Delivery timeline */}
+                  <div className="bg-yellow-50 p-3 rounded mb-3">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <div className="text-sm font-semibold text-gray-900">
+                          Expected Delivery:{" "}
+                          {shipmentDataState.shipment_metadata.etd}
+                        </div>
+                        <div className="text-xs text-gray-600">
+                          {
+                            shipmentDataState.shipment_metadata
+                              .estimated_delivery_days
+                          }{" "}
+                          working days • Pickup cutoff:{" "}
+                          {shipmentDataState.shipment_metadata.cutoff_time}
+                        </div>
+                      </div>
+                      <Calendar className="h-4 w-4 text-yellow-600" />
+                    </div>
+                  </div>
+
+                  {/* Cost breakdown */}
+                  <div className="grid grid-cols-2 gap-3 text-sm">
+                    <div className="flex items-center justify-between">
+                      <span className="text-gray-600">Freight Charge:</span>
+                      <span className="font-semibold">
+                        {formatCurrency(
+                          shipmentDataState.shipment_metadata.freight_charge
+                        )}
+                      </span>
+                    </div>
+
+                    {shipmentDataState.shipment_metadata.cod_charges > 0 && (
+                      <div className="flex items-center justify-between">
+                        <span className="text-gray-600">COD Charges:</span>
+                        <span className="font-semibold">
+                          {formatCurrency(
+                            shipmentDataState.shipment_metadata.cod_charges
+                          )}
+                        </span>
+                      </div>
+                    )}
+
+                    <div className="flex items-center justify-between">
+                      <span className="text-gray-600">Coverage Charges:</span>
+                      <span className="font-semibold">
+                        {formatCurrency(
+                          shipmentDataState.shipment_metadata.coverage_charges
+                        )}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <span className="text-gray-600">RTO Charges:</span>
+                      <span className="font-semibold">
+                        {formatCurrency(
+                          shipmentDataState.shipment_metadata.rto_charges
+                        )}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Additional service info */}
+                  <div className="mt-3 pt-3 border-t border-gray-200">
+                    <div className="grid grid-cols-2 gap-3 text-xs text-gray-600">
+                      <div className="flex items-center gap-1">
+                        <Package className="h-3 w-3" />
+                        <span>
+                          Mode:{" "}
+                          {shipmentDataState.shipment_metadata.is_surface
+                            ? "Surface"
+                            : "Air"}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Truck className="h-3 w-3" />
+                        <span>
+                          Weight:{" "}
+                          {shipmentDataState.shipment_metadata.min_weight}kg -{" "}
+                          {
+                            shipmentDataState.shipment_metadata
+                              .surface_max_weight
+                          }
+                          kg
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <AlertCircle className="h-3 w-3" />
+                        <span>
+                          POD:{" "}
+                          {shipmentDataState.shipment_metadata.pod_available}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <CheckCircle className="h-3 w-3" />
+                        <span>
+                          Track Performance:{" "}
+                          {
+                            shipmentDataState.shipment_metadata
+                              .tracking_performance
+                          }
+                          /5
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Risk indicators */}
+                  {shipmentDataState.shipment_metadata.rto_performance <
+                    3.5 && (
+                    <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded">
+                      <div className="flex items-center gap-1 text-xs text-red-700">
+                        <XCircle className="h-3 w-3" />
+                        <span>
+                          Low RTO Performance:{" "}
+                          {shipmentDataState.shipment_metadata.rto_performance}
+                          /5
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Total cost sidebar */}
+                <div className="text-right ml-4">
+                  <div className="bg-gray-50 p-3 rounded text-center">
+                    <p className="text-2xl font-bold text-gray-900">
+                      {formatCurrency(shipmentDataState.shipment_metadata.rate)}
+                    </p>
+                    <p className="text-xs text-gray-500 mb-2">Total Rate</p>
+
+                    <div className="text-xs space-y-1">
+                      <div className="flex justify-between">
+                        <span>Freight:</span>
+                        <span>
+                          {formatCurrency(
+                            shipmentDataState.shipment_metadata.freight_charge
+                          )}
+                        </span>
+                      </div>
+                      {shipmentDataState.shipment_metadata.cod_charges > 0 && (
+                        <div className="flex justify-between">
+                          <span>COD:</span>
+                          <span>
+                            {formatCurrency(
+                              shipmentDataState.shipment_metadata.cod_charges
+                            )}
+                          </span>
+                        </div>
+                      )}
+                      <div className="flex justify-between">
+                        <span>Other:</span>
+                        <span>
+                          {formatCurrency(
+                            shipmentDataState.shipment_metadata
+                              .coverage_charges +
+                              shipmentDataState.shipment_metadata.other_charges
+                          )}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
           <div className="flex space-x-4">

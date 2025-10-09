@@ -217,7 +217,9 @@ export function Checkout() {
     try {
       const selectedAddr = addresses.find((a) => a.id === selectedAddress);
 
-      const { data: { session } } = await supabase.auth.getSession();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
       if (!session) {
         throw new Error("Not authenticated");
       }
@@ -235,7 +237,7 @@ export function Checkout() {
           address_line2: selectedAddr!.address_line2,
           city: selectedAddr!.city,
           state: selectedAddr!.state,
-          postal_code: selectedAddr!.pincode,
+          pincode: selectedAddr!.pincode,
           country: "IN",
         },
         billing_address: {
@@ -245,7 +247,7 @@ export function Checkout() {
           address_line2: selectedAddr!.address_line2,
           city: selectedAddr!.city,
           state: selectedAddr!.state,
-          postal_code: selectedAddr!.pincode,
+          pincode: selectedAddr!.pincode,
           country: "IN",
         },
         payment_method: paymentMethod === "prepaid" ? "razorpay" : "cod",
@@ -290,7 +292,9 @@ export function Checkout() {
           handler: async (response: any) => {
             try {
               const verifyResponse = await fetch(
-                `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/verify-razorpay-payment`,
+                `${
+                  import.meta.env.VITE_SUPABASE_URL
+                }/functions/v1/verify-razorpay-payment`,
                 {
                   method: "POST",
                   headers: {
@@ -339,7 +343,9 @@ export function Checkout() {
     } catch (error) {
       console.error("Error placing order:", error);
       alert(
-        error instanceof Error ? error.message : "Failed to place order. Please try again."
+        error instanceof Error
+          ? error.message
+          : "Failed to place order. Please try again."
       );
       setProcessing(false);
     }

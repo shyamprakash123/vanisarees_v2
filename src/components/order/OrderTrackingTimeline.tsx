@@ -68,6 +68,12 @@ export function OrderTrackingTimeline({
           const Icon = step.icon;
           const isLast = index === steps.length - 1;
 
+          if (status === "cancelled" || status === "refunded") {
+            if (!["pending", "cancelled", "refunded"].includes(step.id)) {
+              return null;
+            }
+          }
+
           if (step.id === "cancelled" || step.id === "refunded") {
             if (status !== step.id) return null;
           }

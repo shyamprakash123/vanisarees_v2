@@ -214,6 +214,15 @@ export function AdminDashboard() {
                   <span className="font-medium">Manage Sellers</span>
                 </div>
               </Link>
+              <Link
+                to="/admin/product-approvals"
+                className="block p-4 border rounded-lg hover:border-red-600 hover:bg-red-50 transition-colors"
+              >
+                <div className="flex items-center gap-3">
+                  <Store className="w-5 h-5 text-red-600" />
+                  <span className="font-medium">Manage Product Approvals</span>
+                </div>
+              </Link>
             </div>
           </div>
 

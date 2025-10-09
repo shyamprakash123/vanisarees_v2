@@ -18,7 +18,7 @@ interface Product {
   created_at: string;
   seller_id: string;
   sellers?: {
-    business_name: string;
+    shop_name: string;
     id: string;
     users?: {
       name: string;
@@ -46,7 +46,9 @@ export function ProductApprovals() {
     try {
       let query = supabase
         .from("products")
-        .select("*, sellers(business_name, id, users(name, email))");
+        .select(
+          "*, sellers(shop_name, id, users!sellers_id_fkey(name, email))"
+        );
 
       if (filter === "pending") {
         query = query
@@ -76,7 +78,9 @@ export function ProductApprovals() {
     if (!selectedProduct) return;
 
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
       if (!session) {
         throw new Error("Not authenticated");
       }
@@ -228,7 +232,7 @@ export function ProductApprovals() {
                     </td>
                     <td className="px-6 py-4">
                       <div className="text-sm text-gray-900">
-                        {product.sellers?.business_name || "Unknown"}
+                        {product.sellers?.shop_name || "Unknown"}
                       </div>
                       <div className="text-sm text-gray-500">
                         {product.sellers?.users?.email}
@@ -323,7 +327,11 @@ export function ProductApprovals() {
       </div>
 
       {showModal && selectedProduct && (
-        <Modal onClose={() => setShowModal(false)} title="Review Product">
+        <Modal
+          isOpen={showModal}
+          onClose={() => setShowModal(false)}
+          title="Review Product"
+        >
           <div className="space-y-4">
             <div>
               <h3 className="text-lg font-semibold mb-2">
@@ -353,38 +361,38 @@ export function ProductApprovals() {
               </div>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Review Notes
-              </label>
-              <textarea
-                value={approvalNotes}
-                onChange={(e) => setApprovalNotes(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-800 focus:border-transparent"
-                rows={4}
-                placeholder="Add notes for seller..."
-              />
-            </div>
+            {selectedProduct.admin_approved === null && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Review Notes
+                </label>
+                <textarea
+                  value={approvalNotes}
+                  onChange={(e) => setApprovalNotes(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-800 focus:border-transparent"
+                  rows={4}
+                  placeholder="Add notes for seller..."
+                />
+              </div>
+            )}
 
             <div className="flex gap-3">
-              <button
-                onClick={() => handleApproveReject(true)}
-                className="flex-1 bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-colors"
-              >
-                Approve
-              </button>
-              <button
-                onClick={() => handleApproveReject(false)}
-                className="flex-1 bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 transition-colors"
-              >
-                Reject
-              </button>
-              <button
-                onClick={() => setShowModal(false)}
-                className="px-6 bg-gray-200 text-gray-700 py-2 rounded-lg hover:bg-gray-300 transition-colors"
-              >
-                Cancel
-              </button>
+              {selectedProduct.admin_approved === null && (
+                <>
+                  <button
+                    onClick={() => handleApproveReject(true)}
+                    className="flex-1 bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-colors"
+                  >
+                    Approve
+                  </button>
+                  <button
+                    onClick={() => handleApproveReject(false)}
+                    className="flex-1 bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 transition-colors"
+                  >
+                    Reject
+                  </button>
+                </>
+              )}
             </div>
           </div>
         </Modal>

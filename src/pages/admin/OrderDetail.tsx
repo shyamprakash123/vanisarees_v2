@@ -58,7 +58,7 @@ interface UserProfile {
 }
 
 interface SellerProfile {
-  business_name: string;
+  shop_name: string;
   email: string;
   phone: string;
 }
@@ -92,7 +92,7 @@ export function AdminOrderDetail() {
           `
       *,
       sellers: seller_id (
-        business_name,
+        shop_name,
         email,
         phone
       ),
@@ -260,7 +260,7 @@ export function AdminOrderDetail() {
               <div className="text-sm text-green-800 space-y-1">
                 <p>
                   <span className="font-medium">Business:</span>{" "}
-                  {sellerProfile.business_name}
+                  {sellerProfile.shop_name}
                 </p>
                 <p>
                   <span className="font-medium">Email:</span>{" "}

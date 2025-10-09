@@ -171,13 +171,17 @@ export function SellerProducts() {
 
   const submitForApproval = async (productId: string) => {
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
       if (!session) {
         throw new Error("Not authenticated");
       }
 
       const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/submit-product-approval`,
+        `${
+          import.meta.env.VITE_SUPABASE_URL
+        }/functions/v1/submit-product-approval`,
         {
           method: "POST",
           headers: {
@@ -394,7 +398,6 @@ export function SellerProducts() {
                           onClick={() => openEditModal(product)}
                           className="p-2 text-blue-600 hover:bg-blue-50 rounded"
                           title="Edit"
-                          disabled={product.admin_approved === true}
                         >
                           <Pencil size={16} />
                         </button>
