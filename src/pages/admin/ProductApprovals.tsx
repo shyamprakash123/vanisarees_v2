@@ -76,28 +76,45 @@ export function ProductApprovals() {
     if (!selectedProduct) return;
 
     try {
-      const { data, error } = await supabase.rpc("admin_review_product", {
-        product_id: selectedProduct.id,
-        approved,
-        notes: approvalNotes || null,
-      });
-
-      if (error) throw error;
-
-      if (data?.success) {
-        toast.success(
-          approved ? "Product approved successfully" : "Product rejected"
-        );
-        setShowModal(false);
-        setSelectedProduct(null);
-        setApprovalNotes("");
-        fetchProducts();
-      } else {
-        toast.error(data?.error || "Failed to update product");
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        throw new Error("Not authenticated");
       }
+
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/product-approval`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${session.access_token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            product_id: selectedProduct.id,
+            action: approved ? "approve" : "reject",
+            notes: approvalNotes || undefined,
+          }),
+        }
+      );
+
+      const result = await response.json();
+
+      if (!result.success) {
+        throw new Error(result.error || "Failed to update product");
+      }
+
+      toast.success(
+        approved ? "Product approved successfully" : "Product rejected"
+      );
+      setShowModal(false);
+      setSelectedProduct(null);
+      setApprovalNotes("");
+      fetchProducts();
     } catch (error) {
       console.error("Error updating product:", error);
-      toast.error("Failed to update product");
+      toast.error(
+        error instanceof Error ? error.message : "Failed to update product"
+      );
     }
   };
 

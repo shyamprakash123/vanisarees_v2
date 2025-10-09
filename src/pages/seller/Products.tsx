@@ -171,26 +171,40 @@ export function SellerProducts() {
 
   const submitForApproval = async (productId: string) => {
     try {
-      const { data, error } = await supabase.rpc(
-        "submit_product_for_approval",
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        throw new Error("Not authenticated");
+      }
+
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/submit-product-approval`,
         {
-          product_id: productId,
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${session.access_token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            product_id: productId,
+          }),
         }
       );
 
-      if (error) throw error;
+      const result = await response.json();
 
-      if (data?.success) {
-        toast.success("Product submitted for approval");
-        if (sellerId) {
-          fetchProducts(sellerId);
-        }
-      } else {
-        toast.error(data?.error || "Failed to submit product");
+      if (!result.success) {
+        throw new Error(result.error || "Failed to submit product");
+      }
+
+      toast.success("Product submitted for approval");
+      if (sellerId) {
+        fetchProducts(sellerId);
       }
     } catch (error) {
       console.error("Error submitting product:", error);
-      toast.error("Failed to submit product");
+      toast.error(
+        error instanceof Error ? error.message : "Failed to submit product"
+      );
     }
   };
 
