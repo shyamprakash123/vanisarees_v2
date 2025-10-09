@@ -7,9 +7,10 @@ import {
   formatDateTime,
   getOrderStatusColor,
 } from "../utils/format";
-import { Package, MapPin, CreditCard, FileText } from "lucide-react";
+import { Package, MapPin, CreditCard, FileText, XCircle } from "lucide-react";
 import { OrderTrackingTimeline } from "../components/order/OrderTrackingTimeline";
 import { Breadcrumb } from "../components/ui/Breadcrumb";
+import { ConfirmDialog } from "../components/ui/ConfirmDialog";
 
 interface Order {
   id: string;
@@ -39,6 +40,9 @@ export function OrderDetail() {
   const navigate = useNavigate();
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
+  const [cancelling, setCancelling] = useState(false);
+  const [showCancelDialog, setShowCancelDialog] = useState(false);
+  const [cancelReason, setCancelReason] = useState("");
 
   useEffect(() => {
     if (!user) {
@@ -67,6 +71,52 @@ export function OrderDetail() {
     }
   };
 
+  const handleCancelOrder = async () => {
+    if (!order) return;
+
+    setCancelling(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        throw new Error("Not authenticated");
+      }
+
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/cancel-order`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${session.access_token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            order_id: order.id,
+            reason: cancelReason,
+          }),
+        }
+      );
+
+      const result = await response.json();
+
+      if (!result.success) {
+        throw new Error(result.error || "Failed to cancel order");
+      }
+
+      alert(result.message || "Order cancelled successfully");
+      setShowCancelDialog(false);
+      loadOrder();
+    } catch (error) {
+      console.error("Cancel order error:", error);
+      alert(
+        error instanceof Error ? error.message : "Failed to cancel order. Please try again."
+      );
+    } finally {
+      setCancelling(false);
+    }
+  };
+
+  const canCancelOrder = order && ["pending", "paid", "confirmed"].includes(order.status);
+
   if (loading) {
     return <div className="max-w-7xl mx-auto px-4 py-8">Loading order...</div>;
   }
@@ -89,13 +139,24 @@ export function OrderDetail() {
       <div className="mb-8">
         <div className="flex items-center justify-between mb-4">
           <h1 className="text-3xl font-bold">Order {order.order_number}</h1>
-          <span
-            className={`px-4 py-2 rounded-full text-sm font-medium ${getOrderStatusColor(
-              order.status
-            )}`}
-          >
-            {order.status.toUpperCase()}
-          </span>
+          <div className="flex items-center gap-3">
+            <span
+              className={`px-4 py-2 rounded-full text-sm font-medium ${getOrderStatusColor(
+                order.status
+              )}`}
+            >
+              {order.status.toUpperCase()}
+            </span>
+            {canCancelOrder && (
+              <button
+                onClick={() => setShowCancelDialog(true)}
+                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center gap-2"
+              >
+                <XCircle className="h-4 w-4" />
+                Cancel Order
+              </button>
+            )}
+          </div>
         </div>
         <p className="text-gray-600">
           Placed on {formatDateTime(order.created_at)}
@@ -253,6 +314,30 @@ export function OrderDetail() {
           )}
         </div>
       </div>
+
+      <ConfirmDialog
+        isOpen={showCancelDialog}
+        onClose={() => setShowCancelDialog(false)}
+        onConfirm={handleCancelOrder}
+        title="Cancel Order"
+        message="Are you sure you want to cancel this order? This action cannot be undone."
+        confirmText={cancelling ? "Cancelling..." : "Yes, Cancel Order"}
+        cancelText="No, Keep Order"
+        type="danger"
+      >
+        <div className="mt-4">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Reason for cancellation (optional)
+          </label>
+          <textarea
+            value={cancelReason}
+            onChange={(e) => setCancelReason(e.target.value)}
+            placeholder="Please tell us why you're cancelling this order..."
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-800 focus:border-transparent"
+            rows={3}
+          />
+        </div>
+      </ConfirmDialog>
     </div>
   );
 }

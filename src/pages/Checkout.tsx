@@ -16,6 +16,12 @@ import {
 import { Breadcrumb } from "../components/ui/Breadcrumb";
 import { CheckoutSteps } from "../components/checkout/CheckoutSteps";
 
+declare global {
+  interface Window {
+    Razorpay: any;
+  }
+}
+
 interface Address {
   id: string;
   name: string;
@@ -209,40 +215,149 @@ export function Checkout() {
 
     setProcessing(true);
     try {
-      const orderNumber = `ORD${Date.now()}`;
       const selectedAddr = addresses.find((a) => a.id === selectedAddress);
 
-      const { error } = await supabase.from("orders").insert({
-        order_number: orderNumber,
-        user_id: user!.id,
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        throw new Error("Not authenticated");
+      }
+
+      const checkoutData = {
         items: cartItems.map((item) => ({
           product_id: item.product_id,
           quantity: item.quantity,
           price: item.product.price,
         })),
-        subtotal,
-        taxes,
-        shipping,
-        wallet_used: walletDeduction,
-        total,
-        payment_method: paymentMethod,
-        shipping_address: selectedAddr,
+        shipping_address: {
+          name: selectedAddr!.name,
+          phone: selectedAddr!.phone,
+          address_line1: selectedAddr!.address_line1,
+          address_line2: selectedAddr!.address_line2,
+          city: selectedAddr!.city,
+          state: selectedAddr!.state,
+          postal_code: selectedAddr!.pincode,
+          country: "IN",
+        },
+        billing_address: {
+          name: selectedAddr!.name,
+          phone: selectedAddr!.phone,
+          address_line1: selectedAddr!.address_line1,
+          address_line2: selectedAddr!.address_line2,
+          city: selectedAddr!.city,
+          state: selectedAddr!.state,
+          postal_code: selectedAddr!.pincode,
+          country: "IN",
+        },
+        payment_method: paymentMethod === "prepaid" ? "razorpay" : "cod",
+        coupon_code: appliedCoupon?.code,
+        wallet_amount: walletDeduction,
         gift_wrap: giftWrap,
-        gift_message: giftMessage || null,
-        notes: notes || null,
-        status: "pending",
-      });
+        gift_message: giftMessage || undefined,
+        notes: notes || undefined,
+      };
 
-      if (!error) {
-        await supabase.from("cart_items").delete().eq("user_id", user!.id);
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/checkout-order`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${session.access_token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(checkoutData),
+        }
+      );
+
+      const result = await response.json();
+
+      if (!result.success) {
+        throw new Error(result.error || "Failed to create order");
+      }
+
+      if (result.razorpay_order_id && paymentMethod === "prepaid") {
+        const razorpayScript = await loadRazorpayScript();
+        if (!razorpayScript) {
+          throw new Error("Failed to load Razorpay");
+        }
+
+        const options = {
+          key: result.razorpay_key_id,
+          amount: result.order.total * 100,
+          currency: "INR",
+          name: "Grocery Store",
+          description: `Order ${result.order.order_number}`,
+          order_id: result.razorpay_order_id,
+          handler: async (response: any) => {
+            try {
+              const verifyResponse = await fetch(
+                `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/verify-razorpay-payment`,
+                {
+                  method: "POST",
+                  headers: {
+                    Authorization: `Bearer ${session.access_token}`,
+                    "Content-Type": "application/json",
+                  },
+                  body: JSON.stringify({
+                    order_id: result.order.id,
+                    razorpay_payment_id: response.razorpay_payment_id,
+                    razorpay_order_id: response.razorpay_order_id,
+                    razorpay_signature: response.razorpay_signature,
+                  }),
+                }
+              );
+
+              const verifyResult = await verifyResponse.json();
+              if (verifyResult.success) {
+                navigate("/orders");
+              } else {
+                alert("Payment verification failed");
+              }
+            } catch (error) {
+              console.error("Payment verification error:", error);
+              alert("Payment verification failed");
+            }
+          },
+          prefill: {
+            name: selectedAddr!.name,
+            contact: selectedAddr!.phone,
+          },
+          theme: {
+            color: "#991B1B",
+          },
+          modal: {
+            ondismiss: () => {
+              setProcessing(false);
+            },
+          },
+        };
+
+        const razorpay = new window.Razorpay(options);
+        razorpay.open();
+      } else {
         navigate("/orders");
       }
     } catch (error) {
       console.error("Error placing order:", error);
-      alert("Failed to place order. Please try again.");
-    } finally {
+      alert(
+        error instanceof Error ? error.message : "Failed to place order. Please try again."
+      );
       setProcessing(false);
     }
+  };
+
+  const loadRazorpayScript = (): Promise<boolean> => {
+    return new Promise((resolve) => {
+      if (window.Razorpay) {
+        resolve(true);
+        return;
+      }
+
+      const script = document.createElement("script");
+      script.src = "https://checkout.razorpay.com/v1/checkout.js";
+      script.onload = () => resolve(true);
+      script.onerror = () => resolve(false);
+      document.body.appendChild(script);
+    });
   };
 
   if (loading)
