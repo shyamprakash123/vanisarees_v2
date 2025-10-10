@@ -1,4 +1,12 @@
-import { Check, Package, Truck, Home, XCircle, RefreshCw } from "lucide-react";
+import {
+  Check,
+  Package,
+  Truck,
+  Home,
+  XCircle,
+  RefreshCw,
+  User,
+} from "lucide-react";
 
 interface TimelineStep {
   id: string;
@@ -13,6 +21,16 @@ interface OrderTrackingTimelineProps {
   statusHistory?: Array<{ status: string; timestamp: string }>;
 }
 
+const OutForDeliveryIcon = () => (
+  <div className="relative w-6 h-6">
+    <User className="absolute inset-0 text-gray-700" />
+    <Package
+      className="absolute -bottom-1 -right-1 h-4 w-4 font-semibold"
+      strokeWidth={3}
+    />
+  </div>
+);
+
 export function OrderTrackingTimeline({
   status,
   createdAt,
@@ -22,6 +40,11 @@ export function OrderTrackingTimeline({
     { id: "confirmed", label: "Confirmed", icon: Check },
     { id: "processing", label: "Processing", icon: RefreshCw },
     { id: "shipped", label: "Shipped", icon: Truck },
+    {
+      id: "out_for_delivery",
+      label: "Out for Delivery",
+      icon: OutForDeliveryIcon,
+    },
     { id: "delivered", label: "Delivered", icon: Home },
   ];
 
@@ -38,6 +61,7 @@ export function OrderTrackingTimeline({
     "confirmed",
     "processing",
     "shipped",
+    "out_for_delivery",
     "delivered",
     "cancelled",
     "refunded",
