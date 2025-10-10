@@ -1,4 +1,4 @@
-const SHIPROCKET_BASE_URL = 'https://apiv2.shiprocket.in/v1/external';
+const SHIPROCKET_BASE_URL = "https://apiv2.shiprocket.in/v1/external";
 
 let authToken: string | null = null;
 let tokenExpiry: number = 0;
@@ -30,7 +30,7 @@ export interface ShiprocketOrderItem {
 }
 
 export interface ShiprocketOrderPayload {
-  order_id: string;
+  id: string;
   order_date: string;
   pickup_location: string;
   channel_id?: string;
@@ -101,7 +101,9 @@ export interface AWBAssignPayload {
   is_return?: number;
 }
 
-async function getAuthToken(credentials: ShiprocketCredentials): Promise<string> {
+async function getAuthToken(
+  credentials: ShiprocketCredentials
+): Promise<string> {
   const now = Date.now();
 
   if (authToken && tokenExpiry > now) {
@@ -109,9 +111,9 @@ async function getAuthToken(credentials: ShiprocketCredentials): Promise<string>
   }
 
   const response = await fetch(`${SHIPROCKET_BASE_URL}/auth/login`, {
-    method: 'POST',
+    method: "POST",
     headers: {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
     },
     body: JSON.stringify({
       email: credentials.email,
@@ -121,12 +123,12 @@ async function getAuthToken(credentials: ShiprocketCredentials): Promise<string>
 
   if (!response.ok) {
     const error = await response.json();
-    throw new Error(error.message || 'Failed to authenticate with Shiprocket');
+    throw new Error(error.message || "Failed to authenticate with Shiprocket");
   }
 
   const data = await response.json();
   authToken = data.token;
-  tokenExpiry = now + (10 * 60 * 60 * 1000);
+  tokenExpiry = now + 10 * 60 * 60 * 1000;
 
   return authToken;
 }
@@ -138,17 +140,17 @@ export async function createShiprocketOrder(
   const token = await getAuthToken(credentials);
 
   const response = await fetch(`${SHIPROCKET_BASE_URL}/orders/create/adhoc`, {
-    method: 'POST',
+    method: "POST",
     headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`,
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
     },
     body: JSON.stringify(payload),
   });
 
   if (!response.ok) {
     const error = await response.json();
-    throw new Error(error.message || 'Failed to create Shiprocket order');
+    throw new Error(error.message || "Failed to create Shiprocket order");
   }
 
   return await response.json();
@@ -167,28 +169,28 @@ export async function checkServiceability(
   const params = new URLSearchParams({
     pickup_postcode: pickupPostcode,
     delivery_postcode: deliveryPostcode,
-    cod: codEnabled ? '1' : '0',
+    cod: codEnabled ? "1" : "0",
     weight: weight.toString(),
   });
 
   if (orderValue) {
-    params.append('declared_value', orderValue.toString());
+    params.append("declared_value", orderValue.toString());
   }
 
   const response = await fetch(
     `${SHIPROCKET_BASE_URL}/courier/serviceability/?${params.toString()}`,
     {
-      method: 'GET',
+      method: "GET",
       headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
       },
     }
   );
 
   if (!response.ok) {
     const error = await response.json();
-    throw new Error(error.message || 'Failed to check serviceability');
+    throw new Error(error.message || "Failed to check serviceability");
   }
 
   const data = await response.json();
@@ -203,10 +205,10 @@ export async function assignAWB(
   const token = await getAuthToken(credentials);
 
   const response = await fetch(`${SHIPROCKET_BASE_URL}/courier/assign/awb`, {
-    method: 'POST',
+    method: "POST",
     headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`,
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
     },
     body: JSON.stringify({
       shipment_id: shipmentId,
@@ -216,7 +218,7 @@ export async function assignAWB(
 
   if (!response.ok) {
     const error = await response.json();
-    throw new Error(error.message || 'Failed to assign AWB');
+    throw new Error(error.message || "Failed to assign AWB");
   }
 
   return await response.json();
@@ -231,17 +233,17 @@ export async function getShipmentDetails(
   const response = await fetch(
     `${SHIPROCKET_BASE_URL}/shipments/${shipmentId}`,
     {
-      method: 'GET',
+      method: "GET",
       headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
       },
     }
   );
 
   if (!response.ok) {
     const error = await response.json();
-    throw new Error(error.message || 'Failed to get shipment details');
+    throw new Error(error.message || "Failed to get shipment details");
   }
 
   return await response.json();
@@ -253,20 +255,23 @@ export async function generatePickup(
 ): Promise<any> {
   const token = await getAuthToken(credentials);
 
-  const response = await fetch(`${SHIPROCKET_BASE_URL}/courier/generate/pickup`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`,
-    },
-    body: JSON.stringify({
-      shipment_id: shipmentIds,
-    }),
-  });
+  const response = await fetch(
+    `${SHIPROCKET_BASE_URL}/courier/generate/pickup`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        shipment_id: shipmentIds,
+      }),
+    }
+  );
 
   if (!response.ok) {
     const error = await response.json();
-    throw new Error(error.message || 'Failed to generate pickup');
+    throw new Error(error.message || "Failed to generate pickup");
   }
 
   return await response.json();
@@ -281,17 +286,17 @@ export async function trackShipment(
   const response = await fetch(
     `${SHIPROCKET_BASE_URL}/courier/track/awb/${awbCode}`,
     {
-      method: 'GET',
+      method: "GET",
       headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
       },
     }
   );
 
   if (!response.ok) {
     const error = await response.json();
-    throw new Error(error.message || 'Failed to track shipment');
+    throw new Error(error.message || "Failed to track shipment");
   }
 
   return await response.json();

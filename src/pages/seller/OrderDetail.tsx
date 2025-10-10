@@ -18,10 +18,11 @@ import {
 import { OrderTrackingTimeline } from "../../components/order/OrderTrackingTimeline";
 import { Breadcrumb } from "../../components/ui/Breadcrumb";
 import { ShiprocketManager } from "../../components/shiprocket/ShiprocketManager";
+import { Modal } from "../../components/ui/Modal";
+import { ShipmentTracker } from "../../components/ui/ShipmentTrackerComponent";
 
 interface Order {
   id: string;
-  order_number: string;
   total: number;
   subtotal: number;
   taxes: number;
@@ -58,6 +59,7 @@ export function SellerOrderDetail() {
   const [order, setOrder] = useState<Order | null>(null);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [shipmentData, setShipmentData] = useState<any | null>(null);
+  const [isTrackingDetailsOpen, setIsTrackingDetailsOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
 
@@ -180,7 +182,7 @@ export function SellerOrderDetail() {
         items={[
           { label: "Seller Dashboard", path: "/seller/dashboard" },
           { label: "Orders", path: "/seller/orders" },
-          { label: order.order_number },
+          { label: order.id },
         ]}
         className="mb-6"
       />
@@ -188,7 +190,7 @@ export function SellerOrderDetail() {
       <div className="mb-8">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h1 className="text-3xl font-bold">Order {order.order_number}</h1>
+            <h1 className="text-3xl font-bold">Order {order.id}</h1>
             <p className="text-gray-600 mt-1">
               Placed on {formatDateTime(order.created_at)}
             </p>
@@ -217,6 +219,14 @@ export function SellerOrderDetail() {
                 shipmentData={shipmentData}
                 onSuccess={handleShipmentSuccess}
               />
+            )}
+            {shipmentData && (
+              <button
+                onClick={() => setIsTrackingDetailsOpen(true)}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                View Tracking Details
+              </button>
             )}
             <span
               className={`px-4 py-2 rounded-full text-sm font-medium ${getOrderStatusColor(
@@ -462,6 +472,19 @@ export function SellerOrderDetail() {
           )}
         </div>
       </div>
+      <Modal
+        isOpen={isTrackingDetailsOpen}
+        onClose={() => setIsTrackingDetailsOpen(false)}
+        title="Tracking Details"
+        size="lg"
+      >
+        <ShipmentTracker
+          trackingData={{
+            ...shipmentData?.tracking_data,
+            updated_at: order?.updated_at,
+          }}
+        />
+      </Modal>
     </div>
   );
 }

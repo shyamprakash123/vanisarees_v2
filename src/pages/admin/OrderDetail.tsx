@@ -23,7 +23,6 @@ import { ShiprocketManager } from "../../components/shiprocket/ShiprocketManager
 
 interface Order {
   id: string;
-  order_number: string;
   total: number;
   subtotal: number;
   taxes: number;
@@ -202,7 +201,7 @@ export function AdminOrderDetail() {
         items={[
           { label: "Admin Dashboard", path: "/admin/dashboard" },
           { label: "Orders", path: "/admin/orders" },
-          { label: order.order_number },
+          { label: order.id },
         ]}
         className="mb-6"
       />
@@ -210,7 +209,7 @@ export function AdminOrderDetail() {
       <div className="mb-8">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h1 className="text-3xl font-bold">Order {order.order_number}</h1>
+            <h1 className="text-3xl font-bold">Order {order.id}</h1>
             <p className="text-gray-600 mt-1">
               Placed on {formatDateTime(order.created_at)}
             </p>

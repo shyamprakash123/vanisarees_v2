@@ -8,7 +8,6 @@ import { Modal } from "../../components/ui/Modal";
 
 interface Order {
   id: string;
-  order_number: string;
   user_id: string;
   subtotal: number;
   taxes: number;
@@ -297,7 +296,7 @@ export function SellerOrders() {
                     <tr key={order.id} className="hover:bg-gray-50">
                       <td className="px-6 py-4">
                         <div className="text-sm font-medium text-gray-900">
-                          #{order.order_number || order.id.substring(0, 8)}
+                          #{order.id || order.id.substring(0, 8)}
                         </div>
                       </td>
                       <td className="px-6 py-4">
@@ -433,8 +432,7 @@ export function SellerOrders() {
               Order Number
             </label>
             <div className="text-gray-900 font-medium">
-              #
-              {selectedOrder?.order_number || selectedOrder?.id.substring(0, 8)}
+              #{selectedOrder?.id || selectedOrder?.id.substring(0, 8)}
             </div>
           </div>
           <div>

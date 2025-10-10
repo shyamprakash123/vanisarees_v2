@@ -1,12 +1,15 @@
 import { useState, useEffect } from "react";
 import { supabase } from "../../lib/supabase";
 import { Settings, Save, Loader, Eye, EyeOff } from "lucide-react";
+import { useAuth } from "../../contexts/AuthContext";
 
 export function ShiprocketSettings() {
+  const { user } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [pickupLocation, setPickupLocation] = useState("Primary");
   const [showPassword, setShowPassword] = useState(false);
+  const [webhookToken, setWebhookToken] = useState(null);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{
@@ -21,23 +24,25 @@ export function ShiprocketSettings() {
   const loadCredentials = async () => {
     setLoading(true);
     try {
-      const { data: userData } = await supabase.auth.getUser();
-      if (!userData.user) return;
-
-      const { data: sellerData } = await supabase
-        .from("sellers")
-        .select("id")
-        .eq("id", userData.user.id)
-        .maybeSingle();
-
-      if (!sellerData) return;
+      if (!user) return;
 
       const { data } = await supabase
         .from("shiprocket_credentials")
         .select("*")
-        .eq("seller_id", sellerData.id)
+        .eq("seller_id", user.id)
         .eq("active", true)
         .maybeSingle();
+
+      const { data: webhookTokenData } = await supabase
+        .from("webhook_tokens")
+        .select("token")
+        .eq("seller_id", user.id)
+        .eq("is_active", true)
+        .maybeSingle();
+
+      if (webhookTokenData) {
+        setWebhookToken(webhookTokenData.token);
+      }
 
       if (data) {
         setEmail(data.email);
@@ -202,6 +207,53 @@ export function ShiprocketSettings() {
             Shiprocket account
           </p>
         </div>
+
+        <div className="flex items-center justify-between space-x-4">
+          <div className="text-sm text-gray-500 italic bg-green-50 p-2 rounded border border-green-200">
+            <p className="font-semibold mb-1">
+              Webhook URL for Shiprocket (set this in your Shiprocket account):
+            </p>
+            <p>
+              https://kgyyubfudpkdkkftbrdg.supabase.co/functions/v1/shiprocket-webhook
+              <span>
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(
+                      "https://kgyyubfudpkdkkftbrdg.supabase.co/functions/v1/shiprocket-webhook"
+                    );
+                  }}
+                  className="ml-2 text-blue-600 hover:underline"
+                >
+                  (Copy)
+                </button>
+              </span>
+            </p>
+          </div>
+        </div>
+
+        {webhookToken && (
+          <div className="flex items-center justify-between space-x-4">
+            <div className="text-sm text-gray-500 italic bg-green-50 p-2 rounded border border-green-200">
+              <p className="font-semibold mb-1">
+                Webhook Token for Shiprocket (set this in your Shiprocket
+                account):
+              </p>
+              <p>
+                {webhookToken}
+                <span>
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText(webhookToken || "");
+                    }}
+                    className="ml-2 text-blue-600 hover:underline"
+                  >
+                    (Copy)
+                  </button>
+                </span>
+              </p>
+            </div>
+          </div>
+        )}
 
         <button
           onClick={handleSave}

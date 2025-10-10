@@ -11,10 +11,14 @@ import { Package, MapPin, CreditCard, FileText, XCircle } from "lucide-react";
 import { OrderTrackingTimeline } from "../components/order/OrderTrackingTimeline";
 import { Breadcrumb } from "../components/ui/Breadcrumb";
 import { ConfirmDialog } from "../components/ui/ConfirmDialog";
+import { Modal } from "../components/ui/Modal";
+import {
+  ShipmentTracker,
+  ShipmentTrackingData,
+} from "../components/ui/ShipmentTrackerComponent";
 
 interface Order {
   id: string;
-  order_number: string;
   total: number;
   subtotal: number;
   taxes: number;
@@ -32,6 +36,7 @@ interface Order {
   tracking_number?: string;
   created_at: string;
   invoiced: boolean;
+  tracking_data?: ShipmentTrackingData;
 }
 
 export function OrderDetail() {
@@ -43,6 +48,7 @@ export function OrderDetail() {
   const [cancelling, setCancelling] = useState(false);
   const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [cancelReason, setCancelReason] = useState("");
+  const [isTrackingDetailsOpen, setIsTrackingDetailsOpen] = useState(false);
 
   useEffect(() => {
     if (!user) {
@@ -56,7 +62,12 @@ export function OrderDetail() {
     try {
       const { data, error } = await supabase
         .from("orders")
-        .select("*")
+        .select(
+          `
+    *,
+    tracking_data:shipment_tracking_events!order_id (*)
+  `
+        )
         .eq("id", id)
         .eq("user_id", user!.id)
         .single();
@@ -76,7 +87,9 @@ export function OrderDetail() {
 
     setCancelling(true);
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
       if (!session) {
         throw new Error("Not authenticated");
       }
@@ -108,14 +121,17 @@ export function OrderDetail() {
     } catch (error) {
       console.error("Cancel order error:", error);
       alert(
-        error instanceof Error ? error.message : "Failed to cancel order. Please try again."
+        error instanceof Error
+          ? error.message
+          : "Failed to cancel order. Please try again."
       );
     } finally {
       setCancelling(false);
     }
   };
 
-  const canCancelOrder = order && ["pending", "paid", "confirmed"].includes(order.status);
+  const canCancelOrder =
+    order && ["pending", "paid", "confirmed"].includes(order.status);
 
   if (loading) {
     return <div className="max-w-7xl mx-auto px-4 py-8">Loading order...</div>;
@@ -130,16 +146,23 @@ export function OrderDetail() {
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
       <Breadcrumb
-        items={[
-          { label: "Orders", path: "/orders" },
-          { label: order.order_number },
-        ]}
+        items={[{ label: "Orders", path: "/orders" }, { label: order.id }]}
         className="mb-6"
       />
       <div className="mb-8">
         <div className="flex items-center justify-between mb-4">
-          <h1 className="text-3xl font-bold">Order {order.order_number}</h1>
+          <h1 className="text-3xl font-bold">Order {order.id}</h1>
           <div className="flex items-center gap-3">
+            {["shipped", "out_for_delivery", "delivered"].includes(
+              order.status
+            ) && (
+              <button
+                onClick={() => setIsTrackingDetailsOpen(true)}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                View Tracking Details
+              </button>
+            )}
             <span
               className={`px-4 py-2 rounded-full text-sm font-medium ${getOrderStatusColor(
                 order.status
@@ -338,6 +361,15 @@ export function OrderDetail() {
           />
         </div>
       </ConfirmDialog>
+
+      <Modal
+        isOpen={isTrackingDetailsOpen}
+        onClose={() => setIsTrackingDetailsOpen(false)}
+        title="Tracking Details"
+        size="lg"
+      >
+        <ShipmentTracker trackingData={order.tracking_data} />
+      </Modal>
     </div>
   );
 }

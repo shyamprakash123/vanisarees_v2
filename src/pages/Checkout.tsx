@@ -250,7 +250,7 @@ export function Checkout() {
           pincode: selectedAddr!.pincode,
           country: "IN",
         },
-        payment_method: paymentMethod === "prepaid" ? "razorpay" : "cod",
+        payment_method: paymentMethod,
         coupon_code: appliedCoupon?.code,
         wallet_amount: walletDeduction,
         gift_wrap: giftWrap,
@@ -287,7 +287,7 @@ export function Checkout() {
           amount: result.order.total * 100,
           currency: "INR",
           name: "Grocery Store",
-          description: `Order ${result.order.order_number}`,
+          description: `Order ${result.order.id}`,
           order_id: result.razorpay_order_id,
           handler: async (response: any) => {
             try {

@@ -1,6 +1,6 @@
-import { useState } from 'react';
-import { supabase } from '../../lib/supabase';
-import { Truck, Loader } from 'lucide-react';
+import { useState } from "react";
+import { supabase } from "../../lib/supabase";
+import { Truck, Loader } from "lucide-react";
 
 interface ShiprocketButtonProps {
   orderId: string;
@@ -8,7 +8,11 @@ interface ShiprocketButtonProps {
   onSuccess?: (trackingNumber: string) => void;
 }
 
-export function ShiprocketButton({ orderId, orderNumber, onSuccess }: ShiprocketButtonProps) {
+export function ShiprocketButton({
+  orderId,
+  orderNumber,
+  onSuccess,
+}: ShiprocketButtonProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -18,17 +22,19 @@ export function ShiprocketButton({ orderId, orderNumber, onSuccess }: Shiprocket
 
     try {
       const { data: order, error: orderError } = await supabase
-        .from('orders')
-        .select('*')
-        .eq('id', orderId)
+        .from("orders")
+        .select("*")
+        .eq("id", orderId)
         .single();
 
       if (orderError) throw orderError;
 
-      const apiUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/shiprocket-create-order`;
+      const apiUrl = `${
+        import.meta.env.VITE_SUPABASE_URL
+      }/functions/v1/shiprocket-create-order`;
       const headers = {
-        'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-        'Content-Type': 'application/json',
+        Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+        "Content-Type": "application/json",
       };
 
       const totalWeight = order.items.reduce((sum: number, item: any) => {
@@ -37,7 +43,7 @@ export function ShiprocketButton({ orderId, orderNumber, onSuccess }: Shiprocket
 
       const payload = {
         orderId: order.id,
-        orderNumber: order.order_number,
+        orderNumber: order.id,
         items: order.items,
         shippingAddress: order.shipping_address,
         billingAddress: order.billing_address || order.shipping_address,
@@ -51,7 +57,7 @@ export function ShiprocketButton({ orderId, orderNumber, onSuccess }: Shiprocket
       };
 
       const response = await fetch(apiUrl, {
-        method: 'POST',
+        method: "POST",
         headers,
         body: JSON.stringify(payload),
       });
@@ -59,19 +65,19 @@ export function ShiprocketButton({ orderId, orderNumber, onSuccess }: Shiprocket
       const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(result.error || 'Failed to create shipment');
+        throw new Error(result.error || "Failed to create shipment");
       }
 
-      const trackingNumber = result.awb_code || result.shipment_id || 'PENDING';
+      const trackingNumber = result.awb_code || result.shipment_id || "PENDING";
 
       const { error: updateError } = await supabase
-        .from('orders')
+        .from("orders")
         .update({
           tracking_number: trackingNumber,
-          status: 'shipped',
+          status: "shipped",
           shipped_at: new Date().toISOString(),
         })
-        .eq('id', orderId);
+        .eq("id", orderId);
 
       if (updateError) throw updateError;
 
@@ -81,8 +87,9 @@ export function ShiprocketButton({ orderId, orderNumber, onSuccess }: Shiprocket
         onSuccess(trackingNumber);
       }
     } catch (err) {
-      console.error('Shipment creation error:', err);
-      const errorMessage = err instanceof Error ? err.message : 'Failed to create shipment';
+      console.error("Shipment creation error:", err);
+      const errorMessage =
+        err instanceof Error ? err.message : "Failed to create shipment";
       setError(errorMessage);
       alert(`Error: ${errorMessage}`);
     } finally {
@@ -109,9 +116,7 @@ export function ShiprocketButton({ orderId, orderNumber, onSuccess }: Shiprocket
           </>
         )}
       </button>
-      {error && (
-        <p className="text-xs text-red-600">{error}</p>
-      )}
+      {error && <p className="text-xs text-red-600">{error}</p>}
     </div>
   );
 }

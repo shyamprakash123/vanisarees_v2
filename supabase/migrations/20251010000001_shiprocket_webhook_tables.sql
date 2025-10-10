@@ -91,36 +91,7 @@ CREATE POLICY "Sellers can view own tokens"
     EXISTS (
       SELECT 1 FROM sellers
       WHERE sellers.id = webhook_tokens.seller_id
-      AND sellers.user_id = auth.uid()
-    )
-  );
-
-CREATE POLICY "Sellers can insert own tokens"
-  ON webhook_tokens FOR INSERT
-  TO authenticated
-  WITH CHECK (
-    EXISTS (
-      SELECT 1 FROM sellers
-      WHERE sellers.id = webhook_tokens.seller_id
-      AND sellers.user_id = auth.uid()
-    )
-  );
-
-CREATE POLICY "Sellers can update own tokens"
-  ON webhook_tokens FOR UPDATE
-  TO authenticated
-  USING (
-    EXISTS (
-      SELECT 1 FROM sellers
-      WHERE sellers.id = webhook_tokens.seller_id
-      AND sellers.user_id = auth.uid()
-    )
-  )
-  WITH CHECK (
-    EXISTS (
-      SELECT 1 FROM sellers
-      WHERE sellers.id = webhook_tokens.seller_id
-      AND sellers.user_id = auth.uid()
+      AND sellers.id = auth.uid() AND sellers.status = 'approved' AND is_seller()
     )
   );
 
@@ -133,7 +104,7 @@ CREATE POLICY "Sellers can view own order tracking"
       SELECT 1 FROM orders
       JOIN sellers ON sellers.id = orders.seller_id
       WHERE orders.id = shipment_tracking_events.order_id
-      AND sellers.user_id = auth.uid()
+      AND sellers.id = auth.uid()
     )
   );
 
@@ -144,7 +115,7 @@ CREATE POLICY "Customers can view their order tracking"
     EXISTS (
       SELECT 1 FROM orders
       WHERE orders.id = shipment_tracking_events.order_id
-      AND orders.user_id = auth.uid()
+      AND orders.id = auth.uid()
     )
   );
 

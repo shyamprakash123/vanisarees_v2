@@ -26,7 +26,6 @@ import { useAuth } from "../../contexts/AuthContext";
 
 interface Order {
   id: string;
-  order_number: string;
   items: any[];
   shipping_address: any;
   billing_address: any;
@@ -65,7 +64,7 @@ export function ShiprocketManager({
       <Modal
         isOpen={isOpen}
         onClose={() => setIsOpen(false)}
-        title={`Shiprocket Shipment for Order #${order.order_number}`}
+        title={`Shiprocket Shipment for Order #${order.id}`}
         size="lg"
       >
         <ShiprocketComponent
@@ -205,7 +204,7 @@ function ShiprocketComponent({
       const billingAddr = order.billing_address || order.shipping_address;
 
       const orderPayload: ShiprocketOrderPayload = {
-        order_id: order.order_number,
+        id: order.id,
         order_date: new Date(order.created_at).toISOString(),
         pickup_location: pickupLocation,
         billing_customer_name:
