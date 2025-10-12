@@ -1,7 +1,7 @@
-import { Link } from 'react-router-dom';
-import { Trash2, Plus, Minus, ShoppingBag, ArrowRight } from 'lucide-react';
-import { useCart } from '../contexts/CartContext';
-import { Breadcrumb } from '../components/ui/Breadcrumb';
+import { Link } from "react-router-dom";
+import { Trash2, Plus, Minus, ShoppingBag, ArrowRight } from "lucide-react";
+import { useCart } from "../contexts/CartContext";
+import { Breadcrumb } from "../components/ui/Breadcrumb";
 
 export function Cart() {
   const { items, updateQuantity, removeItem, total, itemCount } = useCart();
@@ -14,11 +14,16 @@ export function Cart() {
             <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
               <ShoppingBag className="w-12 h-12 text-gray-400" />
             </div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">Your cart is empty</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">
+              Your cart is empty
+            </h2>
             <p className="text-gray-600 mb-8">
               Looks like you haven't added anything to your cart yet
             </p>
-            <Link to="/" className="btn btn-primary inline-flex items-center gap-2">
+            <Link
+              to="/"
+              className="btn btn-primary inline-flex items-center gap-2"
+            >
               Continue Shopping
               <ArrowRight className="w-5 h-5" />
             </Link>
@@ -28,14 +33,13 @@ export function Cart() {
     );
   }
 
-  const shipping = total > 999 ? 0 : 99;
-  const taxes = Math.round(total * 0.05);
-  const grandTotal = total + shipping + taxes;
+  const shipping = total >= 999 ? 0 : 100;
+  const grandTotal = total + shipping;
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <Breadcrumb items={[{ label: 'Shopping Cart' }]} className="mb-6" />
+        <Breadcrumb items={[{ label: "Shopping Cart" }]} className="mb-6" />
         <h1 className="text-3xl font-bold text-gray-900 mb-8">Shopping Cart</h1>
 
         <div className="grid lg:grid-cols-3 gap-8">
@@ -54,22 +58,34 @@ export function Cart() {
                   />
 
                   <div className="flex-1">
-                    <h3 className="font-semibold text-gray-900 mb-1">{item.title}</h3>
+                    <h3 className="font-semibold text-gray-900 mb-1">
+                      {item.title}
+                    </h3>
                     <p className="text-sm text-gray-600 mb-2">
-                      ₹{item.price.toLocaleString('en-IN')} each
+                      ₹{item.price.toLocaleString("en-IN")}{" "}
+                      <span className="text-gray-500 font-semibold text-xs">
+                        (Inclusive of all taxes)
+                      </span>
                     </p>
 
                     <div className="flex items-center justify-between">
                       <div className="flex items-center border rounded-lg">
                         <button
-                          onClick={() => updateQuantity(item.product_id, item.quantity - 1)}
-                          className="p-2 hover:bg-gray-100 transition-colors"
+                          onClick={() =>
+                            updateQuantity(item.product_id, item.quantity - 1)
+                          }
+                          className="p-2 hover:bg-gray-100 transition-colors disabled:opacity-50"
+                          disabled={item.quantity <= 1}
                         >
                           <Minus className="w-4 h-4" />
                         </button>
-                        <span className="px-4 py-2 border-x">{item.quantity}</span>
+                        <span className="px-4 py-2 border-x">
+                          {item.quantity}
+                        </span>
                         <button
-                          onClick={() => updateQuantity(item.product_id, item.quantity + 1)}
+                          onClick={() =>
+                            updateQuantity(item.product_id, item.quantity + 1)
+                          }
                           className="p-2 hover:bg-gray-100 transition-colors"
                         >
                           <Plus className="w-4 h-4" />
@@ -78,7 +94,8 @@ export function Cart() {
 
                       <div className="flex items-center gap-4">
                         <span className="font-bold text-lg">
-                          ₹{(item.price * item.quantity).toLocaleString('en-IN')}
+                          ₹
+                          {(item.price * item.quantity).toLocaleString("en-IN")}
                         </span>
                         <button
                           onClick={() => removeItem(item.product_id)}
@@ -96,22 +113,24 @@ export function Cart() {
 
           <div className="lg:col-span-1">
             <div className="bg-white rounded-lg shadow-md p-6 sticky top-20">
-              <h2 className="text-xl font-bold text-gray-900 mb-4">Order Summary</h2>
+              <h2 className="text-xl font-bold text-gray-900 mb-4">
+                Order Summary
+              </h2>
 
               <div className="space-y-3 mb-4">
                 <div className="flex justify-between text-gray-600">
                   <span>Subtotal ({itemCount} items)</span>
-                  <span>₹{total.toLocaleString('en-IN')}</span>
+                  <span>₹{total.toLocaleString("en-IN")}</span>
                 </div>
                 <div className="flex justify-between text-gray-600">
                   <span>Shipping</span>
-                  <span className={shipping === 0 ? 'text-green-600 font-medium' : ''}>
-                    {shipping === 0 ? 'FREE' : `₹${shipping}`}
+                  <span
+                    className={
+                      shipping === 0 ? "text-green-600 font-medium" : ""
+                    }
+                  >
+                    {shipping === 0 ? "FREE" : `₹${shipping}`}
                   </span>
-                </div>
-                <div className="flex justify-between text-gray-600">
-                  <span>Tax</span>
-                  <span>₹{taxes.toLocaleString('en-IN')}</span>
                 </div>
               </div>
 
@@ -119,7 +138,7 @@ export function Cart() {
                 <div className="flex justify-between items-center">
                   <span className="text-lg font-bold">Total</span>
                   <span className="text-2xl font-bold text-gray-900">
-                    ₹{grandTotal.toLocaleString('en-IN')}
+                    ₹{grandTotal.toLocaleString("en-IN")}
                   </span>
                 </div>
               </div>

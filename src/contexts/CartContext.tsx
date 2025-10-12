@@ -1,12 +1,19 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { useAuth } from './AuthContext';
-import { supabase } from '../lib/supabase';
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  ReactNode,
+} from "react";
+import { useAuth } from "./AuthContext";
+import { supabase } from "../lib/supabase";
 
 export interface CartItem {
   product_id: string;
   title: string;
   price: number;
   image: string;
+  tax_slab: number;
   variant: any;
   quantity: number;
 }
@@ -15,6 +22,7 @@ interface CartContextType {
   items: CartItem[];
   itemCount: number;
   total: number;
+  taxRate: number;
   addItem: (item: CartItem) => Promise<void>;
   updateQuantity: (productId: string, quantity: number) => Promise<void>;
   removeItem: (productId: string) => Promise<void>;
@@ -41,17 +49,20 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
     try {
       const { data, error } = await supabase
-        .from('cart_items')
-        .select('product_id, variant, quantity, products!inner(title, price, images)')
-        .eq('user_id', user.id);
+        .from("cart_items")
+        .select(
+          "product_id, variant, quantity, products!inner(title, price, images, tax_slab)"
+        )
+        .eq("user_id", user.id);
 
       if (error) throw error;
 
-      const serverItems: CartItem[] = (data || []).map(item => ({
+      const serverItems: CartItem[] = (data || []).map((item) => ({
         product_id: item.product_id,
         title: (item.products as any).title,
         price: (item.products as any).price,
         image: (item.products as any).images[0],
+        tax_slab: (item.products as any).tax_slab,
         variant: item.variant,
         quantity: item.quantity,
       }));
@@ -59,19 +70,19 @@ export function CartProvider({ children }: { children: ReactNode }) {
       const guestCart = loadCartFromLocalStorage();
       if (guestCart.length > 0) {
         await mergeGuestCart(guestCart);
-        localStorage.removeItem('cart');
+        localStorage.removeItem("cart");
       } else {
         setItems(serverItems);
       }
     } catch (error) {
-      console.error('Error loading cart:', error);
+      console.error("Error loading cart:", error);
     } finally {
       setIsLoading(false);
     }
   }
 
   function loadCartFromLocalStorage(): CartItem[] {
-    const stored = localStorage.getItem('cart');
+    const stored = localStorage.getItem("cart");
     if (stored) {
       try {
         const parsed = JSON.parse(stored);
@@ -79,7 +90,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         setIsLoading(false);
         return parsed;
       } catch (error) {
-        console.error('Error parsing cart:', error);
+        console.error("Error parsing cart:", error);
       }
     }
     setIsLoading(false);
@@ -92,39 +103,37 @@ export function CartProvider({ children }: { children: ReactNode }) {
     try {
       for (const item of guestCart) {
         const { data: existing } = await supabase
-          .from('cart_items')
-          .select('quantity')
-          .eq('user_id', user.id)
-          .eq('product_id', item.product_id)
+          .from("cart_items")
+          .select("quantity")
+          .eq("user_id", user.id)
+          .eq("product_id", item.product_id)
           .maybeSingle();
 
         if (existing) {
           await supabase
-            .from('cart_items')
+            .from("cart_items")
             .update({ quantity: existing.quantity + item.quantity })
-            .eq('user_id', user.id)
-            .eq('product_id', item.product_id);
+            .eq("user_id", user.id)
+            .eq("product_id", item.product_id);
         } else {
-          await supabase
-            .from('cart_items')
-            .insert({
-              user_id: user.id,
-              product_id: item.product_id,
-              variant: item.variant,
-              quantity: item.quantity,
-            });
+          await supabase.from("cart_items").insert({
+            user_id: user.id,
+            product_id: item.product_id,
+            variant: item.variant,
+            quantity: item.quantity,
+          });
         }
       }
 
       await loadCartFromServer();
     } catch (error) {
-      console.error('Error merging guest cart:', error);
+      console.error("Error merging guest cart:", error);
     }
   }
 
   function saveToLocalStorage(cartItems: CartItem[]) {
     if (!user) {
-      localStorage.setItem('cart', JSON.stringify(cartItems));
+      localStorage.setItem("cart", JSON.stringify(cartItems));
     }
   }
 
@@ -132,39 +141,37 @@ export function CartProvider({ children }: { children: ReactNode }) {
     if (user) {
       try {
         const { data: existing } = await supabase
-          .from('cart_items')
-          .select('quantity')
-          .eq('user_id', user.id)
-          .eq('product_id', item.product_id)
+          .from("cart_items")
+          .select("quantity")
+          .eq("user_id", user.id)
+          .eq("product_id", item.product_id)
           .maybeSingle();
 
         if (existing) {
           await supabase
-            .from('cart_items')
+            .from("cart_items")
             .update({ quantity: existing.quantity + item.quantity })
-            .eq('user_id', user.id)
-            .eq('product_id', item.product_id);
+            .eq("user_id", user.id)
+            .eq("product_id", item.product_id);
         } else {
-          await supabase
-            .from('cart_items')
-            .insert({
-              user_id: user.id,
-              product_id: item.product_id,
-              variant: item.variant,
-              quantity: item.quantity,
-            });
+          await supabase.from("cart_items").insert({
+            user_id: user.id,
+            product_id: item.product_id,
+            variant: item.variant,
+            quantity: item.quantity,
+          });
         }
 
         await loadCartFromServer();
       } catch (error) {
-        console.error('Error adding to cart:', error);
+        console.error("Error adding to cart:", error);
         throw error;
       }
     } else {
-      setItems(prev => {
-        const existing = prev.find(i => i.product_id === item.product_id);
+      setItems((prev) => {
+        const existing = prev.find((i) => i.product_id === item.product_id);
         const newItems = existing
-          ? prev.map(i =>
+          ? prev.map((i) =>
               i.product_id === item.product_id
                 ? { ...i, quantity: i.quantity + item.quantity }
                 : i
@@ -184,20 +191,25 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
     if (user) {
       try {
-        await supabase
-          .from('cart_items')
+        const { data, error } = await supabase
+          .from("cart_items")
           .update({ quantity })
-          .eq('user_id', user.id)
-          .eq('product_id', productId);
+          .eq("user_id", user.id)
+          .eq("product_id", productId);
+
+        if (error) {
+          console.error("Error updating quantity:", error);
+          return;
+        }
 
         await loadCartFromServer();
       } catch (error) {
-        console.error('Error updating quantity:', error);
+        console.error("Error updating quantity:", error);
         throw error;
       }
     } else {
-      setItems(prev => {
-        const newItems = prev.map(item =>
+      setItems((prev) => {
+        const newItems = prev.map((item) =>
           item.product_id === productId ? { ...item, quantity } : item
         );
         saveToLocalStorage(newItems);
@@ -210,19 +222,19 @@ export function CartProvider({ children }: { children: ReactNode }) {
     if (user) {
       try {
         await supabase
-          .from('cart_items')
+          .from("cart_items")
           .delete()
-          .eq('user_id', user.id)
-          .eq('product_id', productId);
+          .eq("user_id", user.id)
+          .eq("product_id", productId);
 
         await loadCartFromServer();
       } catch (error) {
-        console.error('Error removing item:', error);
+        console.error("Error removing item:", error);
         throw error;
       }
     } else {
-      setItems(prev => {
-        const newItems = prev.filter(item => item.product_id !== productId);
+      setItems((prev) => {
+        const newItems = prev.filter((item) => item.product_id !== productId);
         saveToLocalStorage(newItems);
         return newItems;
       });
@@ -232,24 +244,24 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const clearCart = async () => {
     if (user) {
       try {
-        await supabase
-          .from('cart_items')
-          .delete()
-          .eq('user_id', user.id);
+        await supabase.from("cart_items").delete().eq("user_id", user.id);
 
         setItems([]);
       } catch (error) {
-        console.error('Error clearing cart:', error);
+        console.error("Error clearing cart:", error);
         throw error;
       }
     } else {
       setItems([]);
-      localStorage.removeItem('cart');
+      localStorage.removeItem("cart");
     }
   };
 
   const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);
-  const total = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const total = items.reduce(
+    (sum, item) => sum + item.price * item.quantity,
+    0
+  );
 
   const value = {
     items,
@@ -267,7 +279,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
 export function useCart() {
   const context = useContext(CartContext);
   if (context === undefined) {
-    throw new Error('useCart must be used within a CartProvider');
+    throw new Error("useCart must be used within a CartProvider");
   }
   return context;
 }

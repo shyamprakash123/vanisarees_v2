@@ -168,11 +168,7 @@ export function Checkout() {
     (sum, item) => sum + item.product.price * item.quantity,
     0
   );
-  const taxes = cartItems.reduce((sum, item) => {
-    const itemTotal = item.product.price * item.quantity;
-    return sum + (itemTotal * item.product.tax_slab) / 100;
-  }, 0);
-  const shipping = subtotal > 1000 ? 0 : 100;
+  const shipping = subtotal >= 999 ? 0 : 100;
   const giftWrapFee = giftWrap ? 50 : 0;
 
   let couponDiscount = 0;
@@ -188,12 +184,7 @@ export function Checkout() {
     ? Math.min(walletBalance, subtotal - couponDiscount)
     : 0;
   const total =
-    subtotal +
-    taxes +
-    shipping +
-    giftWrapFee -
-    couponDiscount -
-    walletDeduction;
+    subtotal + shipping + giftWrapFee - couponDiscount - walletDeduction;
 
   const handleNext = () => {
     if (currentStep === 1 && !selectedAddress) {
@@ -228,7 +219,6 @@ export function Checkout() {
         items: cartItems.map((item) => ({
           product_id: item.product_id,
           quantity: item.quantity,
-          price: item.product.price,
         })),
         shipping_address: {
           name: selectedAddr!.name,
@@ -252,7 +242,7 @@ export function Checkout() {
         },
         payment_method: paymentMethod,
         coupon_code: appliedCoupon?.code,
-        wallet_amount: walletDeduction,
+        is_wallet: useWallet,
         gift_wrap: giftWrap,
         gift_message: giftMessage || undefined,
         notes: notes || undefined,
@@ -286,7 +276,7 @@ export function Checkout() {
           key: result.razorpay_key_id,
           amount: result.order.total * 100,
           currency: "INR",
-          name: "Grocery Store",
+          name: "Vani Sarees",
           description: `Order ${result.order.id}`,
           order_id: result.razorpay_order_id,
           handler: async (response: any) => {
@@ -655,10 +645,6 @@ export function Checkout() {
                 <span>{formatCurrency(subtotal)}</span>
               </div>
               <div className="flex justify-between">
-                <span>Taxes</span>
-                <span>{formatCurrency(taxes)}</span>
-              </div>
-              <div className="flex justify-between">
                 <span>Shipping</span>
                 <span>
                   {shipping === 0 ? "FREE" : formatCurrency(shipping)}
@@ -711,7 +697,7 @@ export function Checkout() {
                       </button>
                     </div>
                   ) : (
-                    <div className="flex gap-2">
+                    <div className="flex flex-wrap gap-2">
                       <input
                         type="text"
                         value={couponCode}
@@ -720,11 +706,11 @@ export function Checkout() {
                           setCouponError("");
                         }}
                         placeholder="Enter coupon code"
-                        className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-800 focus:border-transparent"
+                        className="flex-1 min-w-[160px] px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-800 focus:border-transparent"
                       />
                       <button
                         onClick={applyCoupon}
-                        className="px-4 py-2 bg-red-800 text-white rounded-lg hover:bg-red-900 transition-colors"
+                        className="px-4 py-2 bg-red-800 text-white rounded-lg hover:bg-red-900 transition-colors shrink-0"
                       >
                         Apply
                       </button>
