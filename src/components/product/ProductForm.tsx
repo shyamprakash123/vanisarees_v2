@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "../../lib/supabase";
 import { useToast } from "../../hooks/useToast";
 import { X, Plus } from "lucide-react";
+import ImageUpload, { ExistingImage, ImageFile } from "../ImageUpload";
 
 interface Category {
   id: string;
@@ -22,7 +23,6 @@ interface ProductFormData {
   stock: number;
   description: string;
   features: string[];
-  images: string[];
   youtube_ids: string[];
   featured: boolean;
   trending: boolean;
@@ -49,6 +49,10 @@ export function ProductForm({
   const toast = useToast();
   const [loading, setLoading] = useState(false);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [productImages, setProductImages] = useState<string[]>([]);
+  const [files, setFiles] = useState<ImageFile[]>([]);
+  const [existingImages, setExistingImages] = useState<ExistingImage[]>([]);
+  const [isUploading, setIsUploading] = useState(false);
   const [formData, setFormData] = useState<ProductFormData>({
     title: initialData?.title || "",
     slug: initialData?.slug || "",
@@ -62,7 +66,6 @@ export function ProductForm({
     stock: initialData?.stock || 0,
     description: initialData?.description || "",
     features: initialData?.features || [],
-    images: initialData?.images || [],
     youtube_ids: initialData?.youtube_ids || [],
     featured: initialData?.featured || false,
     trending: initialData?.trending || false,
@@ -73,6 +76,36 @@ export function ProductForm({
   const [newFeature, setNewFeature] = useState("");
   const [newImage, setNewImage] = useState("");
   const [newYoutubeId, setNewYoutubeId] = useState("");
+
+  useEffect(() => {
+    if (productId) {
+      loadProductImages();
+    }
+  }, [productId]);
+
+  // Cleanup object URLs on component unmount
+  useEffect(() => {
+    return () => {
+      files.forEach((fileObj) => {
+        URL.revokeObjectURL(fileObj.preview);
+      });
+    };
+  }, [files]);
+
+  const loadProductImages = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("product_images")
+        .select("*")
+        .eq("product_id", productId)
+        .order("sort_order", { ascending: true });
+
+      if (error) throw error;
+      setExistingImages(data || []);
+    } catch (error) {
+      console.error("Failed to load product images:", error);
+    }
+  };
 
   useEffect(() => {
     fetchCategories();
@@ -91,6 +124,57 @@ export function ProductForm({
     } catch (error) {
       console.error("Error fetching categories:", error);
     }
+  };
+
+  const uploadImageToStorage = async (file: File): Promise<string> => {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    if (!session) throw new Error("Not authenticated");
+
+    // Generate unique filename
+    const fileExt = file.name.split(".").pop();
+    const fileName = `${Date.now()}-${Math.random()
+      .toString(36)
+      .substring(7)}.${fileExt}`;
+
+    // Call your edge function to get presigned URL
+    const response = await fetch(
+      `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-image-upload-url`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({
+          filenames: [fileName],
+          contentTypes: [file.type],
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error("Failed to get upload URL");
+    }
+
+    const { urls } = await response.json();
+    const uploadUrl = urls[0];
+
+    // Upload to S3 using presigned URL
+    const uploadResponse = await fetch(uploadUrl.uploadUrl, {
+      method: "PUT",
+      body: file,
+      headers: {
+        "Content-Type": file.type,
+      },
+    });
+
+    if (!uploadResponse.ok) {
+      throw new Error("Failed to upload image");
+    }
+
+    return uploadUrl.publicUrl;
   };
 
   const generateSlug = (title: string) => {
@@ -178,11 +262,59 @@ export function ProductForm({
     });
   };
 
+  const saveProductImages = async (productId: string) => {
+    try {
+      // First, handle existing images - update their order
+      if (existingImages.length > 0) {
+        const updatePromises = existingImages.map(async (image, index) => {
+          const { error } = await supabase
+            .from("product_images")
+            .update({
+              sort_order: index,
+              is_primary: index === 0,
+            })
+            .eq("id", image.id);
+
+          if (error) throw error;
+        });
+
+        await Promise.all(updatePromises);
+      }
+
+      // Then, upload new files and save to database
+      if (files.length > 0) {
+        const uploadPromises = files.map(async (fileObj, index) => {
+          // Upload file to storage
+          const imageUrl = await uploadImageToStorage(fileObj.file);
+
+          // Save to database
+          const { error } = await supabase.from("product_images").insert({
+            product_id: productId,
+            image_url: imageUrl,
+            alt_text: fileObj.file.name.split(".")[0],
+            sort_order: existingImages.length + index,
+            is_primary: existingImages.length === 0 && index === 0,
+          });
+
+          if (error) throw error;
+          return imageUrl;
+        });
+
+        await Promise.all(uploadPromises);
+      }
+    } catch (error) {
+      console.error("Failed to save product images:", error);
+      throw error;
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     try {
+      let savedProductId = productId;
+
       const productData: any = {
         title: formData.title,
         slug: formData.slug,
@@ -196,7 +328,6 @@ export function ProductForm({
         stock: parseInt(formData.stock.toString()),
         description: formData.description,
         features: formData.features,
-        images: formData.images,
         youtube_ids: formData.youtube_ids,
         featured: formData.featured,
         trending: formData.trending,
@@ -216,11 +347,25 @@ export function ProductForm({
         if (error) throw error;
         toast.success("Product updated successfully");
       } else {
-        const { error } = await supabase.from("products").insert([productData]);
+        const { data, error } = await supabase
+          .from("products")
+          .insert(productData)
+          .select()
+          .single();
 
         if (error) throw error;
         toast.success("Product created successfully");
+
+        savedProductId = data?.id;
       }
+
+      // Upload and save images
+      await saveProductImages(savedProductId);
+
+      // Cleanup local file URLs
+      files.forEach((fileObj) => {
+        URL.revokeObjectURL(fileObj.preview);
+      });
 
       onSuccess();
     } catch (error: any) {
@@ -482,45 +627,15 @@ export function ProductForm({
 
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">
-          Image URLs
+          Product Images
         </label>
-        <div className="flex gap-2 mb-2">
-          <input
-            type="url"
-            value={newImage}
-            onChange={(e) => setNewImage(e.target.value)}
-            onKeyPress={(e) =>
-              e.key === "Enter" && (e.preventDefault(), addImage())
-            }
-            placeholder="Enter image URL"
-            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-800 focus:border-transparent"
-          />
-          <button
-            type="button"
-            onClick={addImage}
-            className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
-          >
-            <Plus size={20} />
-          </button>
-        </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-          {formData.images.map((image, index) => (
-            <div key={index} className="relative group">
-              <img
-                src={image}
-                alt=""
-                className="w-full h-24 object-cover rounded border"
-              />
-              <button
-                type="button"
-                onClick={() => removeImage(image)}
-                className="absolute top-1 right-1 p-1 bg-red-600 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-              >
-                <X size={14} />
-              </button>
-            </div>
-          ))}
-        </div>
+        <ImageUpload
+          files={files}
+          existingImages={existingImages}
+          onFilesChange={setFiles}
+          onExistingImagesChange={setExistingImages}
+          maxImages={5}
+        />
       </div>
 
       <div>

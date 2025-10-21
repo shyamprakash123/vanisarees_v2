@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useSearchParams } from "react-router-dom";
 import {
   ShoppingCart,
   Heart,
@@ -18,6 +18,8 @@ import { ReviewsList } from "../components/product/ReviewsList";
 import { Breadcrumb } from "../components/ui/Breadcrumb";
 import { supabase } from "../lib/supabase";
 import { formatCurrency } from "../utils/format";
+import { useAffiliate } from "@/hooks/useAffiliate";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface Product {
   id: string;
@@ -26,7 +28,7 @@ interface Product {
   price: number;
   mrp: number;
   stock: number;
-  images: string[];
+  product_images: string[];
   youtube_ids: string[];
   codes: string[];
   sku: string;
@@ -48,7 +50,11 @@ interface Seller {
 
 export function ProductDetail() {
   const { slug } = useParams();
+  const { user } = useAuth();
+  const [searchParams] = useSearchParams();
+  const ref = searchParams.get("ref");
   const { addItem } = useCart();
+  const { addOrUpdate } = useAffiliate();
   const toast = useToast();
   const { toggleWishlist, isInWishlist } = useWishlist();
   const { addRecentProduct } = useRecentlyViewed();
@@ -61,23 +67,48 @@ export function ProductDetail() {
   const [reviewCount, setReviewCount] = useState(0);
 
   useEffect(() => {
-    if (slug) {
-      loadProduct();
-      loadReviews();
-    }
-  }, [slug]);
+    if (!slug) return;
+    if (user === undefined) return; // wait for user to load
 
-  async function loadProduct() {
+    let called = false;
+
+    const run = async () => {
+      if (called) return;
+      called = true;
+      console.log("Running loadProduct once...");
+      await loadProduct(ref);
+      await loadReviews();
+    };
+
+    run();
+  }, [slug, ref, user]); // keep these minimal
+
+  async function loadProduct(ref: string | null) {
     try {
       const { data, error } = await supabase
         .from("products")
-        .select("*, category:categories(id, name, slug)")
+        .select(
+          `*, product_images(
+            id,
+            image_url,
+            alt_text,
+            sort_order,
+            is_primary
+          ), category:categories(id, name, slug)`
+        )
         .eq("slug", slug)
+        .order("sort_order", {
+          ascending: true,
+          foreignTable: "product_images",
+        })
         .maybeSingle();
 
       if (error) throw error;
       if (data) {
         setProduct(data);
+        if (ref) {
+          addOrUpdate(data.id, ref);
+        }
         if (data.category) {
           setCategory(data.category as any);
         }
@@ -187,7 +218,7 @@ export function ProductDetail() {
         product_id: product.id,
         title: product.title,
         price: product.price,
-        image: product.images[0],
+        image: product.product_images[0].image_url,
         variant: {},
         quantity,
       });
@@ -212,7 +243,7 @@ export function ProductDetail() {
         <div className="grid md:grid-cols-2 gap-8">
           <div>
             <ProductGallery
-              images={product.images}
+              images={product.product_images}
               youtubeIds={product.youtube_ids}
               title={product.title}
             />

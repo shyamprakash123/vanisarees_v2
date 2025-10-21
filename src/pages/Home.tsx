@@ -1,14 +1,14 @@
-import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { ArrowRight, Sparkles, TrendingUp, Tag } from 'lucide-react';
-import { HeroCarousel } from '../components/home/HeroCarousel';
-import { ComboSlider } from '../components/home/ComboSlider';
-import { OffersGrid } from '../components/home/OffersGrid';
-import { ProductCard } from '../components/product/ProductCard';
-import { RecentlyViewed } from '../components/product/RecentlyViewed';
-import { SellerStatusBanner } from '../components/seller/SellerStatusBanner';
-import { supabase } from '../lib/supabase';
-import { useAuth } from '../contexts/AuthContext';
+import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
+import { ArrowRight, Sparkles, TrendingUp, Tag } from "lucide-react";
+import { HeroCarousel } from "../components/home/HeroCarousel";
+import { ComboSlider } from "../components/home/ComboSlider";
+import { OffersGrid } from "../components/home/OffersGrid";
+import { ProductCard } from "../components/product/ProductCard";
+import { RecentlyViewed } from "../components/product/RecentlyViewed";
+import { SellerStatusBanner } from "../components/seller/SellerStatusBanner";
+import { supabase } from "../lib/supabase";
+import { useAuth } from "../contexts/AuthContext";
 
 interface Product {
   id: string;
@@ -16,66 +16,122 @@ interface Product {
   slug: string;
   price: number;
   mrp: number;
-  images: string[];
+  product_images: string[];
   stock: number;
   featured: boolean;
   trending: boolean;
+}
+
+interface HeroSlides {
+  id: string;
+  title: string;
+  subtitle: string | null;
+  image_url: string | null;
+  media_type: "video" | "image";
+  youtube_id: string | null;
+  cta_text: string | null;
+  cta_link: string | null;
+  position: number;
 }
 
 export function Home() {
   const { user } = useAuth();
   const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
   const [trendingProducts, setTrendingProducts] = useState<Product[]>([]);
+  const [heroSlides, setHeroSlides] = useState<HeroSlides[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     loadProducts();
+    loadHeroSlides();
   }, []);
+
+  async function loadHeroSlides() {
+    try {
+      const { data, error } = await supabase
+        .from("hero_images")
+        .select("*")
+        .order("position", { ascending: true });
+
+      if (error) {
+        console.error("Failed to fetch hero images:", error.message);
+        return;
+      }
+
+      setHeroSlides(data);
+    } catch (error) {
+      console.error("Error loading products:", error);
+    }
+  }
 
   async function loadProducts() {
     try {
       const [featuredRes, trendingRes] = await Promise.all([
         supabase
-          .from('products')
-          .select('id, title, slug, price, mrp, images, stock, featured, trending')
-          .eq('featured', true)
-          .eq('active', true)
+          .from("products")
+          .select(
+            `
+            id, 
+            title, 
+            slug, 
+            price, 
+            mrp, 
+            stock, 
+            featured, 
+            trending,
+            product_images(
+              id,
+              image_url,
+              alt_text,
+              sort_order,
+              is_primary
+            )
+        `
+          )
+          .eq("featured", true)
+          .eq("active", true)
+          .order("sort_order", {
+            ascending: true,
+            foreignTable: "product_images",
+          })
           .limit(8),
         supabase
-          .from('products')
-          .select('id, title, slug, price, mrp, images, stock, featured, trending')
-          .eq('trending', true)
-          .eq('active', true)
+          .from("products")
+          .select(
+            `
+              id, 
+              title, 
+              slug, 
+              price, 
+              mrp, 
+              stock, 
+              featured, 
+              trending,
+              product_images(
+                id,
+                image_url,
+                alt_text,
+                sort_order,
+                is_primary
+              )
+          `
+          )
+          .eq("trending", true)
+          .eq("active", true)
+          .order("sort_order", {
+            ascending: true,
+            foreignTable: "product_images",
+          })
           .limit(8),
       ]);
-
       if (featuredRes.data) setFeaturedProducts(featuredRes.data);
       if (trendingRes.data) setTrendingProducts(trendingRes.data);
     } catch (error) {
-      console.error('Error loading products:', error);
+      console.error("Error loading products:", error);
     } finally {
       setLoading(false);
     }
   }
-
-  const heroSlides = [
-    {
-      id: '1',
-      title: 'Exquisite Silk Sarees',
-      subtitle: 'Discover the finest collection of traditional Indian sarees',
-      image_url: 'https://images.pexels.com/photos/1164674/pexels-photo-1164674.jpeg?auto=compress&cs=tinysrgb&w=1920',
-      cta_text: 'Shop Now',
-      cta_link: '/category/sarees',
-    },
-    {
-      id: '2',
-      title: 'Elegant Jewellery',
-      subtitle: 'Adorn yourself with timeless traditional pieces',
-      image_url: 'https://images.pexels.com/photos/1446262/pexels-photo-1446262.jpeg?auto=compress&cs=tinysrgb&w=1920',
-      cta_text: 'Explore Collection',
-      cta_link: '/category/jewellery',
-    },
-  ];
 
   return (
     <div className="min-h-screen">
@@ -137,7 +193,7 @@ export function Home() {
                     slug={product.slug}
                     price={product.price}
                     mrp={product.mrp}
-                    image={product.images[0]}
+                    image={product?.product_images?.[0]?.image_url}
                     inStock={product.stock > 0}
                     featured={product.featured}
                   />
@@ -176,7 +232,7 @@ export function Home() {
                     slug={product.slug}
                     price={product.price}
                     mrp={product.mrp}
-                    image={product.images[0]}
+                    image={product.product_images[0].image_url}
                     inStock={product.stock > 0}
                     featured={product.trending}
                   />

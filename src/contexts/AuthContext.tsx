@@ -7,12 +7,23 @@ import {
 } from "react";
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "../lib/supabase";
+import toast from "react-hot-toast";
+
+export interface AffiliateUser {
+  id: string;
+  affiliate_id: string;
+  wallet_balance: number;
+  status: "active" | "suspended";
+}
 
 interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
   role: "user" | "seller" | "admin" | null;
+  affiliateUser: AffiliateUser | null;
+  handleAffiliateJoin: () => void;
+  affiliateLoading: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -22,6 +33,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [role, setRole] = useState<"user" | "seller" | "admin" | null>(null);
+  const [affiliateUser, setAffiliateUser] = useState<AffiliateUser | null>(
+    null
+  );
+  const [affiliateLoading, setAffiliateLoading] = useState(false);
 
   const refreshSession = async () => {
     const { data, error } = await supabase.auth.refreshSession();
@@ -34,21 +49,72 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return { data, error };
   };
 
+  const handleAffiliateJoin = async () => {
+    setAffiliateLoading(true);
+    try {
+      const response = await fetch(
+        `${
+          import.meta.env.VITE_SUPABASE_URL
+        }/functions/v1/create-affiliate-user`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${session?.access_token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      const result = await response.json();
+
+      if (result?.success) {
+        setAffiliateUser(result.data);
+      } else {
+        toast.error(result.error ?? result.message);
+      }
+    } catch (error) {
+      toast.error(error || "Unknown Error");
+    } finally {
+      setAffiliateLoading(false);
+    }
+  };
+
   useEffect(() => {
     // Immediately refresh session on mount
     const initAuth = async () => {
       setLoading(true);
       const { data, error } = await supabase.auth.refreshSession();
 
+      let user = null;
+
       if (!error && data?.session) {
         setSession(data.session);
         setUser(data.session.user);
         setRole(data.session.user.app_metadata?.role || "user");
+        user = data.session.user;
       } else {
         const { data: sessionData } = await supabase.auth.getSession();
         setSession(sessionData.session);
         setUser(sessionData.session?.user ?? null);
         setRole(sessionData.session?.user?.app_metadata?.role || "user");
+        user = sessionData.session?.user ?? null;
+      }
+
+      if (user) {
+        const { data: affiliate_user, error } = await supabase
+          .from("affiliate_users")
+          .select(
+            `id,
+            affiliate_id,
+            wallet_balance`
+          )
+          .eq("id", user.id)
+          .single();
+
+        if (error) throw error;
+        if (data) {
+          setAffiliateUser(affiliate_user as AffiliateUser);
+        }
       }
 
       setLoading(false);
@@ -74,6 +140,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     session,
     loading,
     role,
+    affiliateUser,
+    handleAffiliateJoin,
+    affiliateLoading,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

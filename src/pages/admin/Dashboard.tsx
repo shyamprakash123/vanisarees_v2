@@ -11,6 +11,9 @@ import {
 } from "lucide-react";
 import { supabase } from "../../lib/supabase";
 import { formatCurrency } from "../../utils/format";
+import AnnouncementModal from "../../components/Modals/AnnouncementModal";
+import Button from "../../components/ui/Button";
+import HeroImageForm from "../../components/Forms/HeroImageForm";
 
 interface Stats {
   totalOrders: number;
@@ -31,6 +34,8 @@ export function AdminDashboard() {
     averageOrderValue: 0,
   });
   const [loading, setLoading] = useState(true);
+  const [isHeroModal, setIsHeroModal] = useState<boolean>(false);
+  const [isAnnouncementModal, setIsAnnouncementModal] = useState(false);
 
   useEffect(() => {
     loadStats();
@@ -132,7 +137,22 @@ export function AdminDashboard() {
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
+          <div className="flex space-x-4">
+            <h1 className="text-3xl font-bold text-gray-900">
+              Admin Dashboard
+            </h1>
+            <Button variant="primary" onClick={() => setIsHeroModal(true)}>
+              Manage Hero Images
+            </Button>
+
+            <Button
+              variant="primary"
+              onClick={() => setIsAnnouncementModal(true)}
+            >
+              Manage Announcements
+            </Button>
+          </div>
+
           <p className="text-gray-600 mt-2">
             Overview of your store performance
           </p>
@@ -259,6 +279,50 @@ export function AdminDashboard() {
           </div>
         </div>
       </div>
+
+      {/* Hero Modal */}
+      {isHeroModal && (
+        <div
+          className="fixed inset-0 bg-secondary-950/50 flex items-center justify-center z-50"
+          onClick={() => setIsHeroModal(false)} // close on backdrop click
+        >
+          <div
+            className="bg-white rounded-lg shadow-strong p-6 w-full max-w-5xl mx-4 max-h-[80vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()} // prevent closing modal when clicking inside content
+          >
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="font-serif text-2xl">Manage Hero Images</h2>
+              <button
+                type="button"
+                aria-label="Close"
+                className="text-gray-500 hover:text-gray-800"
+                onClick={() => setIsHeroModal(false)}
+              >
+                &#x2715; {/* simple cross icon */}
+              </button>
+            </div>
+
+            <div className="">
+              <HeroImageForm />
+            </div>
+
+            <div className="flex justify-end space-x-4">
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => setIsHeroModal(false)}
+              >
+                Cancel
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <AnnouncementModal
+        isOpen={isAnnouncementModal}
+        onClose={() => setIsAnnouncementModal(false)}
+      />
     </div>
   );
 }

@@ -40,7 +40,7 @@ export function AdminOrders() {
   const fetchOrders = async () => {
     try {
       const { data, error } = await supabase
-        .from("order_details_with_shipment")
+        .from("orders")
         .select("*")
         .order("created_at", { ascending: false });
 
@@ -209,18 +209,28 @@ export function AdminOrders() {
                     <td className="px-6 py-4">
                       {order.awb_code ? (
                         <div className="text-sm">
-                          <div className="font-medium text-gray-900">{order.awb_code}</div>
-                          <div className="text-xs text-gray-500">{order.courier_name}</div>
-                          <div className={`text-xs mt-1 inline-block px-2 py-1 rounded-full ${
-                            order.shipment_status === 'delivered' ? 'bg-green-100 text-green-800' :
-                            order.shipment_status === 'in_transit' ? 'bg-blue-100 text-blue-800' :
-                            'bg-gray-100 text-gray-800'
-                          }`}>
-                            {order.shipment_status || 'pending'}
+                          <div className="font-medium text-gray-900">
+                            {order.awb_code}
+                          </div>
+                          <div className="text-xs text-gray-500">
+                            {order.courier_name}
+                          </div>
+                          <div
+                            className={`text-xs mt-1 inline-block px-2 py-1 rounded-full ${
+                              order.shipment_status === "delivered"
+                                ? "bg-green-100 text-green-800"
+                                : order.shipment_status === "in_transit"
+                                ? "bg-blue-100 text-blue-800"
+                                : "bg-gray-100 text-gray-800"
+                            }`}
+                          >
+                            {order.shipment_status || "pending"}
                           </div>
                         </div>
                       ) : (
-                        <span className="text-sm text-gray-400">No shipment</span>
+                        <span className="text-sm text-gray-400">
+                          No shipment
+                        </span>
                       )}
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-500">

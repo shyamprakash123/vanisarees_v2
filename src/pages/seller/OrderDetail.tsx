@@ -14,12 +14,18 @@ import {
   FileText,
   Truck,
   AlertCircle,
+  ImageOff,
+  User,
+  Mail,
+  Phone,
+  Home,
 } from "lucide-react";
 import { OrderTrackingTimeline } from "../../components/order/OrderTrackingTimeline";
 import { Breadcrumb } from "../../components/ui/Breadcrumb";
 import { ShiprocketManager } from "../../components/shiprocket/ShiprocketManager";
 import { Modal } from "../../components/ui/Modal";
 import { ShipmentTracker } from "../../components/ui/ShipmentTrackerComponent";
+import { getMethodBadge, getStatusBadge } from "../../utils/badges";
 
 interface Order {
   id: string;
@@ -195,19 +201,37 @@ export function SellerOrderDetail() {
               Placed on {formatDateTime(order.created_at)}
             </p>
             {userProfile && (
-              <div className="mt-2 text-sm text-gray-700">
-                <p>
-                  <span className="font-medium">Customer:</span>{" "}
-                  {userProfile.name}
-                </p>
-                <p>
-                  <span className="font-medium">Email:</span>{" "}
-                  {userProfile.email}
-                </p>
-                <p>
-                  <span className="font-medium">Phone:</span>{" "}
-                  {userProfile.phone}
-                </p>
+              <div className="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                <h3 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                  <User className="h-4 w-4 text-primary-600" />
+                  Customer Details
+                </h3>
+
+                <div className="space-y-2 text-sm text-gray-700">
+                  <div className="flex items-center gap-2">
+                    <User className="h-4 w-4 text-gray-500" />
+                    <span>
+                      <span className="font-medium">Name:</span>{" "}
+                      {userProfile.name || "—"}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <Mail className="h-4 w-4 text-gray-500" />
+                    <span>
+                      <span className="font-medium">Email:</span>{" "}
+                      {userProfile.email || "—"}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <Phone className="h-4 w-4 text-gray-500" />
+                    <span>
+                      <span className="font-medium">Phone:</span>{" "}
+                      {userProfile.phone || "—"}
+                    </span>
+                  </div>
+                </div>
               </div>
             )}
           </div>
@@ -298,59 +322,115 @@ export function SellerOrderDetail() {
             createdAt={order.created_at}
           />
 
-          <div className="bg-white p-6 rounded-lg shadow">
-            <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-              <Package className="h-5 w-5" />
+          <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
+            <h2 className="text-xl font-semibold mb-5 flex items-center gap-2 text-gray-800">
+              <Package className="h-5 w-5 text-primary-500" />
               Order Items
             </h2>
+
             <div className="space-y-4">
-              {order.items.map((item: any, index: number) => (
-                <div
-                  key={index}
-                  className="flex gap-4 pb-4 border-b last:border-0"
-                >
-                  {item.image_url && (
-                    <img
-                      src={item.image_url}
-                      alt={item.title}
-                      className="w-20 h-20 object-cover rounded"
-                    />
-                  )}
-                  <div className="flex-1">
-                    <h3 className="font-medium">{item.title || "Product"}</h3>
-                    {item.variant && Object.keys(item.variant).length > 0 && (
-                      <p className="text-sm text-gray-500">
-                        Variant: {JSON.stringify(item.variant)}
+              {order.items.map((item: any, index: number) => {
+                const primaryImage =
+                  item.product_images?.find((img: any) => img.sort_order === 0)
+                    ?.image_url || item.product_images?.[0]?.image_url;
+
+                return (
+                  <div
+                    key={index}
+                    className="flex items-start gap-4 pb-4 border-b border-gray-100 last:border-0"
+                  >
+                    {/* Product Image */}
+                    <div className="w-20 h-20 flex-shrink-0 rounded-md overflow-hidden bg-gray-50 border">
+                      {primaryImage ? (
+                        <img
+                          src={primaryImage}
+                          alt={item.title}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="flex items-center justify-center h-full text-gray-400">
+                          <ImageOff className="w-6 h-6" />
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Product Details */}
+                    <div className="flex-1">
+                      <h3 className="font-medium text-gray-900 line-clamp-1">
+                        {item.title || "Product"}
+                      </h3>
+
+                      {item.variant && (
+                        <p className="text-sm text-gray-500 mt-0.5">
+                          Variant: {item.variant}
+                        </p>
+                      )}
+
+                      <p className="text-sm text-gray-600 mt-1">
+                        Quantity:{" "}
+                        <span className="font-medium text-gray-800">
+                          {item.quantity}
+                        </span>
                       </p>
-                    )}
-                    <p className="text-sm text-gray-600">
-                      Quantity: {item.quantity}
-                    </p>
-                    <p className="text-sm text-gray-600">
-                      Unit Price: {formatCurrency(item.price)}
-                    </p>
-                    <p className="text-sm font-semibold mt-1">
-                      Total: {formatCurrency(item.price * item.quantity)}
-                    </p>
+
+                      <div className="mt-2 flex justify-between items-center">
+                        <span className="text-sm text-gray-500">
+                          Unit Price: {formatCurrency(item.price)}
+                        </span>
+                        <span className="text-sm font-semibold text-gray-900">
+                          {formatCurrency(item.price * item.quantity)}
+                        </span>
+                      </div>
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
+            </div>
+
+            {/* Summary Section */}
+            <div className="pt-4 mt-4 border-t border-gray-200 text-sm text-gray-700">
+              <div className="flex justify-between">
+                <span>Subtotal</span>
+                <span>{formatCurrency(order.subtotal)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Shipping</span>
+                <span>{formatCurrency(order.shipping)}</span>
+              </div>
+              <div className="flex justify-between font-semibold text-gray-900 mt-2">
+                <span>Total</span>
+                <span>{formatCurrency(order.total)}</span>
+              </div>
             </div>
           </div>
 
-          <div className="bg-white p-6 rounded-lg shadow">
-            <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-              <MapPin className="h-5 w-5" />
+          <div className="bg-white p-6 rounded-xl shadow-md border border-gray-100 transition-all hover:shadow-lg">
+            <h2 className="text-xl font-semibold mb-4 flex items-center gap-2 text-gray-900">
+              <MapPin className="h-5 w-5 text-primary-600" />
               Shipping Address
             </h2>
-            <div className="text-gray-700">
-              <p className="font-medium">{addr.name}</p>
-              <p>{addr.address_line1}</p>
-              {addr.address_line2 && <p>{addr.address_line2}</p>}
-              <p>
-                {addr.city}, {addr.state} {addr.pincode}
-              </p>
-              <p className="mt-2">Phone: {addr.phone}</p>
+
+            <div className="space-y-2 text-gray-700">
+              <div className="flex items-center gap-2">
+                <User className="h-4 w-4 text-gray-500" />
+                <span className="font-medium text-gray-900">{addr.name}</span>
+              </div>
+
+              <div className="flex items-start gap-2">
+                <Home className="h-4 w-4 text-gray-500 mt-0.5" />
+                <div>
+                  <p>{addr.address_line1}</p>
+                  {addr.address_line2 && <p>{addr.address_line2}</p>}
+                  <p>
+                    {addr.city}, {addr.state} {addr.pincode}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 pt-2 border-t border-gray-100">
+                <Phone className="h-4 w-4 text-gray-500" />
+                <span>{addr.phone}</span>
+              </div>
             </div>
           </div>
 
@@ -415,25 +495,14 @@ export function SellerOrderDetail() {
               </div>
             </div>
 
-            <div className="mt-4 pt-4 border-t">
-              <p className="text-sm text-gray-600">
-                Payment Status:{" "}
-                <span
-                  className={`font-medium ${
-                    order.payment_status === "paid"
-                      ? "text-green-600"
-                      : "text-gray-900"
-                  }`}
-                >
-                  {order.payment_status}
-                </span>
+            <div className="mt-5 pt-4 border-t border-gray-200">
+              <p className="text-sm text-gray-600 flex items-center gap-2">
+                Payment Status: {getStatusBadge(order.payment_status)}
               </p>
+
               {order.payment_method && (
-                <p className="text-sm text-gray-600 mt-1">
-                  Payment Method:{" "}
-                  <span className="font-medium text-gray-900">
-                    {order.payment_method}
-                  </span>
+                <p className="text-sm text-gray-600 mt-2 flex items-center gap-2">
+                  Payment Method: {getMethodBadge(order.payment_method)}
                 </p>
               )}
             </div>

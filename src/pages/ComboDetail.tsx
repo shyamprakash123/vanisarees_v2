@@ -1,11 +1,11 @@
-import { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
-import { Package, ShoppingCart, ArrowRight } from 'lucide-react';
-import { ProductCard } from '../components/product/ProductCard';
-import { supabase } from '../lib/supabase';
-import { useCart } from '../contexts/CartContext';
-import { useToast } from '../hooks/useToast';
-import { formatCurrency } from '../utils/format';
+import { useState, useEffect } from "react";
+import { useParams, Link } from "react-router-dom";
+import { Package, ShoppingCart, ArrowRight } from "lucide-react";
+import { ProductCard } from "../components/product/ProductCard";
+import { supabase } from "../lib/supabase";
+import { useCart } from "../contexts/CartContext";
+import { useToast } from "../hooks/useToast";
+import { formatCurrency } from "../utils/format";
 
 interface Combo {
   id: string;
@@ -25,7 +25,7 @@ interface Product {
   slug: string;
   price: number;
   mrp: number;
-  images: string[];
+  product_images: string[];
   stock: number;
 }
 
@@ -46,10 +46,10 @@ export function ComboDetail() {
   async function loadCombo() {
     try {
       const { data: comboData, error: comboError } = await supabase
-        .from('combos')
-        .select('*')
-        .eq('id', id)
-        .eq('active', true)
+        .from("combos")
+        .select("*")
+        .eq("id", id)
+        .eq("active", true)
         .maybeSingle();
 
       if (comboError) throw comboError;
@@ -61,15 +61,15 @@ export function ComboDetail() {
       setCombo(comboData);
 
       const { data: productsData, error: productsError } = await supabase
-        .from('products')
-        .select('id, title, slug, price, mrp, images, stock')
-        .in('id', comboData.product_ids);
+        .from("products")
+        .select("id, title, slug, price, mrp, images, stock")
+        .in("id", comboData.product_ids);
 
       if (productsError) throw productsError;
       setProducts(productsData || []);
     } catch (error) {
-      console.error('Error loading combo:', error);
-      toast.error('Failed to load combo details');
+      console.error("Error loading combo:", error);
+      toast.error("Failed to load combo details");
     } finally {
       setLoading(false);
     }
@@ -84,14 +84,14 @@ export function ComboDetail() {
           product_id: product.id,
           title: product.title,
           price: product.price,
-          image: product.images[0],
+          product_images: product.product_images,
           variant: {},
           quantity: 1,
         });
       }
-      toast.success('All combo items added to cart!');
+      toast.success("All combo items added to cart!");
     } catch (error) {
-      toast.error('Failed to add items to cart');
+      toast.error("Failed to add items to cart");
     }
   };
 
@@ -117,8 +117,12 @@ export function ComboDetail() {
       <div className="min-h-screen bg-gray-50 py-8 flex items-center justify-center">
         <div className="text-center">
           <Package className="w-16 h-16 mx-auto text-gray-300 mb-4" />
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Combo not found</h2>
-          <p className="text-gray-600 mb-6">This combo offer is no longer available.</p>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">
+            Combo not found
+          </h2>
+          <p className="text-gray-600 mb-6">
+            This combo offer is no longer available.
+          </p>
           <Link to="/" className="btn btn-primary">
             Back to Home
           </Link>
@@ -185,10 +189,11 @@ export function ComboDetail() {
           {combo.valid_to && (
             <div className="mt-6 pt-6 border-t border-amber-200">
               <p className="text-sm text-gray-600">
-                Offer valid until {new Date(combo.valid_to).toLocaleDateString('en-IN', {
-                  day: 'numeric',
-                  month: 'long',
-                  year: 'numeric',
+                Offer valid until{" "}
+                {new Date(combo.valid_to).toLocaleDateString("en-IN", {
+                  day: "numeric",
+                  month: "long",
+                  year: "numeric",
                 })}
               </p>
             </div>
@@ -216,7 +221,7 @@ export function ComboDetail() {
                   slug={product.slug}
                   price={product.price}
                   mrp={product.mrp}
-                  image={product.images[0]}
+                  image={product.product_images[0].image_url}
                   inStock={product.stock > 0}
                 />
               </div>

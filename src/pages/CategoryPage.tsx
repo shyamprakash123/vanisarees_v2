@@ -1,10 +1,10 @@
-import { useState, useEffect } from 'react';
-import { useParams, useSearchParams } from 'react-router-dom';
-import { Filter, SlidersHorizontal } from 'lucide-react';
-import { ProductCard } from '../components/product/ProductCard';
-import { Pagination } from '../components/ui/Pagination';
-import { Breadcrumb } from '../components/ui/Breadcrumb';
-import { supabase } from '../lib/supabase';
+import { useState, useEffect } from "react";
+import { useParams, useSearchParams } from "react-router-dom";
+import { Filter, SlidersHorizontal } from "lucide-react";
+import { ProductCard } from "../components/product/ProductCard";
+import { Pagination } from "../components/ui/Pagination";
+import { Breadcrumb } from "../components/ui/Breadcrumb";
+import { supabase } from "../lib/supabase";
 
 interface Product {
   id: string;
@@ -12,7 +12,7 @@ interface Product {
   slug: string;
   price: number;
   mrp: number;
-  images: string[];
+  product_images: string[];
   stock: number;
 }
 
@@ -30,8 +30,10 @@ export function CategoryPage() {
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [sortBy, setSortBy] = useState(searchParams.get('sort') || 'newest');
-  const [priceRange, setPriceRange] = useState(searchParams.get('price') || 'all');
+  const [sortBy, setSortBy] = useState(searchParams.get("sort") || "newest");
+  const [priceRange, setPriceRange] = useState(
+    searchParams.get("price") || "all"
+  );
   const [showFilters, setShowFilters] = useState(false);
   const itemsPerPage = 12;
 
@@ -43,15 +45,15 @@ export function CategoryPage() {
   async function loadCategory() {
     try {
       const { data, error } = await supabase
-        .from('categories')
-        .select('id, name, description')
-        .eq('slug', slug)
+        .from("categories")
+        .select("id, name, description")
+        .eq("slug", slug)
         .maybeSingle();
 
       if (error) throw error;
       setCategory(data);
     } catch (error) {
-      console.error('Error loading category:', error);
+      console.error("Error loading category:", error);
     }
   }
 
@@ -59,43 +61,68 @@ export function CategoryPage() {
     setLoading(true);
     try {
       let query = supabase
-        .from('products')
-        .select('id, title, slug, price, mrp, images, stock, category_id, categories!inner(slug)', { count: 'exact' })
-        .eq('categories.slug', slug);
+        .from("products")
+        .select(
+          `
+          id, 
+          title, 
+          slug, 
+          price, 
+          mrp, 
+          stock, 
+          category_id,
+          categories!inner(slug),
+          product_images(
+            id,
+            image_url,
+            alt_text,
+            sort_order,
+            is_primary
+          )
+        `,
+          { count: "exact" }
+        )
+        .eq("categories.slug", slug)
+        .order("sort_order", {
+          ascending: true,
+          foreignTable: "product_images",
+        });
 
-      if (priceRange !== 'all') {
+      if (priceRange !== "all") {
         const ranges: Record<string, [number, number]> = {
-          'under-5000': [0, 5000],
-          '5000-10000': [5000, 10000],
-          '10000-20000': [10000, 20000],
-          'above-20000': [20000, 999999],
+          "under-5000": [0, 5000],
+          "5000-10000": [5000, 10000],
+          "10000-20000": [10000, 20000],
+          "above-20000": [20000, 999999],
         };
         const [min, max] = ranges[priceRange] || [0, 999999];
-        query = query.gte('price', min).lte('price', max);
+        query = query.gte("price", min).lte("price", max);
       }
 
       switch (sortBy) {
-        case 'price-low':
-          query = query.order('price', { ascending: true });
+        case "price-low":
+          query = query.order("price", { ascending: true });
           break;
-        case 'price-high':
-          query = query.order('price', { ascending: false });
+        case "price-high":
+          query = query.order("price", { ascending: false });
           break;
-        case 'name':
-          query = query.order('title', { ascending: true });
+        case "name":
+          query = query.order("title", { ascending: true });
           break;
         default:
-          query = query.order('created_at', { ascending: false });
+          query = query.order("created_at", { ascending: false });
       }
 
-      const { data, count, error } = await query
-        .range((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage - 1);
+      const { data, count, error } = await query.range(
+        (currentPage - 1) * itemsPerPage,
+        currentPage * itemsPerPage - 1
+      );
 
       if (error) throw error;
       setProducts(data || []);
       setTotalPages(Math.ceil((count || 0) / itemsPerPage));
     } catch (error) {
-      console.error('Error loading products:', error);
+      console.error("Error loading products:", error);
     } finally {
       setLoading(false);
     }
@@ -118,13 +145,13 @@ export function CategoryPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <Breadcrumb
           items={[
-            { label: category?.name || slug?.replace(/-/g, ' ') || 'Products' },
+            { label: category?.name || slug?.replace(/-/g, " ") || "Products" },
           ]}
           className="mb-6"
         />
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2 capitalize">
-            {category?.name || slug?.replace(/-/g, ' ') || 'All Products'}
+            {category?.name || slug?.replace(/-/g, " ") || "All Products"}
           </h1>
           {category?.description && (
             <p className="text-gray-600">{category.description}</p>
@@ -140,7 +167,11 @@ export function CategoryPage() {
             Filters
           </button>
 
-          <div className={`${showFilters ? 'flex' : 'hidden'} md:flex flex-col md:flex-row gap-4 flex-1`}>
+          <div
+            className={`${
+              showFilters ? "flex" : "hidden"
+            } md:flex flex-col md:flex-row gap-4 flex-1`}
+          >
             <div className="flex-1">
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 <SlidersHorizontal className="w-4 h-4 inline mr-2" />
@@ -181,7 +212,10 @@ export function CategoryPage() {
         {loading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {[...Array(8)].map((_, i) => (
-              <div key={i} className="animate-pulse bg-gray-200 rounded-lg h-80"></div>
+              <div
+                key={i}
+                className="animate-pulse bg-gray-200 rounded-lg h-80"
+              ></div>
             ))}
           </div>
         ) : products.length > 0 ? (
@@ -199,7 +233,7 @@ export function CategoryPage() {
                     slug={product.slug}
                     price={product.price}
                     mrp={product.mrp}
-                    image={product.images[0]}
+                    image={product.product_images[0].image_url}
                     inStock={product.stock > 0}
                   />
                 </div>
@@ -215,7 +249,9 @@ export function CategoryPage() {
           </>
         ) : (
           <div className="text-center py-16">
-            <p className="text-xl text-gray-600">No products found in this category</p>
+            <p className="text-xl text-gray-600">
+              No products found in this category
+            </p>
           </div>
         )}
       </div>

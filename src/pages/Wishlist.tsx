@@ -1,12 +1,12 @@
-import { useState, useEffect } from 'react';
-import { useAuth } from '../contexts/AuthContext';
-import { useNavigate, Link } from 'react-router-dom';
-import { supabase } from '../lib/supabase';
-import { Heart, ShoppingCart, Trash2, Package } from 'lucide-react';
-import { formatCurrency } from '../utils/format';
-import { useCart } from '../contexts/CartContext';
-import { useToast } from '../hooks/useToast';
-import { Breadcrumb } from '../components/ui/Breadcrumb';
+import { useState, useEffect } from "react";
+import { useAuth } from "../contexts/AuthContext";
+import { useNavigate, Link } from "react-router-dom";
+import { supabase } from "../lib/supabase";
+import { Heart, ShoppingCart, Trash2, Package } from "lucide-react";
+import { formatCurrency } from "../utils/format";
+import { useCart } from "../contexts/CartContext";
+import { useToast } from "../hooks/useToast";
+import { Breadcrumb } from "../components/ui/Breadcrumb";
 
 interface WishlistItem {
   id: string;
@@ -17,7 +17,7 @@ interface WishlistItem {
     slug: string;
     price: number;
     mrp: number;
-    images: string[];
+    product_images: string[];
     stock: number;
   };
   created_at: string;
@@ -33,7 +33,7 @@ export function Wishlist() {
 
   useEffect(() => {
     if (!user) {
-      navigate('/auth/signin');
+      navigate("/auth/signin");
       return;
     }
     loadWishlist();
@@ -42,15 +42,26 @@ export function Wishlist() {
   const loadWishlist = async () => {
     try {
       const { data, error } = await supabase
-        .from('wishlist')
-        .select('*, product:products(id, title, slug, price, mrp, images, stock)')
-        .eq('user_id', user!.id)
-        .order('created_at', { ascending: false });
+        .from("wishlist")
+        .select(
+          `*, product:products(id, title, slug, price, mrp, product_images(
+          id,
+          image_url,
+          alt_text,
+          sort_order,
+          is_primary
+        ), stock)`
+        )
+        .eq("user_id", user!.id)
+        .order("created_at", {
+          ascending: false,
+          foreignTable: "product_images",
+        });
 
       if (error) throw error;
       setWishlistItems(data || []);
     } catch (error) {
-      console.error('Load wishlist error:', error);
+      console.error("Load wishlist error:", error);
     } finally {
       setLoading(false);
     }
@@ -59,16 +70,18 @@ export function Wishlist() {
   const removeFromWishlist = async (wishlistId: string) => {
     try {
       const { error } = await supabase
-        .from('wishlist')
+        .from("wishlist")
         .delete()
-        .eq('id', wishlistId);
+        .eq("id", wishlistId);
 
       if (error) throw error;
-      setWishlistItems(items => items.filter(item => item.id !== wishlistId));
-      toast.success('Removed from wishlist');
+      setWishlistItems((items) =>
+        items.filter((item) => item.id !== wishlistId)
+      );
+      toast.success("Removed from wishlist");
     } catch (error) {
-      console.error('Remove from wishlist error:', error);
-      toast.error('Failed to remove from wishlist');
+      console.error("Remove from wishlist error:", error);
+      toast.error("Failed to remove from wishlist");
     }
   };
 
@@ -78,25 +91,27 @@ export function Wishlist() {
         product_id: item.product.id,
         title: item.product.title,
         price: item.product.price,
-        image: item.product.images[0],
+        image: item.product.product_images[0].image_url,
         variant: {},
         quantity: 1,
       });
       await removeFromWishlist(item.id);
-      toast.success('Moved to cart!');
+      toast.success("Moved to cart!");
     } catch (error) {
-      toast.error('Failed to move to cart');
+      toast.error("Failed to move to cart");
     }
   };
 
   if (loading) {
-    return <div className="max-w-7xl mx-auto px-4 py-8">Loading wishlist...</div>;
+    return (
+      <div className="max-w-7xl mx-auto px-4 py-8">Loading wishlist...</div>
+    );
   }
 
   if (wishlistItems.length === 0) {
     return (
       <div className="max-w-7xl mx-auto px-4 py-16 text-center">
-        <Breadcrumb items={[{ label: 'Wishlist' }]} className="mb-6" />
+        <Breadcrumb items={[{ label: "Wishlist" }]} className="mb-6" />
         <div className="bg-white rounded-2xl shadow-lg p-12">
           <div className="w-24 h-24 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-6">
             <Heart className="w-12 h-12 text-red-600" />
@@ -106,7 +121,7 @@ export function Wishlist() {
             Save your favorite items here to purchase later
           </p>
           <button
-            onClick={() => navigate('/')}
+            onClick={() => navigate("/")}
             className="px-6 py-3 bg-red-800 text-white rounded-lg hover:bg-red-900 transition-colors"
           >
             Continue Shopping
@@ -119,7 +134,7 @@ export function Wishlist() {
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-7xl mx-auto px-4">
-        <Breadcrumb items={[{ label: 'Wishlist' }]} className="mb-6" />
+        <Breadcrumb items={[{ label: "Wishlist" }]} className="mb-6" />
         <div className="flex items-center justify-between mb-8">
           <h1 className="text-3xl font-bold">My Wishlist</h1>
           <div className="flex items-center gap-2 text-gray-600">
@@ -130,7 +145,9 @@ export function Wishlist() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {wishlistItems.map((item, index) => {
-            const discount = Math.round(((item.product.mrp - item.product.price) / item.product.mrp) * 100);
+            const discount = Math.round(
+              ((item.product.mrp - item.product.price) / item.product.mrp) * 100
+            );
 
             return (
               <div
@@ -141,7 +158,7 @@ export function Wishlist() {
                 <div className="relative">
                   <Link to={`/product/${item.product.slug}`}>
                     <img
-                      src={item.product.images[0]}
+                      src={item.product.product_images[0].image_url}
                       alt={item.product.title}
                       className="w-full h-64 object-cover"
                     />
@@ -190,7 +207,7 @@ export function Wishlist() {
                     className="w-full py-2 bg-red-800 text-white rounded-lg font-medium hover:bg-red-900 transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <ShoppingCart className="h-5 w-5" />
-                    {item.product.stock === 0 ? 'Out of Stock' : 'Move to Cart'}
+                    {item.product.stock === 0 ? "Out of Stock" : "Move to Cart"}
                   </button>
                 </div>
               </div>

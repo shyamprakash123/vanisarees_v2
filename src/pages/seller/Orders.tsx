@@ -71,7 +71,7 @@ export function SellerOrders() {
   const fetchOrders = async (sellerIdParam: string) => {
     try {
       const { data, error } = await supabase
-        .from("order_details_with_shipment")
+        .from("orders")
         .select("*")
         .eq("seller_id", sellerIdParam)
         .order("created_at", { ascending: false });

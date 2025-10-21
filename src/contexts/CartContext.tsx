@@ -51,9 +51,19 @@ export function CartProvider({ children }: { children: ReactNode }) {
       const { data, error } = await supabase
         .from("cart_items")
         .select(
-          "product_id, variant, quantity, products!inner(title, price, images, tax_slab)"
+          `product_id, variant, quantity, products!inner(title, price, product_images(
+          id,
+          image_url,
+          alt_text,
+          sort_order,
+          is_primary
+        ), tax_slab)`
         )
-        .eq("user_id", user.id);
+        .eq("user_id", user.id)
+        .order("sort_order", {
+          ascending: true,
+          foreignTable: "products.product_images",
+        });
 
       if (error) throw error;
 
@@ -61,7 +71,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         product_id: item.product_id,
         title: (item.products as any).title,
         price: (item.products as any).price,
-        image: (item.products as any).images[0],
+        image: (item.products as any).product_images?.[0]?.image_url,
         tax_slab: (item.products as any).tax_slab,
         variant: item.variant,
         quantity: item.quantity,

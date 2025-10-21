@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { Breadcrumb } from "../components/ui/Breadcrumb";
 import { CheckoutSteps } from "../components/checkout/CheckoutSteps";
+import VaniSareesAnimationDialog from "@/components/AnimatedDialogs/TextAnimationDialog";
 
 declare global {
   interface Window {
@@ -42,7 +43,7 @@ interface CartItem {
     title: string;
     price: number;
     tax_slab: number;
-    images: string[];
+    product_images: string[];
   };
 }
 
@@ -71,6 +72,14 @@ export function Checkout() {
   const [paymentMethod, setPaymentMethod] = useState("prepaid");
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState(false);
+  const [couponLoading, setCouponLoading] = useState(false);
+  const [subtotal, setSubtotal] = useState(0);
+  const [shipping, setShipping] = useState(0);
+  const [giftWrapFee, setGiftWrapFee] = useState(0);
+  const [couponDiscount, setCouponDiscount] = useState(0);
+  const [walletDeduction, setWalletDeduction] = useState(0);
+  const [total, setTotal] = useState(0);
+  const [toBePaid, setToBePaid] = useState(0);
 
   useEffect(() => {
     if (!user) {
@@ -86,8 +95,28 @@ export function Checkout() {
         supabase.from("addresses").select("*").eq("user_id", user!.id),
         supabase
           .from("cart_items")
-          .select("*, product:products(title, price, tax_slab, images)")
-          .eq("user_id", user!.id),
+          .select(
+            `
+            *, 
+            product:products(
+              title, 
+              price, 
+              tax_slab,
+              product_images(
+                id,
+                image_url,
+                alt_text,
+                sort_order,
+                is_primary
+              )
+            )
+          `
+          )
+          .eq("user_id", user!.id)
+          .order("sort_order", {
+            ascending: true,
+            foreignTable: "products.product_images",
+          }),
         supabase
           .from("users")
           .select("wallet_balance")
@@ -117,44 +146,48 @@ export function Checkout() {
     }
 
     try {
-      const { data: coupon, error } = await supabase
-        .from("coupons")
-        .select("*")
-        .eq("code", couponCode.toUpperCase())
-        .eq("active", true)
-        .maybeSingle();
-
-      if (error || !coupon) {
-        setCouponError("Invalid coupon code");
-        return;
+      setCouponLoading(true);
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (!session) {
+        throw new Error("Not authenticated");
       }
 
-      const now = new Date();
-      if (coupon.valid_from && new Date(coupon.valid_from) > now) {
-        setCouponError("Coupon not yet valid");
-        return;
-      }
+      const couponData = {
+        coupon_code: couponCode,
+        subtotal,
+      };
 
-      if (coupon.valid_to && new Date(coupon.valid_to) < now) {
-        setCouponError("Coupon expired");
-        return;
-      }
-
-      const subtotalForCoupon = cartItems.reduce(
-        (sum, item) => sum + item.product.price * item.quantity,
-        0
+      const response = await fetch(
+        `${
+          import.meta.env.VITE_SUPABASE_URL
+        }/functions/v1/check-coupon-validity`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${session.access_token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(couponData),
+        }
       );
 
-      if (coupon.min_order && subtotalForCoupon < coupon.min_order) {
-        setCouponError(`Minimum order value ₹${coupon.min_order} required`);
-        return;
-      }
+      const result = await response.json();
 
-      setAppliedCoupon(coupon);
-      setCouponError("");
+      if (result.success) {
+        setAppliedCoupon(result);
+        setCouponError("");
+        setCouponLoading(false);
+      } else {
+        setCouponError(result.error);
+        setCouponLoading(false);
+      }
     } catch (error) {
       console.error("Error applying coupon:", error);
       setCouponError("Failed to apply coupon");
+    } finally {
+      setCouponLoading(false);
     }
   };
 
@@ -164,27 +197,62 @@ export function Checkout() {
     setCouponError("");
   };
 
-  const subtotal = cartItems.reduce(
-    (sum, item) => sum + item.product.price * item.quantity,
-    0
-  );
-  const shipping = subtotal >= 999 ? 0 : 100;
-  const giftWrapFee = giftWrap ? 50 : 0;
+  useEffect(() => {
+    const subtotalVal = cartItems.reduce(
+      (sum, item) => sum + item.product.price * item.quantity,
+      0
+    );
+    setSubtotal(subtotalVal);
+  }, [cartItems]);
 
-  let couponDiscount = 0;
-  if (appliedCoupon) {
-    if (appliedCoupon.type === "percentage") {
-      couponDiscount = (subtotal * appliedCoupon.value) / 100;
-    } else if (appliedCoupon.type === "fixed") {
-      couponDiscount = appliedCoupon.value;
+  useEffect(() => {
+    setShipping(subtotal >= 999 ? 0 : 100);
+  }, [subtotal]);
+
+  useEffect(() => {
+    setGiftWrapFee(giftWrap ? 50 : 0);
+  }, [giftWrap]);
+
+  useEffect(() => {
+    let couponDiscountVal = 0;
+    if (appliedCoupon) {
+      if (appliedCoupon.type === "percentage") {
+        couponDiscountVal = (subtotal * appliedCoupon.value) / 100;
+      } else if (appliedCoupon.type === "fixed") {
+        couponDiscountVal = appliedCoupon.value;
+      }
     }
-  }
+    setCouponDiscount(couponDiscountVal);
+  }, [appliedCoupon, subtotal]);
 
-  const walletDeduction = useWallet
-    ? Math.min(walletBalance, subtotal - couponDiscount)
-    : 0;
-  const total =
-    subtotal + shipping + giftWrapFee - couponDiscount - walletDeduction;
+  useEffect(() => {
+    const walletDeduVal = useWallet
+      ? Math.min(
+          walletBalance,
+          subtotal + shipping + giftWrapFee - couponDiscount
+        )
+      : 0;
+    setWalletDeduction(walletDeduVal);
+  }, [
+    useWallet,
+    walletBalance,
+    subtotal,
+    shipping,
+    giftWrapFee,
+    couponDiscount,
+  ]);
+
+  useEffect(() => {
+    setTotal(subtotal + shipping + giftWrapFee - couponDiscount);
+  }, [subtotal, shipping, giftWrapFee, couponDiscount]);
+
+  useEffect(() => {
+    const toBePaidVal = total - walletDeduction;
+    setToBePaid(toBePaidVal);
+    if (toBePaidVal === 0) {
+      setPaymentMethod("prepaid");
+    }
+  }, [total, walletDeduction]);
 
   const handleNext = () => {
     if (currentStep === 1 && !selectedAddress) {
@@ -266,7 +334,11 @@ export function Checkout() {
         throw new Error(result.error || "Failed to create order");
       }
 
-      if (result.razorpay_order_id && paymentMethod === "prepaid") {
+      if (
+        result.razorpay_order_id &&
+        paymentMethod === "prepaid" &&
+        toBePaid > 0
+      ) {
         const razorpayScript = await loadRazorpayScript();
         if (!razorpayScript) {
           throw new Error("Failed to load Razorpay");
@@ -274,7 +346,7 @@ export function Checkout() {
 
         const options = {
           key: result.razorpay_key_id,
-          amount: result.order.total * 100,
+          amount: result.toBePaid * 100,
           currency: "INR",
           name: "Vani Sarees",
           description: `Order ${result.order.id}`,
@@ -467,7 +539,7 @@ export function Checkout() {
                       className="flex gap-4 pb-4 border-b last:border-b-0"
                     >
                       <img
-                        src={item.product.images[0]}
+                        src={item.product.product_images[0].image_url}
                         alt={item.product.title}
                         className="w-20 h-20 object-cover rounded-lg"
                       />
@@ -542,7 +614,11 @@ export function Checkout() {
                 <h2 className="text-xl font-semibold">Payment Method</h2>
               </div>
 
-              <div className="space-y-3">
+              <div
+                className={`space-y-3 ${
+                  toBePaid === 0 && "pointer-events-none opacity-50"
+                }`}
+              >
                 <label
                   className={`flex items-start gap-3 p-4 border-2 rounded-lg cursor-pointer transition-all ${
                     paymentMethod === "prepaid"
@@ -602,11 +678,11 @@ export function Checkout() {
                 </label>
               </div>
 
-              {paymentMethod === "prepaid" && (
+              {toBePaid > 0 && paymentMethod === "prepaid" && (
                 <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
                   <p className="text-sm text-blue-800">
-                    You will be redirected to a secure payment gateway to
-                    complete your transaction.
+                    You will be redirected to a secure razorpay payment gateway
+                    to complete your transaction.
                   </p>
                 </div>
               )}
@@ -626,9 +702,11 @@ export function Checkout() {
                 >
                   {processing
                     ? "Processing..."
-                    : paymentMethod === "cod"
-                    ? "Place Order"
-                    : "Proceed to Payment"}
+                    : toBePaid > 0
+                    ? paymentMethod === "cod"
+                      ? "Place Order"
+                      : "Proceed to Payment"
+                    : "Place Order"}
                 </button>
               </div>
             </div>
@@ -662,15 +740,58 @@ export function Checkout() {
                   <span>-{formatCurrency(couponDiscount)}</span>
                 </div>
               )}
+
+              {/* Total Amount */}
+              <div className="flex justify-between items-center border-t pt-3 font-semibold text-gray-800">
+                <span>Total</span>
+                <span>{formatCurrency(total)}</span>
+              </div>
+
+              {/* Wallet Deduction */}
               {walletDeduction > 0 && (
-                <div className="flex justify-between text-green-600">
-                  <span>Wallet</span>
+                <div className="flex justify-between items-center text-green-600 font-medium">
+                  <span>Wallet Discount</span>
                   <span>-{formatCurrency(walletDeduction)}</span>
                 </div>
               )}
-              <div className="border-t pt-2 flex justify-between font-bold text-lg">
-                <span>Total</span>
-                <span>{formatCurrency(total)}</span>
+
+              {walletBalance > 0 && (
+                <div
+                  onClick={() => setUseWallet(!useWallet)}
+                  className="flex items-center justify-between p-3 bg-amber-50 rounded-lg cursor-pointer select-none"
+                >
+                  <div className="flex  gap-2">
+                    <Wallet className="h-5 w-5" />
+                    <span className="text-sm">
+                      Use wallet balance ({formatCurrency(walletBalance)})
+                      {useWallet && (
+                        <p className="text-xs text-rose-500">
+                          Remaining Balance (
+                          {formatCurrency(walletBalance - walletDeduction)})
+                        </p>
+                      )}
+                    </span>
+                  </div>
+
+                  {/* Toggle Switch */}
+                  <div
+                    className={`w-11 h-6 flex items-center rounded-full p-1 transition-all duration-300 ${
+                      useWallet ? "bg-green-500" : "bg-gray-300"
+                    }`}
+                  >
+                    <div
+                      className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform duration-300 ${
+                        useWallet ? "translate-x-5" : "translate-x-0"
+                      }`}
+                    ></div>
+                  </div>
+                </div>
+              )}
+
+              {/* Final Amount */}
+              <div className="flex justify-between items-center border-t pt-3 text-lg font-bold text-primary-600">
+                <span>Amount Payable</span>
+                <span>{formatCurrency(toBePaid)}</span>
               </div>
             </div>
 
@@ -720,25 +841,18 @@ export function Checkout() {
                     <p className="text-sm text-red-600 mt-1">{couponError}</p>
                   )}
                 </div>
-
-                {walletBalance > 0 && (
-                  <label className="flex items-center gap-2 p-3 bg-amber-50 rounded-lg cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={useWallet}
-                      onChange={(e) => setUseWallet(e.target.checked)}
-                    />
-                    <Wallet className="h-5 w-5" />
-                    <span className="text-sm">
-                      Use wallet balance ({formatCurrency(walletBalance)})
-                    </span>
-                  </label>
-                )}
               </div>
             )}
           </div>
         </div>
       </div>
+      <VaniSareesAnimationDialog
+        isOpen={loading || processing || couponLoading}
+        variant="loading"
+        theme="traditional"
+        showCloseButton={false}
+        subtitle="Curating the perfect sarees for you..."
+      />
     </div>
   );
 }

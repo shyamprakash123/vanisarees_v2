@@ -38,21 +38,20 @@ import { SellerBankAccounts } from "./pages/seller/BankAccounts";
 import { SellerWithdrawals } from "./pages/seller/Withdrawals";
 import { SellerSettings } from "./pages/seller/Settings";
 import { ToastContainer } from "./components/ui/Toast";
-import { TopSlidingBar } from "./components/ui/TopSlidingBar";
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
 import { useToast } from "./hooks/useToast";
 import { ProductApprovals } from "./pages/admin/ProductApprovals";
+import TopBanner from "./components/home/TopBanner";
+import { AffiliateDashboard } from "./pages/affiliate/Dashboard";
+import { AffiliateRefferals } from "./pages/affiliate/Refferals";
+import { AffiliateWithdrawals } from "./pages/affiliate/Withdrawals";
 
 function AppContent() {
   const { toasts, removeToast } = useToast();
 
   return (
-    <div className="flex flex-col min-h-screen">
-      <TopSlidingBar
-        message="🎉 Welcome to VaniSarees! Free shipping on orders above ₹1000"
-        link="/"
-        linkText="Shop Now"
-      />
+    <div className="flex flex-col min-h-screen w-full">
+      <TopBanner />
       <Header />
       <main className="flex-1">
         <Routes>
@@ -256,6 +255,12 @@ function AppContent() {
                 <SellerSettings />
               </ProtectedRoute>
             }
+          />
+          <Route path="/affiliate/dashboard" element={<AffiliateDashboard />} />
+          <Route path="/affiliate/refferals" element={<AffiliateRefferals />} />
+          <Route
+            path="/affiliate/withdrawals"
+            element={<AffiliateWithdrawals />}
           />
           <Route path="/auth/signin" element={<SignIn />} />
           <Route path="/auth/signup" element={<SignUp />} />

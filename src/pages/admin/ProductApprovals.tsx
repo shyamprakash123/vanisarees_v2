@@ -11,7 +11,7 @@ interface Product {
   price: number;
   mrp: number;
   stock: number;
-  images: string[];
+  product_images: string[];
   admin_approved: boolean;
   approval_notes: string | null;
   submitted_for_approval_at: string;
@@ -44,11 +44,16 @@ export function ProductApprovals() {
 
   const fetchProducts = async () => {
     try {
-      let query = supabase
-        .from("products")
-        .select(
-          "*, sellers(shop_name, id, users!sellers_id_fkey(name, email))"
-        );
+      let query = supabase.from("products").select(
+        `*, product_images(
+          id,
+          image_url,
+          alt_text,
+          sort_order,
+          is_primary
+        ),
+        sellers(shop_name, id, users!sellers_id_fkey(name, email))`
+      );
 
       if (filter === "pending") {
         query = query
@@ -62,6 +67,7 @@ export function ProductApprovals() {
 
       const { data, error } = await query.order("submitted_for_approval_at", {
         ascending: false,
+        foreignTable: "product_images",
       });
 
       if (error) throw error;
@@ -213,9 +219,9 @@ export function ProductApprovals() {
                   <tr key={product.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4">
                       <div className="flex items-center">
-                        {product.images?.[0] && (
+                        {product.product_images?.[0] && (
                           <img
-                            src={product.images[0]}
+                            src={product.product_images[0].image_url}
                             alt={product.title}
                             className="w-12 h-12 object-cover rounded mr-3"
                           />
@@ -341,9 +347,9 @@ export function ProductApprovals() {
                 {selectedProduct.description}
               </p>
 
-              {selectedProduct.images?.[0] && (
+              {selectedProduct.product_images?.[0] && (
                 <img
-                  src={selectedProduct.images[0]}
+                  src={selectedProduct.product_images[0].image_url}
                   alt={selectedProduct.title}
                   className="w-full h-64 object-cover rounded-lg mb-4"
                 />

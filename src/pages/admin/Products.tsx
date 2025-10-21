@@ -260,9 +260,9 @@ export function AdminProducts() {
                   <tr key={product.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
-                        {product.images[0] && (
+                        {product.product_images[0].image_url && (
                           <img
-                            src={product.images[0]}
+                            src={product.product_images[0].image_url}
                             alt={product.title}
                             className="w-12 h-12 object-cover rounded"
                           />
