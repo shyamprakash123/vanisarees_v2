@@ -33,7 +33,7 @@ interface Product {
 
 export function SellerProducts() {
   const { user } = useAuth();
-  const toast = useToast();
+  const { toast } = useToast();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
@@ -90,7 +90,11 @@ export function SellerProducts() {
       setProducts(data || []);
     } catch (error) {
       console.error("Error fetching products:", error);
-      toast.error("Failed to load products");
+      toast({
+        title: "Error",
+        description: "Failed to load products",
+        variant: "error",
+      });
     } finally {
       setLoading(false);
     }
@@ -130,13 +134,21 @@ export function SellerProducts() {
 
       if (error) throw error;
 
-      toast.success("Product deleted successfully");
+      toast({
+        title: "Success",
+        description: "Product deleted successfully",
+        variant: "success",
+      });
       if (sellerId) {
         fetchProducts(sellerId);
       }
     } catch (error) {
       console.error("Error deleting product:", error);
-      toast.error("Failed to delete product");
+      toast({
+        title: "Error",
+        description: "Failed to delete product",
+        variant: "error",
+      });
     }
   };
 
@@ -150,13 +162,21 @@ export function SellerProducts() {
 
       if (error) throw error;
 
-      toast.success("Stock updated successfully");
+      toast({
+        title: "Success",
+        description: "Stock updated successfully",
+        variant: "success",
+      });
       if (sellerId) {
         fetchProducts(sellerId);
       }
     } catch (error) {
       console.error("Error updating stock:", error);
-      toast.error("Failed to update stock");
+      toast({
+        title: "Error",
+        description: "Failed to update stock",
+        variant: "error",
+      });
     }
   };
 
@@ -170,13 +190,21 @@ export function SellerProducts() {
 
       if (error) throw error;
 
-      toast.success("Product status updated");
+      toast({
+        title: "Success",
+        description: "Product status updated",
+        variant: "success",
+      });
       if (sellerId) {
         fetchProducts(sellerId);
       }
     } catch (error) {
       console.error("Error updating product:", error);
-      toast.error("Failed to update product");
+      toast({
+        title: "Error",
+        description: "Failed to update product",
+        variant: "error",
+      });
     }
   };
 
@@ -211,15 +239,22 @@ export function SellerProducts() {
         throw new Error(result.error || "Failed to submit product");
       }
 
-      toast.success("Product submitted for approval");
+      toast({
+        title: "Success",
+        description: "Product submitted for approval",
+        variant: "success",
+      });
       if (sellerId) {
         fetchProducts(sellerId);
       }
     } catch (error) {
       console.error("Error submitting product:", error);
-      toast.error(
-        error instanceof Error ? error.message : "Failed to submit product"
-      );
+      toast({
+        title: "Error",
+        description:
+          error instanceof Error ? error.message : "Failed to submit product",
+        variant: "error",
+      });
     }
   };
 

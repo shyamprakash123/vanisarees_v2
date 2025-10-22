@@ -26,10 +26,9 @@ interface BankAccount {
   created_at: string;
 }
 
-export function SellerBankAccounts() {
-  const { user } = useAuth();
-  const toast = useToast();
-  const [sellerId, setSellerId] = useState<string | null>(null);
+export function AffiliateBankAccounts() {
+  const { user, affiliateUser } = useAuth();
+  const { toast } = useToast();
   const [accounts, setAccounts] = useState<BankAccount[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -48,40 +47,35 @@ export function SellerBankAccounts() {
   });
 
   useEffect(() => {
-    loadSellerAndAccounts();
-  }, [user]);
+    loadBankAndAccounts();
+  }, [user, affiliateUser]);
 
-  const loadSellerAndAccounts = async () => {
-    if (!user) return;
+  const loadBankAndAccounts = async () => {
+    if (!user || !affiliateUser) return;
 
     try {
-      const { data: seller } = await supabase
-        .from("sellers")
-        .select("id")
-        .eq("id", user.id)
-        .maybeSingle();
-
-      if (seller) {
-        setSellerId(seller.id);
-        await fetchAccounts(seller.id);
-      }
+      await fetchAccounts(affiliateUser.id);
     } catch (error) {
-      console.error("Error loading seller:", error);
-      toast.error("Failed to load seller data");
+      console.error("Error loading affiliate partner:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load affiliate partner data",
+        variant: "error",
+      });
     } finally {
       setLoading(false);
     }
   };
 
   const fetchAccounts = async (sellerIdParam?: string) => {
-    const id = sellerIdParam || sellerId;
+    const id = sellerIdParam;
     if (!id) return;
 
     try {
       const { data, error } = await supabase
-        .from("seller_bank_accounts")
+        .from("affiliate_bank_accounts")
         .select("*")
-        .eq("seller_id", id)
+        .eq("affiliate_id", id)
         .order("is_default", { ascending: false })
         .order("created_at", { ascending: false });
 
@@ -89,7 +83,11 @@ export function SellerBankAccounts() {
       setAccounts(data || []);
     } catch (error) {
       console.error("Error fetching accounts:", error);
-      toast.error("Failed to load bank accounts");
+      toast({
+        title: "Error",
+        description: "Failed to load bank accounts",
+        variant: "error",
+      });
     }
   };
 
@@ -124,8 +122,12 @@ export function SellerBankAccounts() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!sellerId) {
-      toast.error("Seller account not found");
+    if (!affiliateUser?.id) {
+      toast({
+        title: "Error",
+        description: "Affiliate account not found",
+        variant: "error",
+      });
       return;
     }
 
@@ -135,13 +137,17 @@ export function SellerBankAccounts() {
       !formData.ifsc_code ||
       !formData.bank_name
     ) {
-      toast.error("Please fill in all required fields");
+      toast({
+        title: "Error",
+        description: "Please fill in all required fields",
+        variant: "error",
+      });
       return;
     }
 
     try {
       const accountData = {
-        seller_id: sellerId,
+        affiliate_id: affiliateUser?.id,
         account_holder: formData.account_holder,
         account_number: formData.account_number,
         ifsc_code: formData.ifsc_code.toUpperCase(),
@@ -153,26 +159,38 @@ export function SellerBankAccounts() {
 
       if (editingAccount) {
         const { error } = await supabase
-          .from("seller_bank_accounts")
+          .from("affiliate_bank_accounts")
           .update(accountData)
           .eq("id", editingAccount.id);
 
         if (error) throw error;
-        toast.success("Bank account updated successfully");
+        toast({
+          title: "Success",
+          description: "Bank account updated successfully",
+          variant: "success",
+        });
       } else {
         const { error } = await supabase
-          .from("seller_bank_accounts")
+          .from("affiliate_bank_accounts")
           .insert(accountData);
 
         if (error) throw error;
-        toast.success("Bank account added successfully");
+        toast({
+          title: "Success",
+          description: "Bank account added successfully",
+          variant: "success",
+        });
       }
 
       setShowModal(false);
       fetchAccounts();
     } catch (error: any) {
       console.error("Error saving account:", error);
-      toast.error(error.message || "Failed to save bank account");
+      toast({
+        title: "Error",
+        description: error.message || "Failed to save bank account",
+        variant: "error",
+      });
     }
   };
 
@@ -181,36 +199,52 @@ export function SellerBankAccounts() {
 
     try {
       const { error } = await supabase
-        .from("seller_bank_accounts")
+        .from("affiliate_bank_accounts")
         .delete()
         .eq("id", accountId);
 
       if (error) throw error;
 
-      toast.success("Bank account deleted successfully");
+      toast({
+        title: "Success",
+        description: "Bank account deleted successfully",
+        variant: "success",
+      });
       fetchAccounts();
     } catch (error) {
       console.error("Error deleting account:", error);
-      toast.error("Failed to delete bank account");
+      toast({
+        title: "Error",
+        description: "Failed to delete bank account",
+        variant: "error",
+      });
     }
   };
 
   const setDefaultAccount = async (accountId: string) => {
-    if (!sellerId) return;
+    if (!affiliateUser?.id) return;
 
     try {
       const { error } = await supabase
-        .from("seller_bank_accounts")
+        .from("affiliate_bank_accounts")
         .update({ is_default: true })
         .eq("id", accountId);
 
       if (error) throw error;
 
-      toast.success("Default account updated");
+      toast({
+        title: "Success",
+        description: "Default account updated",
+        variant: "success",
+      });
       fetchAccounts();
     } catch (error) {
       console.error("Error setting default:", error);
-      toast.error("Failed to set default account");
+      toast({
+        title: "Error",
+        description: "Failed to set default account",
+        variant: "error",
+      });
     }
   };
 
@@ -227,11 +261,11 @@ export function SellerBankAccounts() {
     );
   }
 
-  if (!sellerId) {
+  if (!affiliateUser?.id) {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="text-center py-12">
-          <p className="text-gray-500">Seller account not found.</p>
+          <p className="text-gray-500">Affiliate account not found.</p>
         </div>
       </div>
     );

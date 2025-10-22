@@ -12,10 +12,22 @@ import {
   MapPin,
   ArrowRight,
   ArrowLeft,
+  CheckCircle2,
+  XCircle,
 } from "lucide-react";
 import { Breadcrumb } from "../components/ui/Breadcrumb";
 import { CheckoutSteps } from "../components/checkout/CheckoutSteps";
 import VaniSareesAnimationDialog from "@/components/AnimatedDialogs/TextAnimationDialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import ShippingInfoTooltip from "@/components/ShippingChargesToolTip";
+import CodInfoTooltip from "@/components/CodChargesToolTip";
+import { useCart } from "@/contexts/CartContext";
+import { useToast } from "@/hooks/useToast";
 
 declare global {
   interface Window {
@@ -56,9 +68,15 @@ const STEPS = [
 export function Checkout() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { toast } = useToast();
 
   const [currentStep, setCurrentStep] = useState(1);
+  const [paymentStatus, setPaymentStatus] = useState<
+    "success" | "failed" | null
+  >(null);
+
   const [addresses, setAddresses] = useState<Address[]>([]);
+  const { clearCart } = useCart();
   const [selectedAddress, setSelectedAddress] = useState<string>("");
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [couponCode, setCouponCode] = useState("");
@@ -75,6 +93,7 @@ export function Checkout() {
   const [couponLoading, setCouponLoading] = useState(false);
   const [subtotal, setSubtotal] = useState(0);
   const [shipping, setShipping] = useState(0);
+  const [codCharges, setCodCharges] = useState(0);
   const [giftWrapFee, setGiftWrapFee] = useState(0);
   const [couponDiscount, setCouponDiscount] = useState(0);
   const [walletDeduction, setWalletDeduction] = useState(0);
@@ -206,6 +225,17 @@ export function Checkout() {
   }, [cartItems]);
 
   useEffect(() => {
+    if (paymentMethod === "cod") {
+      const fixedCharge = 50;
+      const percentageCharge = subtotal * 0.025; // 2.5%
+      const cod_charges = Math.max(fixedCharge, percentageCharge);
+      setCodCharges(cod_charges);
+    } else {
+      setCodCharges(0);
+    }
+  }, [subtotal, paymentMethod]);
+
+  useEffect(() => {
     setShipping(subtotal >= 999 ? 0 : 100);
   }, [subtotal]);
 
@@ -229,7 +259,7 @@ export function Checkout() {
     const walletDeduVal = useWallet
       ? Math.min(
           walletBalance,
-          subtotal + shipping + giftWrapFee - couponDiscount
+          subtotal + shipping + codCharges + giftWrapFee - couponDiscount
         )
       : 0;
     setWalletDeduction(walletDeduVal);
@@ -238,13 +268,14 @@ export function Checkout() {
     walletBalance,
     subtotal,
     shipping,
+    codCharges,
     giftWrapFee,
     couponDiscount,
   ]);
 
   useEffect(() => {
-    setTotal(subtotal + shipping + giftWrapFee - couponDiscount);
-  }, [subtotal, shipping, giftWrapFee, couponDiscount]);
+    setTotal(subtotal + shipping + codCharges + giftWrapFee - couponDiscount);
+  }, [subtotal, shipping, codCharges, giftWrapFee, couponDiscount]);
 
   useEffect(() => {
     const toBePaidVal = total - walletDeduction;
@@ -331,6 +362,11 @@ export function Checkout() {
       const result = await response.json();
 
       if (!result.success) {
+        toast({
+          title: "Error",
+          description: result.error || "Failed to create order",
+          variant: "error",
+        });
         throw new Error(result.error || "Failed to create order");
       }
 
@@ -373,14 +409,18 @@ export function Checkout() {
               );
 
               const verifyResult = await verifyResponse.json();
+              setProcessing(false);
               if (verifyResult.success) {
-                navigate("/orders");
+                setPaymentStatus("success");
+                clearCart();
+                setTimeout(() => navigate("/orders"), 2000);
               } else {
-                alert("Payment verification failed");
+                setPaymentStatus("failed");
               }
             } catch (error) {
+              setProcessing(false);
               console.error("Payment verification error:", error);
-              alert("Payment verification failed");
+              setPaymentStatus("failed");
             }
           },
           prefill: {
@@ -400,15 +440,23 @@ export function Checkout() {
         const razorpay = new window.Razorpay(options);
         razorpay.open();
       } else {
-        navigate("/orders");
+        setProcessing(false);
+        clearCart();
+        setPaymentStatus("success");
+        setTimeout(() => navigate("/orders"), 2000);
       }
     } catch (error) {
       console.error("Error placing order:", error);
-      alert(
-        error instanceof Error
-          ? error.message
-          : "Failed to place order. Please try again."
-      );
+      toast({
+        title: "Error",
+        description: "Failed to placing order",
+        variant: "error",
+      });
+      // alert(
+      //   error instanceof Error
+      //     ? error.message
+      //     : "Failed to place order. Please try again."
+      // );
       setProcessing(false);
     }
   };
@@ -557,7 +605,7 @@ export function Checkout() {
                 </div>
               </div>
 
-              <div className="bg-white p-6 rounded-lg shadow space-y-4">
+              {/* <div className="bg-white p-6 rounded-lg shadow space-y-4">
                 <h2 className="text-xl font-semibold">Additional Options</h2>
 
                 <label className="flex items-center gap-2">
@@ -586,7 +634,7 @@ export function Checkout() {
                   className="w-full px-4 py-2 border rounded-lg"
                   rows={3}
                 />
-              </div>
+              </div> */}
 
               <div className="flex justify-between">
                 <button
@@ -674,6 +722,9 @@ export function Checkout() {
                       Pay with cash when your order is delivered to your
                       doorstep
                     </p>
+                    <p className="text-xs text-gray-500 font-semibold">
+                      (COD Charges Will Apply)
+                    </p>
                   </div>
                 </label>
               </div>
@@ -723,11 +774,25 @@ export function Checkout() {
                 <span>{formatCurrency(subtotal)}</span>
               </div>
               <div className="flex justify-between">
-                <span>Shipping</span>
                 <span>
+                  <span className="mr-2">Shipping</span>
+                  <ShippingInfoTooltip />
+                </span>
+                <span className={`${shipping === 0 && "text-green-800"}`}>
                   {shipping === 0 ? "FREE" : formatCurrency(shipping)}
                 </span>
               </div>
+              {codCharges > 0 && (
+                <div className="flex justify-between">
+                  <span>
+                    <span className="mr-2">COD Charges</span>
+                    <CodInfoTooltip />
+                  </span>
+                  <span>
+                    {codCharges === 0 ? "FREE" : formatCurrency(codCharges)}
+                  </span>
+                </div>
+              )}
               {giftWrap && (
                 <div className="flex justify-between">
                   <span>Gift Wrap</span>
@@ -846,6 +911,36 @@ export function Checkout() {
           </div>
         </div>
       </div>
+      <Dialog
+        open={!!paymentStatus}
+        onOpenChange={() => setPaymentStatus(null)}
+      >
+        <DialogContent className="sm:max-w-md text-center">
+          {paymentStatus === "success" ? (
+            <>
+              <CheckCircle2 className="mx-auto text-green-600 w-12 h-12" />
+              <DialogHeader>
+                <DialogTitle>
+                  {paymentMethod === "cod" ? "Order" : "Payment"} Successful!
+                </DialogTitle>
+              </DialogHeader>
+              <p className="text-gray-600 mt-2">Thank you for your order.</p>
+            </>
+          ) : (
+            <>
+              <XCircle className="mx-auto text-red-600 w-12 h-12" />
+              <DialogHeader>
+                <DialogTitle>
+                  {paymentMethod === "cod" ? "Order" : "Payment"} Failed
+                </DialogTitle>
+              </DialogHeader>
+              <p className="text-gray-600 mt-2">
+                Something went wrong. Please try again.
+              </p>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
       <VaniSareesAnimationDialog
         isOpen={loading || processing || couponLoading}
         variant="loading"

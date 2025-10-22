@@ -1,10 +1,10 @@
-import { Link } from 'react-router-dom';
-import { useRecentlyViewed } from '../../hooks/useRecentlyViewed';
-import { formatCurrency } from '../../utils/format';
-import { Clock } from 'lucide-react';
+import { Link } from "react-router-dom";
+import { useRecentlyViewed } from "../../hooks/useRecentlyViewed";
+import { formatCurrency } from "../../utils/format";
+import { Clock, Trash2 } from "lucide-react";
 
 export function RecentlyViewed() {
-  const { recentProducts } = useRecentlyViewed();
+  const { recentProducts, deleteRecentProduct } = useRecentlyViewed();
 
   if (recentProducts.length === 0) {
     return null;
@@ -20,28 +20,40 @@ export function RecentlyViewed() {
 
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
           {recentProducts.map((product, index) => (
-            <Link
+            <div
               key={product.id}
-              to={`/product/${product.slug}`}
-              className="group bg-white rounded-lg shadow hover:shadow-md transition-all animate-slideUp"
+              className="group relative bg-white rounded-lg shadow hover:shadow-md transition-all animate-slideUp"
               style={{ animationDelay: `${index * 50}ms` }}
             >
-              <div className="aspect-square overflow-hidden rounded-t-lg">
-                <img
-                  src={product.image}
-                  alt={product.title}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                />
-              </div>
-              <div className="p-3">
-                <h3 className="text-sm font-medium text-gray-900 line-clamp-2 mb-2 group-hover:text-red-800 transition-colors">
-                  {product.title}
-                </h3>
-                <p className="text-sm font-bold text-gray-900">
-                  {formatCurrency(product.price)}
-                </p>
-              </div>
-            </Link>
+              {/* Delete button */}
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  deleteRecentProduct(product.id);
+                }}
+                className="absolute top-2 right-2 p-1 rounded-full z-50 bg-gray-100 hover:bg-red-100 transition"
+              >
+                <Trash2 className="h-4 w-4 text-gray-600 hover:text-red-600" />
+              </button>
+
+              <Link to={`/product/${product.slug}`}>
+                <div className="aspect-square overflow-hidden rounded-t-lg">
+                  <img
+                    src={product.image}
+                    alt={product.title}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  />
+                </div>
+                <div className="p-3">
+                  <h3 className="text-sm font-medium text-gray-900 line-clamp-2 mb-2 group-hover:text-red-800 transition-colors">
+                    {product.title}
+                  </h3>
+                  <p className="text-sm font-bold text-gray-900">
+                    {formatCurrency(product.price)}
+                  </p>
+                </div>
+              </Link>
+            </div>
           ))}
         </div>
       </div>

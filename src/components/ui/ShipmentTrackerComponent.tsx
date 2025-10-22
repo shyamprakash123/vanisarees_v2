@@ -42,7 +42,7 @@ export interface ShipmentTrackingData {
 }
 
 interface ShipmentTrackerProps {
-  trackingData: ShipmentTrackingData;
+  trackingData?: ShipmentTrackingData;
 }
 
 export function ShipmentTracker({ trackingData }: ShipmentTrackerProps) {
@@ -60,7 +60,7 @@ export function ShipmentTracker({ trackingData }: ShipmentTrackerProps) {
     ];
 
     return scans
-      .filter((scan) => {
+      ?.filter((scan) => {
         if (excludeStatuses.includes(scan["sr-status-label"])) {
           return false;
         }
@@ -136,13 +136,13 @@ export function ShipmentTracker({ trackingData }: ShipmentTrackerProps) {
     }
   };
 
-  const customerScans = filterCustomerScans(trackingData.scans);
+  const customerScans = filterCustomerScans(trackingData?.scans || []);
   const currentStatusInfo = getStatusInfo(
-    trackingData.shipment_status_id,
-    trackingData.shipment_status
+    trackingData?.shipment_status_id,
+    trackingData?.shipment_status
   );
-  const etdFormatted = formatDate(trackingData.etd);
-  const lastUpdate = formatDate(trackingData.current_timestamp);
+  const etdFormatted = formatDate(trackingData?.etd);
+  const lastUpdate = formatDate(trackingData?.current_timestamp);
 
   return (
     <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-lg overflow-hidden">
@@ -153,13 +153,13 @@ export function ShipmentTracker({ trackingData }: ShipmentTrackerProps) {
             <h2 className="text-2xl font-bold mb-2">Track Your Shipment</h2>
             <div className="flex items-center gap-2 text-blue-100">
               <Package className="h-4 w-4" />
-              <span className="font-mono text-lg">{trackingData.awb}</span>
+              <span className="font-mono text-lg">{trackingData?.awb}</span>
             </div>
           </div>
 
           <div className="text-right">
             <div className="text-blue-100 text-sm mb-1">Courier Partner</div>
-            <div className="font-semibold">{trackingData.courier_name}</div>
+            <div className="font-semibold">{trackingData?.courier_name}</div>
           </div>
         </div>
       </div>
@@ -167,7 +167,7 @@ export function ShipmentTracker({ trackingData }: ShipmentTrackerProps) {
       {/* Status Overview */}
       <div
         className={`grid grid-cols-1 ${
-          trackingData.pod_status ? "md:grid-cols-3" : "md:grid-cols-2"
+          trackingData?.pod_status ? "md:grid-cols-3" : "md:grid-cols-2"
         }  gap-4 p-6 bg-gray-50 border-b`}
       >
         {/* Current Status */}
@@ -180,7 +180,7 @@ export function ShipmentTracker({ trackingData }: ShipmentTrackerProps) {
             <span className="font-semibold">Current Status</span>
           </div>
           <div className="text-lg font-bold">
-            {trackingData.shipment_status}
+            {trackingData?.shipment_status}
           </div>
           <div className="text-sm opacity-75 mt-1">
             Updated: {formatDate(trackingData?.updated_at).date} at{" "}
@@ -199,13 +199,13 @@ export function ShipmentTracker({ trackingData }: ShipmentTrackerProps) {
         </div>
 
         {/* Delivery Type */}
-        {trackingData.pod_status && (
+        {trackingData?.pod_status && (
           <div className="flex-1 p-4 rounded-lg border-2 border-orange-200 bg-orange-50 text-orange-600">
             <div className="flex items-center gap-3 mb-2">
               <Shield className="h-5 w-5" />
               <span className="font-semibold">Delivery Method</span>
             </div>
-            <div className="text-lg font-bold">{trackingData.pod_status}</div>
+            <div className="text-lg font-bold">{trackingData?.pod_status}</div>
             <div className="text-sm opacity-75 mt-1">
               Secure delivery verification
             </div>
@@ -296,14 +296,14 @@ export function ShipmentTracker({ trackingData }: ShipmentTrackerProps) {
           <div className="flex items-center gap-4">
             <span>
               Order ID:{" "}
-              <span className="font-mono">{trackingData.order_id}</span>
+              <span className="font-mono">{trackingData?.order_id}</span>
             </span>
             <span>•</span>
             <span>
               Shiprocket ID:{" "}
               <span className="font-mono">
                 {trackingData?.raw_payload?.sr_order_id ||
-                  trackingData.sr_order_id}
+                  trackingData?.sr_order_id}
               </span>
             </span>
           </div>

@@ -32,7 +32,7 @@ interface Product {
 export function ComboDetail() {
   const { id } = useParams();
   const { addItem } = useCart();
-  const toast = useToast();
+  const { toast } = useToast();
   const [combo, setCombo] = useState<Combo | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -69,7 +69,11 @@ export function ComboDetail() {
       setProducts(productsData || []);
     } catch (error) {
       console.error("Error loading combo:", error);
-      toast.error("Failed to load combo details");
+      toast({
+        title: "Error",
+        description: "Failed to load combo details",
+        variant: "error",
+      });
     } finally {
       setLoading(false);
     }
@@ -89,9 +93,17 @@ export function ComboDetail() {
           quantity: 1,
         });
       }
-      toast.success("All combo items added to cart!");
+      toast({
+        title: "Success",
+        description: "All combo items added to cart!",
+        variant: "success",
+      });
     } catch (error) {
-      toast.error("Failed to add items to cart");
+      toast({
+        title: "Error",
+        description: "Failed to add items to cart",
+        variant: "error",
+      });
     }
   };
 

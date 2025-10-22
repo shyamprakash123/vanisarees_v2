@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   ShoppingBag,
@@ -30,8 +30,10 @@ export function Header() {
   const { itemCount } = useCart();
   const { user, role, affiliateUser, handleAffiliateJoin, affiliateLoading } =
     useAuth();
-  const { theme, toggleTheme } = useTheme();
-  const { language, setLanguage } = useLanguage();
+  // const { theme, toggleTheme } = useTheme();
+  // const { language, setLanguage } = useLanguage();
+  const menuRef = useRef<HTMLDivElement>(null);
+
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
@@ -51,12 +53,28 @@ export function Header() {
     }
   };
 
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setUserMenuOpen(false);
+      }
+    };
+
+    if (userMenuOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    } else {
+      document.removeEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [userMenuOpen]);
+
   return (
     <header className="sticky top-0 z-40 bg-white border-b shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center gap-4">
-            <button
+            {/* <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               className="lg:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors"
             >
@@ -65,7 +83,7 @@ export function Header() {
               ) : (
                 <Menu className="w-6 h-6" />
               )}
-            </button>
+            </button> */}
 
             <Link to="/" className="flex items-center gap-2 group">
               <div className="text-2xl font-bold text-red-700 group-hover:scale-110 transition-transform">
@@ -74,7 +92,7 @@ export function Header() {
             </Link>
           </div>
 
-          <nav className="hidden lg:flex items-center gap-8">
+          {/* <nav className="hidden lg:flex items-center gap-8">
             <Link
               to="/category/sarees"
               className="text-gray-700 hover:text-red-700 transition-colors font-medium"
@@ -93,7 +111,7 @@ export function Header() {
             >
               Combos
             </Link>
-          </nav>
+          </nav> */}
 
           <div className="flex items-center gap-3">
             <form
@@ -122,7 +140,7 @@ export function Header() {
               <Search className="w-5 h-5 text-gray-700 dark:text-gray-300" />
             </button>
 
-            <button
+            {/* <button
               onClick={toggleTheme}
               className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
               title={`Switch to ${theme === "light" ? "dark" : "light"} mode`}
@@ -143,9 +161,9 @@ export function Header() {
               <span className="text-xs font-medium text-gray-700 dark:text-gray-300 uppercase">
                 {language}
               </span>
-            </button>
+            </button> */}
 
-            <div className="relative">
+            <div ref={menuRef} className="relative">
               {user ? (
                 <>
                   <button
@@ -262,9 +280,9 @@ export function Header() {
               ) : (
                 <Link
                   to="/auth/signin"
-                  className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+                  className="p-2 rounded-lg transition-colors"
                 >
-                  <User className="w-5 h-5 text-gray-700" />
+                  <User className="w-5 h-5 text-gray-700 " />
                 </Link>
               )}
             </div>
@@ -283,7 +301,7 @@ export function Header() {
           </div>
         </div>
 
-        {mobileMenuOpen && (
+        {/* {mobileMenuOpen && (
           <div className="lg:hidden border-t bg-white animate-slideDown">
             <nav className="flex flex-col px-4 py-4 gap-2">
               <Link
@@ -309,7 +327,7 @@ export function Header() {
               </Link>
             </nav>
           </div>
-        )}
+        )} */}
       </div>
     </header>
   );

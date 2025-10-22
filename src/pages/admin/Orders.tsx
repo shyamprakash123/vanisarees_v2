@@ -28,7 +28,7 @@ interface Order {
 
 export function AdminOrders() {
   const { user } = useAuth();
-  const toast = useToast();
+  const { toast } = useToast();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<string>("all");
@@ -48,7 +48,11 @@ export function AdminOrders() {
       setOrders(data || []);
     } catch (error) {
       console.error("Error fetching orders:", error);
-      toast.error("Failed to load orders");
+      toast({
+        title: "Error",
+        description: "Failed to load orders",
+        variant: "error",
+      });
     } finally {
       setLoading(false);
     }
@@ -63,11 +67,19 @@ export function AdminOrders() {
 
       if (error) throw error;
 
-      toast.success("Order status updated successfully");
+      toast({
+        title: "Success",
+        description: "Order status updated successfully",
+        variant: "success",
+      });
       fetchOrders();
     } catch (error) {
       console.error("Error updating order:", error);
-      toast.error("Failed to update order status");
+      toast({
+        title: "Error",
+        description: "Failed to update order status",
+        variant: "error",
+      });
     }
   };
 

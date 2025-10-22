@@ -2,9 +2,10 @@ import { useState, useEffect, useRef } from "react";
 import { supabase } from "../../lib/supabase";
 import HeroImageUpload from "../admin/HeroImageUpload";
 import Button from "../ui/Button";
-import toast from "react-hot-toast";
 import { compressAndConvertImage } from "../Utils/ImageCompression";
 import { GripVertical, Edit, Save, X, Trash2, Plus } from "lucide-react";
+import { title } from "framer-motion/client";
+import { useToast } from "@/hooks/useToast";
 
 interface HeroSlide {
   id?: string;
@@ -29,6 +30,7 @@ interface EditingState {
 }
 
 const HeroImageForm = () => {
+  const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [slides, setSlides] = useState<HeroSlide[]>([]);
   const [editingStates, setEditingStates] = useState<EditingState>({});
@@ -56,7 +58,11 @@ const HeroImageForm = () => {
 
     if (error) {
       console.error(error);
-      toast.error("Failed to load hero slides");
+      toast({
+        title: "Error",
+        description: "Failed to load hero slides",
+        variant: "error",
+      });
     } else {
       setSlides(data);
     }
@@ -132,7 +138,11 @@ const HeroImageForm = () => {
       return publicUrl;
     } catch (err) {
       console.error(err);
-      toast.error("Image upload failed.");
+      toast({
+        title: "Error",
+        description: "Image upload failed.",
+        variant: "error",
+      });
       return null;
     }
   };
@@ -199,7 +209,11 @@ const HeroImageForm = () => {
     const { editedData, newImages } = editState;
 
     if (!editedData.title) {
-      toast.error("Please enter a title.");
+      toast({
+        title: "Error",
+        description: "Please enter a title.",
+        variant: "error",
+      });
       return;
     }
 
@@ -208,12 +222,20 @@ const HeroImageForm = () => {
       !editedData.image_url &&
       (!newImages || newImages.length === 0)
     ) {
-      toast.error("Please upload an image.");
+      toast({
+        title: "Error",
+        description: "Please upload an image.",
+        variant: "error",
+      });
       return;
     }
 
     if (editedData.media_type === "video" && !editedData.youtube_id) {
-      toast.error("Please enter a YouTube video ID.");
+      toast({
+        title: "Error",
+        description: "Please enter a YouTube video ID.",
+        variant: "error",
+      });
       return;
     }
 
@@ -258,9 +280,17 @@ const HeroImageForm = () => {
 
       if (error) {
         console.error(error);
-        toast.error("Failed to update slide.");
+        toast({
+          title: "Error",
+          description: "Failed to update slide.",
+          variant: "error",
+        });
       } else {
-        toast.success("Slide updated successfully!");
+        toast({
+          title: "Success",
+          description: "Slide updated successfully!",
+          variant: "success",
+        });
 
         // Update slides state
         setSlides((prev) =>
@@ -272,7 +302,11 @@ const HeroImageForm = () => {
       }
     } catch (error) {
       console.error(error);
-      toast.error("Failed to update slide.");
+      toast({
+        title: "Error",
+        description: "Failed to update slide.",
+        variant: "error",
+      });
     } finally {
       // Clear saving state
       setEditingStates((prev) => ({
@@ -288,17 +322,29 @@ const HeroImageForm = () => {
   // ✅ Add new slide
   const handleAddSlide = async () => {
     if (!newSlide.title) {
-      toast.error("Please enter a title.");
+      toast({
+        title: "Error",
+        description: "Please enter a title.",
+        variant: "error",
+      });
       return;
     }
 
     if (newSlide.media_type === "image" && newImage.length === 0) {
-      toast.error("Please upload an image.");
+      toast({
+        title: "Error",
+        description: "Please upload an image.",
+        variant: "error",
+      });
       return;
     }
 
     if (newSlide.media_type === "video" && !newSlide.youtube_id) {
-      toast.error("Please enter a YouTube video ID.");
+      toast({
+        title: "Error",
+        description: "Please enter a YouTube video ID.",
+        variant: "error",
+      });
       return;
     }
 
@@ -333,9 +379,17 @@ const HeroImageForm = () => {
 
     if (error) {
       console.error(error);
-      toast.error("Failed to add slide.");
+      toast({
+        title: "Error",
+        description: "Failed to add slide.",
+        variant: "error",
+      });
     } else {
-      toast.success("Slide added successfully!");
+      toast({
+        title: "Success",
+        description: "Slide added successfully!",
+        variant: "success",
+      });
       setSlides((prev) => [...prev, data]);
       setNewSlide({
         title: "",
@@ -357,9 +411,17 @@ const HeroImageForm = () => {
     const { error } = await supabase.from("hero_images").delete().eq("id", id);
 
     if (error) {
-      toast.error("Failed to delete slide.");
+      toast({
+        title: "Error",
+        description: "Failed to delete slide.",
+        variant: "error",
+      });
     } else {
-      toast.success("Slide deleted successfully!");
+      toast({
+        title: "Success",
+        description: "Slide deleted successfully!",
+        variant: "success",
+      });
       setSlides((prev) => prev.filter((slide) => slide.id !== id));
 
       // Clear any editing state for this slide
@@ -416,10 +478,18 @@ const HeroImageForm = () => {
         throw error;
       }
 
-      toast.success("Slide order updated!");
+      toast({
+        title: "Success",
+        description: "Slide order updated!",
+        variant: "success",
+      });
     } catch (error) {
       console.error("Reorder error:", error);
-      toast.error("Failed to update slide order");
+      toast({
+        title: "Error",
+        description: "Failed to update slide order",
+        variant: "error",
+      });
       // Revert on error
       fetchSlides();
     }

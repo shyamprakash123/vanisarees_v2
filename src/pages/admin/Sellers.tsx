@@ -25,7 +25,7 @@ interface Seller {
 
 export function AdminSellers() {
   const { user } = useAuth();
-  const toast = useToast();
+  const { toast } = useToast();
   const [sellers, setSellers] = useState<Seller[]>([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<string>("all");
@@ -52,7 +52,11 @@ export function AdminSellers() {
       setSellers(data || []);
     } catch (error) {
       console.error("Error fetching sellers:", error);
-      toast.error("Failed to load sellers");
+      toast({
+        title: "Error",
+        description: "Failed to load sellers",
+        variant: "error",
+      });
     } finally {
       setLoading(false);
     }
@@ -64,7 +68,11 @@ export function AdminSellers() {
     try {
       const { data: session } = await supabase.auth.getSession();
       if (!session?.session) {
-        toast.error("Session expired");
+        toast({
+          title: "Error",
+          description: "Session expired",
+          variant: "error",
+        });
         return;
       }
 
@@ -89,26 +97,42 @@ export function AdminSellers() {
         throw new Error(result.error || "Failed to approve seller");
       }
 
-      toast.success("Seller approved successfully");
+      toast({
+        title: "Success",
+        description: "Seller approved successfully",
+        variant: "success",
+      });
       setShowApprovalModal(false);
       setSelectedSeller(null);
       fetchSellers();
     } catch (error: any) {
       console.error("Error approving seller:", error);
-      toast.error(error.message || "Failed to approve seller");
+      toast({
+        title: "Error",
+        description: error.message || "Failed to approve seller",
+        variant: "error",
+      });
     }
   };
 
   const handleReject = async () => {
     if (!selectedSeller || !rejectionReason.trim()) {
-      toast.error("Please provide a rejection reason");
+      toast({
+        title: "Error",
+        description: "Please provide a rejection reason",
+        variant: "error",
+      });
       return;
     }
 
     try {
       const { data: session } = await supabase.auth.getSession();
       if (!session?.session) {
-        toast.error("Session expired");
+        toast({
+          title: "Error",
+          description: "Session expired",
+          variant: "error",
+        });
         return;
       }
 
@@ -134,27 +158,43 @@ export function AdminSellers() {
         throw new Error(result.error || "Failed to reject seller");
       }
 
-      toast.success("Seller rejected successfully");
+      toast({
+        title: "Success",
+        description: "Seller rejected successfully",
+        variant: "success",
+      });
       setShowRejectModal(false);
       setSelectedSeller(null);
       setRejectionReason("");
       fetchSellers();
     } catch (error: any) {
       console.error("Error rejecting seller:", error);
-      toast.error(error.message || "Failed to reject seller");
+      toast({
+        title: "Error",
+        description: error.message || "Failed to reject seller",
+        variant: "error",
+      });
     }
   };
 
   const handleCreditWallet = async () => {
     if (!selectedSeller || !creditAmount || Number(creditAmount) <= 0) {
-      toast.error("Please enter a valid amount");
+      toast({
+        title: "Error",
+        description: "Please enter a valid amount",
+        variant: "error",
+      });
       return;
     }
 
     try {
       const { data: session } = await supabase.auth.getSession();
       if (!session?.session) {
-        toast.error("Session expired");
+        toast({
+          title: "Error",
+          description: "Session expired",
+          variant: "error",
+        });
         return;
       }
 
@@ -182,7 +222,11 @@ export function AdminSellers() {
         throw new Error(result.error || "Failed to credit wallet");
       }
 
-      toast.success("Wallet credited successfully");
+      toast({
+        title: "Success",
+        description: "Wallet credited successfully",
+        variant: "success",
+      });
       setShowCreditModal(false);
       setSelectedSeller(null);
       setCreditAmount("");
@@ -190,7 +234,11 @@ export function AdminSellers() {
       fetchSellers();
     } catch (error: any) {
       console.error("Error crediting wallet:", error);
-      toast.error(error.message || "Failed to credit wallet");
+      toast({
+        title: "Error",
+        description: error.message || "Failed to credit wallet",
+        variant: "error",
+      });
     }
   };
 
@@ -203,11 +251,19 @@ export function AdminSellers() {
 
       if (error) throw error;
 
-      toast.success(`Seller ${newStatus} successfully`);
+      toast({
+        title: "Success",
+        description: `Seller ${newStatus} successfully`,
+        variant: "success",
+      });
       fetchSellers();
     } catch (error) {
       console.error("Error updating seller:", error);
-      toast.error("Failed to update seller status");
+      toast({
+        title: "Error",
+        description: "Failed to update seller status",
+        variant: "error",
+      });
     }
   };
 

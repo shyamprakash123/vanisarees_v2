@@ -1,18 +1,18 @@
-import { useState, useEffect } from 'react';
-import { useAuth } from '../contexts/AuthContext';
-import { useNavigate } from 'react-router-dom';
-import { supabase } from '../lib/supabase';
-import { User, Mail, Phone, Building, Bell } from 'lucide-react';
+import { useState, useEffect } from "react";
+import { useAuth } from "../contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
+import { supabase } from "../lib/supabase";
+import { User, Mail, Phone, Building, Bell } from "lucide-react";
 
 export function AccountSettings() {
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  const [name, setName] = useState('');
-  const [phone, setPhone] = useState('');
-  const [gstin, setGstin] = useState('');
+  const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [gstin, setGstin] = useState("");
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState('');
+  const [message, setMessage] = useState("");
   const [notifications, setNotifications] = useState({
     orderUpdates: true,
     promotions: true,
@@ -22,7 +22,7 @@ export function AccountSettings() {
 
   useEffect(() => {
     if (!user) {
-      navigate('/auth/signin');
+      navigate("/auth/signin");
       return;
     }
     loadProfile();
@@ -31,45 +31,45 @@ export function AccountSettings() {
   const loadProfile = async () => {
     try {
       const { data, error } = await supabase
-        .from('users')
-        .select('name, phone, gstin, notification_preferences')
-        .eq('id', user!.id)
+        .from("users")
+        .select("name, phone, gstin")
+        .eq("id", user!.id)
         .single();
 
       if (error) throw error;
       if (data) {
-        setName(data.name || '');
-        setPhone(data.phone || '');
-        setGstin(data.gstin || '');
+        setName(data.name || "");
+        setPhone(data.phone || "");
+        setGstin(data.gstin || "");
         if (data.notification_preferences) {
           setNotifications(data.notification_preferences);
         }
       }
     } catch (error) {
-      console.error('Load profile error:', error);
+      console.error("Load profile error:", error);
     }
   };
 
   const handleSave = async () => {
     setLoading(true);
-    setMessage('');
+    setMessage("");
 
     try {
       const { error } = await supabase
-        .from('users')
+        .from("users")
         .update({
           name,
           phone,
           gstin,
-          notification_preferences: notifications
+          // notification_preferences: notifications,
         })
-        .eq('id', user!.id);
+        .eq("id", user!.id);
 
       if (error) throw error;
-      setMessage('Profile updated successfully');
+      setMessage("Profile updated successfully");
     } catch (error) {
-      setMessage('Error updating profile');
-      console.error('Update error:', error);
+      setMessage("Error updating profile");
+      console.error("Update error:", error);
     } finally {
       setLoading(false);
     }
@@ -87,7 +87,7 @@ export function AccountSettings() {
           </label>
           <input
             type="email"
-            value={user?.email || ''}
+            value={user?.email || ""}
             disabled
             className="w-full px-4 py-2 border rounded-lg bg-gray-50 text-gray-600"
           />
@@ -134,10 +134,12 @@ export function AccountSettings() {
             placeholder="Enter your GSTIN for business purchases"
             className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-red-800 focus:border-transparent"
           />
-          <p className="text-xs text-gray-500 mt-1">For GST invoice generation</p>
+          <p className="text-xs text-gray-500 mt-1">
+            For GST invoice generation
+          </p>
         </div>
 
-        <div className="border-t pt-6">
+        {/* <div className="border-t pt-6">
           <h3 className="flex items-center gap-2 text-lg font-semibold text-gray-900 mb-4">
             <Bell className="h-5 w-5" />
             Notification Preferences
@@ -180,10 +182,16 @@ export function AccountSettings() {
               />
             </label>
           </div>
-        </div>
+        </div> */}
 
         {message && (
-          <div className={`p-3 rounded-lg ${message.includes('success') ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'}`}>
+          <div
+            className={`p-3 rounded-lg ${
+              message.includes("success")
+                ? "bg-green-50 text-green-800"
+                : "bg-red-50 text-red-800"
+            }`}
+          >
             {message}
           </div>
         )}
@@ -193,7 +201,7 @@ export function AccountSettings() {
           disabled={loading}
           className="w-full py-3 bg-red-800 text-white rounded-lg font-semibold hover:bg-red-900 disabled:opacity-50 transition-colors"
         >
-          {loading ? 'Saving...' : 'Save Changes'}
+          {loading ? "Saving..." : "Save Changes"}
         </button>
       </div>
     </div>

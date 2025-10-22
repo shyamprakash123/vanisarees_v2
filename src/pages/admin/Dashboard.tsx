@@ -8,6 +8,7 @@ import {
   DollarSign,
   FolderTree,
   Store,
+  Banknote,
 } from "lucide-react";
 import { supabase } from "../../lib/supabase";
 import { formatCurrency } from "../../utils/format";
@@ -241,6 +242,17 @@ export function AdminDashboard() {
                 <div className="flex items-center gap-3">
                   <Store className="w-5 h-5 text-red-600" />
                   <span className="font-medium">Manage Product Approvals</span>
+                </div>
+              </Link>
+              <Link
+                to="/admin/withdrawals"
+                className="block p-4 border rounded-lg hover:border-red-600 hover:bg-red-50 transition-colors"
+              >
+                <div className="flex items-center gap-3">
+                  <Banknote className="w-5 h-5 text-red-600" />
+                  <span className="font-medium">
+                    Manage Affiliate Withdrawls
+                  </span>
                 </div>
               </Link>
             </div>

@@ -1,9 +1,17 @@
-import { useEffect, useState } from 'react';
-import { supabase } from '../../lib/supabase';
-import { useToast } from '../../hooks/useToast';
-import { Check, X, DollarSign, Clock, CheckCircle, XCircle } from 'lucide-react';
-import { Modal } from '../../components/ui/Modal';
-import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
+import { useEffect, useState } from "react";
+import { supabase } from "../../lib/supabase";
+import { useToast } from "../../hooks/useToast";
+import {
+  Check,
+  X,
+  DollarSign,
+  Clock,
+  CheckCircle,
+  XCircle,
+  IndianRupee,
+} from "lucide-react";
+import { Modal } from "../../components/ui/Modal";
+import { ConfirmDialog } from "../../components/ui/ConfirmDialog";
 
 interface WithdrawalRequest {
   id: string;
@@ -27,17 +35,18 @@ interface WithdrawalRequest {
 }
 
 export function AdminWithdrawals() {
-  const toast = useToast();
+  const { toast } = useToast();
   const [withdrawals, setWithdrawals] = useState<WithdrawalRequest[]>([]);
   const [loading, setLoading] = useState(true);
-  const [statusFilter, setStatusFilter] = useState<string>('pending');
-  const [selectedWithdrawal, setSelectedWithdrawal] = useState<WithdrawalRequest | null>(null);
+  const [statusFilter, setStatusFilter] = useState<string>("pending");
+  const [selectedWithdrawal, setSelectedWithdrawal] =
+    useState<WithdrawalRequest | null>(null);
   const [showApproveModal, setShowApproveModal] = useState(false);
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [showCompleteModal, setShowCompleteModal] = useState(false);
-  const [rejectionReason, setRejectionReason] = useState('');
-  const [transactionId, setTransactionId] = useState('');
-  const [notes, setNotes] = useState('');
+  const [rejectionReason, setRejectionReason] = useState("");
+  const [transactionId, setTransactionId] = useState("");
+  const [notes, setNotes] = useState("");
 
   useEffect(() => {
     fetchWithdrawals();
@@ -46,15 +55,19 @@ export function AdminWithdrawals() {
   const fetchWithdrawals = async () => {
     try {
       const { data, error } = await supabase
-        .from('seller_withdrawal_requests')
-        .select('*, sellers(id, shop_name, seller_wallet_balance, users(name, email))')
-        .order('created_at', { ascending: false });
+        .from("affiliate_withdrawal_requests")
+        .select("*, affiliate_users(id, wallet_balance, users(name, email))")
+        .order("created_at", { ascending: false });
 
       if (error) throw error;
       setWithdrawals(data || []);
     } catch (error) {
-      console.error('Error fetching withdrawals:', error);
-      toast.error('Failed to load withdrawal requests');
+      console.error("Error fetching withdrawals:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load withdrawal requests",
+        variant: "error",
+      });
     } finally {
       setLoading(false);
     }
@@ -66,20 +79,26 @@ export function AdminWithdrawals() {
     try {
       const { data: session } = await supabase.auth.getSession();
       if (!session?.session) {
-        toast.error('Session expired');
+        toast({
+          title: "Error",
+          description: "Session expired",
+          variant: "error",
+        });
         return;
       }
 
-      const apiUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/seller-withdrawal`;
+      const apiUrl = `${
+        import.meta.env.VITE_SUPABASE_URL
+      }/functions/v1/affiliate-withdrawal`;
       const response = await fetch(apiUrl, {
-        method: 'PUT',
+        method: "PUT",
         headers: {
-          'Authorization': `Bearer ${session.session.access_token}`,
-          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session.session.access_token}`,
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           request_id: selectedWithdrawal.id,
-          action: 'approve',
+          action: "approve",
           notes: notes,
         }),
       });
@@ -87,43 +106,61 @@ export function AdminWithdrawals() {
       const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(result.error || 'Failed to approve withdrawal');
+        throw new Error(result.error || "Failed to approve withdrawal");
       }
 
-      toast.success('Withdrawal approved successfully');
+      toast({
+        title: "Success",
+        description: "Withdrawal approved successfully",
+        variant: "success",
+      });
       setShowApproveModal(false);
       setSelectedWithdrawal(null);
-      setNotes('');
+      setNotes("");
       fetchWithdrawals();
     } catch (error: any) {
-      console.error('Error approving withdrawal:', error);
-      toast.error(error.message || 'Failed to approve withdrawal');
+      console.error("Error approving withdrawal:", error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to approve withdrawal",
+        variant: "error",
+      });
     }
   };
 
   const handleReject = async () => {
     if (!selectedWithdrawal || !rejectionReason.trim()) {
-      toast.error('Please provide a rejection reason');
+      toast({
+        title: "Error",
+        description: "Please provide a rejection reason",
+        variant: "error",
+      });
       return;
     }
 
     try {
       const { data: session } = await supabase.auth.getSession();
       if (!session?.session) {
-        toast.error('Session expired');
+        toast({
+          title: "Error",
+          description: "Session expired",
+          variant: "error",
+        });
         return;
       }
 
-      const apiUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/seller-withdrawal`;
+      const apiUrl = `${
+        import.meta.env.VITE_SUPABASE_URL
+      }/functions/v1/affiliate-withdrawal`;
       const response = await fetch(apiUrl, {
-        method: 'PUT',
+        method: "PUT",
         headers: {
-          'Authorization': `Bearer ${session.session.access_token}`,
-          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session.session.access_token}`,
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           request_id: selectedWithdrawal.id,
-          action: 'reject',
+          action: "reject",
           rejection_reason: rejectionReason,
         }),
       });
@@ -131,43 +168,61 @@ export function AdminWithdrawals() {
       const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(result.error || 'Failed to reject withdrawal');
+        throw new Error(result.error || "Failed to reject withdrawal");
       }
 
-      toast.success('Withdrawal rejected successfully');
+      toast({
+        title: "Success",
+        description: "Withdrawal rejected successfully",
+        variant: "success",
+      });
       setShowRejectModal(false);
       setSelectedWithdrawal(null);
-      setRejectionReason('');
+      setRejectionReason("");
       fetchWithdrawals();
     } catch (error: any) {
-      console.error('Error rejecting withdrawal:', error);
-      toast.error(error.message || 'Failed to reject withdrawal');
+      console.error("Error rejecting withdrawal:", error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to reject withdrawal",
+        variant: "error",
+      });
     }
   };
 
   const handleComplete = async () => {
     if (!selectedWithdrawal || !transactionId.trim()) {
-      toast.error('Please provide a transaction ID');
+      toast({
+        title: "Error",
+        description: "Please provide a transaction ID",
+        variant: "error",
+      });
       return;
     }
 
     try {
       const { data: session } = await supabase.auth.getSession();
       if (!session?.session) {
-        toast.error('Session expired');
+        toast({
+          title: "Error",
+          description: "Session expired",
+          variant: "error",
+        });
         return;
       }
 
-      const apiUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/seller-withdrawal`;
+      const apiUrl = `${
+        import.meta.env.VITE_SUPABASE_URL
+      }/functions/v1/affiliate-withdrawal`;
       const response = await fetch(apiUrl, {
-        method: 'PUT',
+        method: "PUT",
         headers: {
-          'Authorization': `Bearer ${session.session.access_token}`,
-          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session.session.access_token}`,
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           request_id: selectedWithdrawal.id,
-          action: 'complete',
+          action: "complete",
           transaction_id: transactionId,
           notes: notes,
         }),
@@ -176,35 +231,43 @@ export function AdminWithdrawals() {
       const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(result.error || 'Failed to complete withdrawal');
+        throw new Error(result.error || "Failed to complete withdrawal");
       }
 
-      toast.success('Withdrawal completed successfully');
+      toast({
+        title: "Success",
+        description: "Withdrawal completed successfully",
+        variant: "success",
+      });
       setShowCompleteModal(false);
       setSelectedWithdrawal(null);
-      setTransactionId('');
-      setNotes('');
+      setTransactionId("");
+      setNotes("");
       fetchWithdrawals();
     } catch (error: any) {
-      console.error('Error completing withdrawal:', error);
-      toast.error(error.message || 'Failed to complete withdrawal');
+      console.error("Error completing withdrawal:", error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to complete withdrawal",
+        variant: "error",
+      });
     }
   };
 
   const filteredWithdrawals =
-    statusFilter === 'all'
+    statusFilter === "all"
       ? withdrawals
       : withdrawals.filter((w) => w.status === statusFilter);
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'pending':
+      case "pending":
         return <Clock className="h-5 w-5 text-yellow-600" />;
-      case 'approved':
+      case "approved":
         return <Clock className="h-5 w-5 text-blue-600" />;
-      case 'completed':
+      case "completed":
         return <CheckCircle className="h-5 w-5 text-green-600" />;
-      case 'rejected':
+      case "rejected":
         return <XCircle className="h-5 w-5 text-red-600" />;
       default:
         return null;
@@ -213,16 +276,16 @@ export function AdminWithdrawals() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'pending':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'approved':
-        return 'bg-blue-100 text-blue-800';
-      case 'completed':
-        return 'bg-green-100 text-green-800';
-      case 'rejected':
-        return 'bg-red-100 text-red-800';
+      case "pending":
+        return "bg-yellow-100 text-yellow-800";
+      case "approved":
+        return "bg-blue-100 text-blue-800";
+      case "completed":
+        return "bg-green-100 text-green-800";
+      case "rejected":
+        return "bg-red-100 text-red-800";
       default:
-        return 'bg-gray-100 text-gray-800';
+        return "bg-gray-100 text-gray-800";
     }
   };
 
@@ -241,23 +304,23 @@ export function AdminWithdrawals() {
 
         <div className="mb-6 flex gap-2 flex-wrap">
           <button
-            onClick={() => setStatusFilter('all')}
+            onClick={() => setStatusFilter("all")}
             className={`px-4 py-2 rounded-lg ${
-              statusFilter === 'all'
-                ? 'bg-red-800 text-white'
-                : 'bg-gray-100 text-gray-700'
+              statusFilter === "all"
+                ? "bg-red-800 text-white"
+                : "bg-gray-100 text-gray-700"
             }`}
           >
             All Requests
           </button>
-          {['pending', 'approved', 'completed', 'rejected'].map((status) => (
+          {["pending", "approved", "completed", "rejected"].map((status) => (
             <button
               key={status}
               onClick={() => setStatusFilter(status)}
               className={`px-4 py-2 rounded-lg capitalize ${
                 statusFilter === status
-                  ? 'bg-red-800 text-white'
-                  : 'bg-gray-100 text-gray-700'
+                  ? "bg-red-800 text-white"
+                  : "bg-gray-100 text-gray-700"
               }`}
             >
               {status}
@@ -294,14 +357,15 @@ export function AdminWithdrawals() {
                 {filteredWithdrawals.map((withdrawal) => (
                   <tr key={withdrawal.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4">
+                      <div className="text-xs text-gray-500">
+                        {withdrawal.affiliate_users?.users?.name}
+                      </div>
                       <div className="text-sm font-medium text-gray-900">
-                        {withdrawal.sellers?.shop_name}
+                        {withdrawal.affiliate_users?.users?.email}
                       </div>
                       <div className="text-xs text-gray-500">
-                        {withdrawal.sellers?.users?.name}
-                      </div>
-                      <div className="text-xs text-gray-500">
-                        Balance: ₹{withdrawal.sellers?.seller_wallet_balance?.toFixed(2)}
+                        Balance: ₹
+                        {withdrawal.affiliate_users?.wallet_balance?.toFixed(2)}
                       </div>
                     </td>
                     <td className="px-6 py-4">
@@ -355,7 +419,7 @@ export function AdminWithdrawals() {
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex gap-2">
-                        {withdrawal.status === 'pending' && (
+                        {withdrawal.status === "pending" && (
                           <>
                             <button
                               onClick={() => {
@@ -379,7 +443,7 @@ export function AdminWithdrawals() {
                             </button>
                           </>
                         )}
-                        {withdrawal.status === 'approved' && (
+                        {withdrawal.status === "approved" && (
                           <button
                             onClick={() => {
                               setSelectedWithdrawal(withdrawal);
@@ -387,7 +451,7 @@ export function AdminWithdrawals() {
                             }}
                             className="px-3 py-1 text-xs bg-blue-100 text-blue-800 rounded hover:bg-blue-200 flex items-center gap-1"
                           >
-                            <DollarSign size={12} />
+                            <IndianRupee size={12} />
                             Complete
                           </button>
                         )}
@@ -401,7 +465,9 @@ export function AdminWithdrawals() {
         </div>
 
         {filteredWithdrawals.length === 0 && (
-          <div className="text-center py-8 text-gray-500">No withdrawal requests found</div>
+          <div className="text-center py-8 text-gray-500">
+            No withdrawal requests found
+          </div>
         )}
       </div>
 
@@ -409,14 +475,16 @@ export function AdminWithdrawals() {
         isOpen={showApproveModal}
         onClose={() => {
           setShowApproveModal(false);
-          setNotes('');
+          setNotes("");
         }}
         title="Approve Withdrawal Request"
       >
         <div className="space-y-4">
           <div className="bg-gray-50 p-4 rounded-lg">
             <div className="text-sm text-gray-600 mb-2">Seller</div>
-            <div className="font-medium">{selectedWithdrawal?.sellers?.shop_name}</div>
+            <div className="font-medium">
+              {selectedWithdrawal?.sellers?.shop_name}
+            </div>
             <div className="text-sm text-gray-600 mt-2">Amount</div>
             <div className="text-2xl font-bold text-gray-900">
               ₹{selectedWithdrawal?.amount.toFixed(2)}
@@ -440,7 +508,7 @@ export function AdminWithdrawals() {
             <button
               onClick={() => {
                 setShowApproveModal(false);
-                setNotes('');
+                setNotes("");
               }}
               className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
             >
@@ -460,7 +528,7 @@ export function AdminWithdrawals() {
         isOpen={showRejectModal}
         onClose={() => {
           setShowRejectModal(false);
-          setRejectionReason('');
+          setRejectionReason("");
         }}
         title="Reject Withdrawal Request"
       >
@@ -482,7 +550,7 @@ export function AdminWithdrawals() {
             <button
               onClick={() => {
                 setShowRejectModal(false);
-                setRejectionReason('');
+                setRejectionReason("");
               }}
               className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
             >
@@ -502,8 +570,8 @@ export function AdminWithdrawals() {
         isOpen={showCompleteModal}
         onClose={() => {
           setShowCompleteModal(false);
-          setTransactionId('');
-          setNotes('');
+          setTransactionId("");
+          setNotes("");
         }}
         title="Complete Withdrawal"
       >
@@ -545,8 +613,8 @@ export function AdminWithdrawals() {
             <button
               onClick={() => {
                 setShowCompleteModal(false);
-                setTransactionId('');
-                setNotes('');
+                setTransactionId("");
+                setNotes("");
               }}
               className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
             >

@@ -16,7 +16,7 @@ interface User {
 
 export function AdminUsers() {
   const { user } = useAuth();
-  const toast = useToast();
+  const { toast } = useToast();
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
@@ -36,7 +36,11 @@ export function AdminUsers() {
       setUsers(data || []);
     } catch (error) {
       console.error("Error fetching users:", error);
-      toast.error("Failed to load users");
+      toast({
+        title: "Error",
+        description: "Failed to load users",
+        variant: "error",
+      });
     } finally {
       setLoading(false);
     }

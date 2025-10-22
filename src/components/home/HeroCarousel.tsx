@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { useState, useEffect, useRef } from "react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 interface Slide {
   id: string;
@@ -7,7 +7,7 @@ interface Slide {
   subtitle?: string;
   image_url?: string;
   youtube_id?: string;
-  media_type?: 'image' | 'video';
+  media_type?: "image" | "video";
   cta_text?: string;
   cta_link?: string;
 }
@@ -18,16 +18,22 @@ interface HeroCarouselProps {
 
 export function HeroCarousel({ slides }: HeroCarouselProps) {
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     if (slides.length <= 1) return;
 
-    const interval = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % slides.length);
-    }, 5000);
+    if (!isPaused) {
+      intervalRef.current = setInterval(() => {
+        setCurrentSlide((prev) => (prev + 1) % slides.length);
+      }, 5000);
+    }
 
-    return () => clearInterval(interval);
-  }, [slides.length]);
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
+  }, [slides.length, isPaused]);
 
   const goToPrevious = () => {
     setCurrentSlide((prev) => (prev - 1 + slides.length) % slides.length);
@@ -51,31 +57,44 @@ export function HeroCarousel({ slides }: HeroCarouselProps) {
   }
 
   return (
-    <div className="relative h-[400px] md:h-[600px] overflow-hidden group">
+    <div
+      className="relative h-[400px] md:h-[600px] overflow-hidden group"
+      onMouseEnter={() => setIsPaused(true)}
+      onMouseLeave={() => setIsPaused(false)}
+    >
       {slides.map((slide, index) => (
         <div
           key={slide.id}
           className={`absolute inset-0 transition-all duration-700 ease-in-out ${
             index === currentSlide
-              ? 'opacity-100 translate-x-0'
+              ? "opacity-100 translate-x-0"
               : index < currentSlide
-              ? 'opacity-0 -translate-x-full'
-              : 'opacity-0 translate-x-full'
+              ? "opacity-0 -translate-x-full"
+              : "opacity-0 translate-x-full"
           }`}
         >
-          {slide.media_type === 'video' && slide.youtube_id ? (
+          {slide.media_type === "video" && slide.youtube_id ? (
             <div className="relative w-full h-full">
               <iframe
-                src={`https://www.youtube.com/embed/${slide.youtube_id}?autoplay=${index === currentSlide ? 1 : 0}&mute=1&loop=1&playlist=${slide.youtube_id}&controls=0&showinfo=0&rel=0&modestbranding=1`}
+                src={`https://www.youtube.com/embed/${
+                  slide.youtube_id
+                }?autoplay=${
+                  index === currentSlide ? 1 : 0
+                }&mute=1&loop=1&playlist=${
+                  slide.youtube_id
+                }&controls=0&showinfo=0&rel=0&modestbranding=1`}
                 className="w-full h-full"
                 allow="autoplay; encrypted-media"
                 allowFullScreen
-                style={{ border: 'none', pointerEvents: 'none' }}
+                style={{ border: "none", pointerEvents: "none" }}
               />
             </div>
           ) : (
             <img
-              src={slide.image_url || 'https://images.pexels.com/photos/1164674/pexels-photo-1164674.jpeg'}
+              src={
+                slide.image_url ||
+                "https://images.pexels.com/photos/1164674/pexels-photo-1164674.jpeg"
+              }
               alt={slide.title}
               className="w-full h-full object-cover"
             />
@@ -128,7 +147,7 @@ export function HeroCarousel({ slides }: HeroCarouselProps) {
                 key={index}
                 onClick={() => setCurrentSlide(index)}
                 className={`h-2 rounded-full transition-all duration-300 ${
-                  index === currentSlide ? 'w-8 bg-white' : 'w-2 bg-white/50'
+                  index === currentSlide ? "w-8 bg-white" : "w-2 bg-white/50"
                 }`}
               />
             ))}

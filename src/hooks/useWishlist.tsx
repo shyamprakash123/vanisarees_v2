@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
-import { supabase } from '../lib/supabase';
-import { useAuth } from '../contexts/AuthContext';
+import { useState, useEffect } from "react";
+import { supabase } from "../lib/supabase";
+import { useAuth } from "../contexts/AuthContext";
 
 export function useWishlist() {
   const { user } = useAuth();
@@ -21,14 +21,16 @@ export function useWishlist() {
 
     try {
       const { data, error } = await supabase
-        .from('wishlists')
-        .select('product_id')
-        .eq('user_id', user.id);
+        .from("wishlists")
+        .select("product_id, product:products(*)")
+        .eq("user_id", user.id);
+
+      console.log(data);
 
       if (error) throw error;
-      setWishlistItems(data?.map(item => item.product_id) || []);
+      setWishlistItems(data || []);
     } catch (error) {
-      console.error('Error loading wishlist:', error);
+      console.error("Error loading wishlist:", error);
     } finally {
       setLoading(false);
     }
@@ -36,20 +38,20 @@ export function useWishlist() {
 
   async function addToWishlist(productId: string) {
     if (!user) {
-      throw new Error('Please sign in to add items to wishlist');
+      throw new Error("Please sign in to add items to wishlist");
     }
 
     try {
       const { error } = await supabase
-        .from('wishlists')
+        .from("wishlists")
         .insert({ user_id: user.id, product_id: productId });
 
       if (error) throw error;
-      setWishlistItems(prev => [...prev, productId]);
+      setWishlistItems((prev) => [...prev, productId]);
       return true;
     } catch (error: any) {
-      if (error.code === '23505') {
-        throw new Error('Item already in wishlist');
+      if (error.code === "23505") {
+        throw new Error("Item already in wishlist");
       }
       throw error;
     }
@@ -60,16 +62,16 @@ export function useWishlist() {
 
     try {
       const { error } = await supabase
-        .from('wishlists')
+        .from("wishlists")
         .delete()
-        .eq('user_id', user.id)
-        .eq('product_id', productId);
+        .eq("user_id", user.id)
+        .eq("product_id", productId);
 
       if (error) throw error;
-      setWishlistItems(prev => prev.filter(id => id !== productId));
+      setWishlistItems((prev) => prev.filter((id) => id !== productId));
       return true;
     } catch (error) {
-      console.error('Error removing from wishlist:', error);
+      console.error("Error removing from wishlist:", error);
       throw error;
     }
   }

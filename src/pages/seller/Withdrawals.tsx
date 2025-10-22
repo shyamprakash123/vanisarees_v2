@@ -36,7 +36,7 @@ interface WithdrawalRequest {
 
 export function SellerWithdrawals() {
   const { user } = useAuth();
-  const toast = useToast();
+  const { toast } = useToast();
   const [seller, setSeller] = useState<Seller | null>(null);
   const [withdrawals, setWithdrawals] = useState<WithdrawalRequest[]>([]);
   const [bankAccounts, setBankAccounts] = useState<BankAccount[]>([]);
@@ -69,7 +69,11 @@ export function SellerWithdrawals() {
       }
     } catch (error) {
       console.error("Error fetching seller:", error);
-      toast.error("Failed to load seller data");
+      toast({
+        title: "Error",
+        description: "Failed to load seller data",
+        variant: "error",
+      });
     } finally {
       setLoading(false);
     }
@@ -97,7 +101,11 @@ export function SellerWithdrawals() {
       setWithdrawals(data || []);
     } catch (error) {
       console.error("Error fetching withdrawals:", error);
-      toast.error("Failed to load withdrawal requests");
+      toast({
+        title: "Error",
+        description: "Failed to load withdrawal requests",
+        variant: "error",
+      });
     }
   };
 
@@ -137,24 +145,40 @@ export function SellerWithdrawals() {
 
   const handleWithdrawRequest = async () => {
     if (!seller || !withdrawAmount || Number(withdrawAmount) <= 0) {
-      toast.error("Please enter a valid amount");
+      toast({
+        title: "Error",
+        description: "Please enter a valid amount",
+        variant: "error",
+      });
       return;
     }
 
     if (!selectedBankAccountId) {
-      toast.error("Please select a bank account");
+      toast({
+        title: "Error",
+        description: "Please select a bank account",
+        variant: "error",
+      });
       return;
     }
 
     if (Number(withdrawAmount) > seller.seller_wallet_balance) {
-      toast.error("Insufficient wallet balance");
+      toast({
+        title: "Error",
+        description: "Insufficient wallet balance",
+        variant: "error",
+      });
       return;
     }
 
     try {
       const { data: session } = await supabase.auth.getSession();
       if (!session?.session) {
-        toast.error("Session expired");
+        toast({
+          title: "Error",
+          description: "Session expired",
+          variant: "error",
+        });
         return;
       }
 
@@ -162,7 +186,11 @@ export function SellerWithdrawals() {
         (acc) => acc.id === selectedBankAccountId
       );
       if (!selectedAccount) {
-        toast.error("Selected bank account not found");
+        toast({
+          title: "Error",
+          description: "Selected bank account not found",
+          variant: "error",
+        });
         return;
       }
 
@@ -198,14 +226,22 @@ export function SellerWithdrawals() {
         throw new Error(result.error || "Failed to create withdrawal request");
       }
 
-      toast.success("Withdrawal request submitted successfully");
+      toast({
+        title: "Success",
+        description: "Withdrawal request submitted successfully",
+        variant: "success",
+      });
       setShowWithdrawModal(false);
       setWithdrawAmount("");
       fetchSellerData();
       fetchWithdrawals();
     } catch (error: any) {
       console.error("Error creating withdrawal:", error);
-      toast.error(error.message || "Failed to create withdrawal request");
+      toast({
+        title: "Error",
+        description: error.message || "Failed to create withdrawal request",
+        variant: "error",
+      });
     }
   };
 

@@ -140,17 +140,9 @@ export function Home() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 space-y-16">
         {user && <SellerStatusBanner />}
 
-        <section>
+        {/* <section>
           <ComboSlider />
-        </section>
-
-        <section>
-          <div className="flex items-center gap-3 mb-8">
-            <Tag className="w-8 h-8 text-red-600" />
-            <h2 className="section-title mb-0">Active Offers & Coupons</h2>
-          </div>
-          <OffersGrid />
-        </section>
+        </section> */}
 
         <section>
           <div className="flex items-center justify-between mb-8">
@@ -241,6 +233,14 @@ export function Home() {
             </div>
           </section>
         )}
+
+        <section>
+          <div className="flex items-center gap-3 mb-8">
+            <Tag className="w-8 h-8 text-red-600" />
+            <h2 className="section-title mb-0">Active Offers & Coupons</h2>
+          </div>
+          <OffersGrid />
+        </section>
       </div>
 
       <RecentlyViewed />

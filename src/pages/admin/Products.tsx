@@ -32,7 +32,7 @@ interface Product {
 
 export function AdminProducts() {
   const { user } = useAuth();
-  const toast = useToast();
+  const { toast } = useToast();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
@@ -55,7 +55,11 @@ export function AdminProducts() {
       setProducts(data || []);
     } catch (error) {
       console.error("Error fetching products:", error);
-      toast.error("Failed to load products");
+      toast({
+        title: "Error",
+        description: "Failed to load products",
+        variant: "error",
+      });
     } finally {
       setLoading(false);
     }
@@ -90,11 +94,19 @@ export function AdminProducts() {
 
       if (error) throw error;
 
-      toast.success("Product updated successfully");
+      toast({
+        title: "Success",
+        description: "Product updated successfully",
+        variant: "success",
+      });
       fetchProducts();
     } catch (error) {
       console.error("Error updating product:", error);
-      toast.error("Failed to update product");
+      toast({
+        title: "Error",
+        description: "Failed to update product",
+        variant: "error",
+      });
     }
   };
 
@@ -107,11 +119,19 @@ export function AdminProducts() {
 
       if (error) throw error;
 
-      toast.success("Product status updated");
+      toast({
+        title: "Success",
+        description: "Product status updated",
+        variant: "success",
+      });
       fetchProducts();
     } catch (error) {
       console.error("Error updating product:", error);
-      toast.error("Failed to update product");
+      toast({
+        title: "Error",
+        description: "Failed to update product",
+        variant: "error",
+      });
     }
   };
 
@@ -126,11 +146,19 @@ export function AdminProducts() {
 
       if (error) throw error;
 
-      toast.success("Product deleted successfully");
+      toast({
+        title: "Success",
+        description: "Product deleted successfully",
+        variant: "success",
+      });
       fetchProducts();
     } catch (error) {
       console.error("Error deleting product:", error);
-      toast.error("Failed to delete product");
+      toast({
+        title: "Error",
+        description: "Failed to delete product",
+        variant: "error",
+      });
     }
   };
 

@@ -60,6 +60,34 @@ export function CategoryPage() {
   async function loadProducts() {
     setLoading(true);
     try {
+      // supabase
+      //     .from("products")
+      //     .select(
+      //       `
+      //       id,
+      //       title,
+      //       slug,
+      //       price,
+      //       mrp,
+      //       stock,
+      //       featured,
+      //       trending,
+      //       product_images(
+      //         id,
+      //         image_url,
+      //         alt_text,
+      //         sort_order,
+      //         is_primary
+      //       )
+      //   `
+      //     )
+      //     .eq("featured", true)
+      //     .eq("active", true)
+      //     .order("sort_order", {
+      //       ascending: true,
+      //       foreignTable: "product_images",
+      //     })
+      //     .limit(8),
       let query = supabase
         .from("products")
         .select(
@@ -71,7 +99,7 @@ export function CategoryPage() {
           mrp, 
           stock, 
           category_id,
-          categories!inner(slug),
+          categories(slug),
           product_images(
             id,
             image_url,
@@ -82,7 +110,7 @@ export function CategoryPage() {
         `,
           { count: "exact" }
         )
-        .eq("categories.slug", slug)
+        // .eq("categories.slug", slug)
         .order("sort_order", {
           ascending: true,
           foreignTable: "product_images",
@@ -233,7 +261,7 @@ export function CategoryPage() {
                     slug={product.slug}
                     price={product.price}
                     mrp={product.mrp}
-                    image={product.product_images[0].image_url}
+                    image={product?.product_images[0]?.image_url}
                     inStock={product.stock > 0}
                   />
                 </div>

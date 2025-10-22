@@ -28,7 +28,7 @@ interface Product {
 }
 
 export function ProductApprovals() {
-  const toast = useToast();
+  const { toast } = useToast();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
@@ -74,7 +74,11 @@ export function ProductApprovals() {
       setProducts(data || []);
     } catch (error) {
       console.error("Error fetching products:", error);
-      toast.error("Failed to load products");
+      toast({
+        title: "Error",
+        description: "Failed to load products",
+        variant: "error",
+      });
     } finally {
       setLoading(false);
     }
@@ -112,19 +116,25 @@ export function ProductApprovals() {
       if (!result.success) {
         throw new Error(result.error || "Failed to update product");
       }
-
-      toast.success(
-        approved ? "Product approved successfully" : "Product rejected"
-      );
+      toast({
+        title: "Success",
+        description: approved
+          ? "Product approved successfully"
+          : "Product rejected",
+        variant: "success",
+      });
       setShowModal(false);
       setSelectedProduct(null);
       setApprovalNotes("");
       fetchProducts();
     } catch (error) {
       console.error("Error updating product:", error);
-      toast.error(
-        error instanceof Error ? error.message : "Failed to update product"
-      );
+      toast({
+        title: "Error",
+        description:
+          error instanceof Error ? error.message : "Failed to update product",
+        variant: "error",
+      });
     }
   };
 

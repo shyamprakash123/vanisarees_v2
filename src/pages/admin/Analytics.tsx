@@ -29,7 +29,7 @@ interface TopProduct {
 
 export function AdminAnalytics() {
   const { user } = useAuth();
-  const toast = useToast();
+  const { toast } = useToast();
   const [analytics, setAnalytics] = useState<Analytics>({
     totalSales: 0,
     totalOrders: 0,
@@ -104,7 +104,11 @@ export function AdminAnalytics() {
       });
     } catch (error) {
       console.error("Error fetching analytics:", error);
-      toast.error("Failed to load analytics");
+      toast({
+        title: "Error",
+        description: "Failed to load analytics",
+        variant: "error",
+      });
     } finally {
       setLoading(false);
     }

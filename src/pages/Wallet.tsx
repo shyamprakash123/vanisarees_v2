@@ -1,9 +1,14 @@
-import { useState, useEffect } from 'react';
-import { useAuth } from '../contexts/AuthContext';
-import { useNavigate } from 'react-router-dom';
-import { supabase } from '../lib/supabase';
-import { formatCurrency, formatDateTime } from '../utils/format';
-import { Wallet as WalletIcon, ArrowUpCircle, ArrowDownCircle, Plus } from 'lucide-react';
+import { useState, useEffect } from "react";
+import { useAuth } from "../contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
+import { supabase } from "../lib/supabase";
+import { formatCurrency, formatDateTime } from "../utils/format";
+import {
+  Wallet as WalletIcon,
+  ArrowUpCircle,
+  ArrowDownCircle,
+  Plus,
+} from "lucide-react";
 
 interface Transaction {
   id: string;
@@ -24,7 +29,7 @@ export function Wallet() {
 
   useEffect(() => {
     if (!user) {
-      navigate('/auth/signin');
+      navigate("/auth/signin");
       return;
     }
     loadWalletData();
@@ -33,14 +38,23 @@ export function Wallet() {
   const loadWalletData = async () => {
     try {
       const [balanceRes, transactionsRes] = await Promise.all([
-        supabase.from('users').select('wallet_balance').eq('id', user!.id).single(),
-        supabase.from('wallet_transactions').select('*').eq('user_id', user!.id).order('created_at', { ascending: false }).limit(50)
+        supabase
+          .from("users")
+          .select("wallet_balance")
+          .eq("id", user!.id)
+          .single(),
+        supabase
+          .from("wallet_transactions")
+          .select("*")
+          .eq("user_id", user!.id)
+          .order("created_at", { ascending: false })
+          .limit(50),
       ]);
 
       if (balanceRes.data) setBalance(balanceRes.data.wallet_balance || 0);
       if (transactionsRes.data) setTransactions(transactionsRes.data);
     } catch (error) {
-      console.error('Load wallet error:', error);
+      console.error("Load wallet error:", error);
     } finally {
       setLoading(false);
     }
@@ -62,10 +76,10 @@ export function Wallet() {
           </div>
           <WalletIcon className="h-16 w-16 text-red-200" />
         </div>
-        <button className="mt-6 px-6 py-2 bg-white text-red-800 rounded-lg font-semibold hover:bg-red-50 transition-colors flex items-center gap-2">
+        {/* <button className="mt-6 px-6 py-2 bg-white text-red-800 rounded-lg font-semibold hover:bg-red-50 transition-colors flex items-center gap-2">
           <Plus className="h-5 w-5" />
           Add Money
-        </button>
+        </button> */}
       </div>
 
       <div className="bg-white rounded-lg shadow">
@@ -80,21 +94,38 @@ export function Wallet() {
         ) : (
           <div className="divide-y">
             {transactions.map((txn) => (
-              <div key={txn.id} className="p-6 flex items-center gap-4 hover:bg-gray-50 transition-colors">
-                <div className={`p-3 rounded-full ${txn.type === 'credit' ? 'bg-green-100' : 'bg-red-100'}`}>
-                  {txn.type === 'credit' ? (
+              <div
+                key={txn.id}
+                className="p-6 flex items-center gap-4 hover:bg-gray-50 transition-colors"
+              >
+                <div
+                  className={`p-3 rounded-full ${
+                    txn.type === "credit" ? "bg-green-100" : "bg-red-100"
+                  }`}
+                >
+                  {txn.type === "credit" ? (
                     <ArrowUpCircle className="h-6 w-6 text-green-600" />
                   ) : (
                     <ArrowDownCircle className="h-6 w-6 text-red-600" />
                   )}
                 </div>
                 <div className="flex-1">
-                  <p className="font-medium">{txn.description || `${txn.type === 'credit' ? 'Credit' : 'Debit'}`}</p>
-                  <p className="text-sm text-gray-600">{formatDateTime(txn.created_at)}</p>
+                  <p className="font-medium">
+                    {txn.description ||
+                      `${txn.type === "credit" ? "Credit" : "Debit"}`}
+                  </p>
+                  <p className="text-sm text-gray-600">
+                    {formatDateTime(txn.created_at)}
+                  </p>
                 </div>
                 <div className="text-right">
-                  <p className={`font-semibold ${txn.type === 'credit' ? 'text-green-600' : 'text-red-600'}`}>
-                    {txn.type === 'credit' ? '+' : '-'}{formatCurrency(txn.amount)}
+                  <p
+                    className={`font-semibold ${
+                      txn.type === "credit" ? "text-green-600" : "text-red-600"
+                    }`}
+                  >
+                    {txn.type === "credit" ? "+" : "-"}
+                    {formatCurrency(txn.amount)}
                   </p>
                   <p className="text-sm text-gray-600">
                     Balance: {formatCurrency(txn.balance_after)}

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from "react";
 
 interface RecentProduct {
   id: string;
@@ -9,7 +9,7 @@ interface RecentProduct {
   viewedAt: number;
 }
 
-const STORAGE_KEY = 'recently_viewed_products';
+const STORAGE_KEY = "recently_viewed_products";
 const MAX_ITEMS = 12;
 
 export function useRecentlyViewed() {
@@ -27,16 +27,16 @@ export function useRecentlyViewed() {
         setRecentProducts(products);
       }
     } catch (error) {
-      console.error('Error loading recent products:', error);
+      console.error("Error loading recent products:", error);
     }
   };
 
-  const addRecentProduct = (product: Omit<RecentProduct, 'viewedAt'>) => {
+  const addRecentProduct = (product: Omit<RecentProduct, "viewedAt">) => {
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
       let products: RecentProduct[] = stored ? JSON.parse(stored) : [];
 
-      products = products.filter(p => p.id !== product.id);
+      products = products.filter((p) => p.id !== product.id);
 
       products.unshift({
         ...product,
@@ -50,7 +50,22 @@ export function useRecentlyViewed() {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(products));
       setRecentProducts(products);
     } catch (error) {
-      console.error('Error saving recent product:', error);
+      console.error("Error saving recent product:", error);
+    }
+  };
+
+  const deleteRecentProduct = (id: string) => {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (!stored) return;
+
+      let products: RecentProduct[] = JSON.parse(stored);
+      products = products.filter((p) => p.id !== id);
+
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(products));
+      setRecentProducts(products);
+    } catch (error) {
+      console.error("Error deleting recent product:", error);
     }
   };
 
@@ -59,13 +74,14 @@ export function useRecentlyViewed() {
       localStorage.removeItem(STORAGE_KEY);
       setRecentProducts([]);
     } catch (error) {
-      console.error('Error clearing recent products:', error);
+      console.error("Error clearing recent products:", error);
     }
   };
 
   return {
     recentProducts,
     addRecentProduct,
+    deleteRecentProduct,
     clearRecentProducts,
   };
 }

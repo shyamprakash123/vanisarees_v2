@@ -27,7 +27,7 @@ export function QuickViewModal({ product, onClose }: QuickViewModalProps) {
   const [quantity, setQuantity] = useState(1);
   const [selectedImage, setSelectedImage] = useState(0);
   const { addItem } = useCart();
-  const toast = useToast();
+  const { toast } = useToast();
   const { toggleWishlist, isInWishlist } = useWishlist();
 
   if (!product) return null;
@@ -46,21 +46,37 @@ export function QuickViewModal({ product, onClose }: QuickViewModalProps) {
         variant: {},
         quantity,
       });
-      toast.success("Added to cart!");
+      toast({
+        title: "Success",
+        description: "Added to cart!",
+        variant: "success",
+      });
       onClose();
     } catch (error) {
-      toast.error("Failed to add to cart");
+      toast({
+        title: "Error",
+        description: "Failed to add to cart",
+        variant: "error",
+      });
     }
   };
 
   const handleWishlist = async () => {
     try {
       await toggleWishlist(product.id);
-      toast.success(
-        isInWishlist(product.id) ? "Removed from wishlist" : "Added to wishlist"
-      );
+      toast({
+        title: "Success",
+        description: isInWishlist(product.id)
+          ? "Removed from wishlist"
+          : "Added to wishlist",
+        variant: "success",
+      });
     } catch (error: any) {
-      toast.error(error.message || "Failed to update wishlist");
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update wishlist",
+        variant: "error",
+      });
     }
   };
 

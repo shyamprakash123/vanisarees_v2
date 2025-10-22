@@ -23,7 +23,7 @@ interface Coupon {
 
 export function SellerCoupons() {
   const { user } = useAuth();
-  const { addToast } = useToast();
+  const { toast } = useToast();
   const [coupons, setCoupons] = useState<Coupon[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -80,7 +80,11 @@ export function SellerCoupons() {
       setCoupons(data || []);
     } catch (error) {
       console.error("Error fetching coupons:", error);
-      addToast("Failed to load coupons", "error");
+      toast({
+        title: "Error",
+        description: "Failed to load coupons",
+        variant: "error",
+      });
     } finally {
       setLoading(false);
     }
@@ -126,7 +130,11 @@ export function SellerCoupons() {
     e.preventDefault();
 
     if (!formData.code || !formData.value) {
-      addToast("Please fill in all required fields", "error");
+      toast({
+        title: "Error",
+        description: "Please fill in all required fields",
+        variant: "error",
+      });
       return;
     }
 
@@ -155,19 +163,31 @@ export function SellerCoupons() {
           .eq("id", editingCoupon.id);
 
         if (error) throw error;
-        addToast("Coupon updated successfully", "success");
+        toast({
+          title: "Success",
+          description: "Coupon updated successfully",
+          variant: "success",
+        });
       } else {
         const { error } = await supabase.from("coupons").insert(couponData);
 
         if (error) throw error;
-        addToast("Coupon created successfully", "success");
+        toast({
+          title: "Success",
+          description: "Coupon created successfully",
+          variant: "success",
+        });
       }
 
       setShowModal(false);
       fetchCoupons();
     } catch (error: any) {
       console.error("Error saving coupon:", error);
-      addToast(error.message || "Failed to save coupon", "error");
+      toast({
+        title: "Error",
+        description: error.message || "Failed to save coupon",
+        variant: "error",
+      });
     }
   };
 
@@ -182,11 +202,19 @@ export function SellerCoupons() {
 
       if (error) throw error;
 
-      addToast("Coupon deleted successfully", "success");
+      toast({
+        title: "Success",
+        description: "Coupon deleted successfully",
+        variant: "success",
+      });
       fetchCoupons();
     } catch (error) {
       console.error("Error deleting coupon:", error);
-      addToast("Failed to delete coupon", "error");
+      toast({
+        title: "Error",
+        description: "Failed to delete coupon",
+        variant: "error",
+      });
     }
   };
 
@@ -199,11 +227,19 @@ export function SellerCoupons() {
 
       if (error) throw error;
 
-      addToast("Coupon status updated", "success");
+      toast({
+        title: "Success",
+        description: "Coupon status updated",
+        variant: "success",
+      });
       fetchCoupons();
     } catch (error) {
       console.error("Error updating coupon:", error);
-      addToast("Failed to update coupon", "error");
+      toast({
+        title: "Error",
+        description: "Failed to update coupon",
+        variant: "error",
+      });
     }
   };
 

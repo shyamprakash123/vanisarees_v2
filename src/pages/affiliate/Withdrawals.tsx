@@ -4,6 +4,7 @@ import { supabase } from "../../lib/supabase";
 import { useToast } from "../../hooks/useToast";
 import { Wallet, Plus, Clock, CheckCircle, XCircle } from "lucide-react";
 import { Modal } from "../../components/ui/Modal";
+import { Link } from "react-router-dom";
 
 interface BankAccount {
   id: string;
@@ -31,7 +32,7 @@ interface WithdrawalRequest {
 
 export function AffiliateWithdrawals() {
   const { user, affiliateUser } = useAuth();
-  const toast = useToast();
+  const { toast } = useToast();
   const [withdrawals, setWithdrawals] = useState<WithdrawalRequest[]>([]);
   const [bankAccounts, setBankAccounts] = useState<BankAccount[]>([]);
   const [loading, setLoading] = useState(true);
@@ -47,10 +48,10 @@ export function AffiliateWithdrawals() {
     };
 
     fetchData();
-  }, [user]);
+  }, [user, affiliateUser]);
 
   const fetchWithdrawals = async () => {
-    if (!user) return;
+    if (!user || !affiliateUser) return;
 
     try {
       setLoading(true);
@@ -64,14 +65,18 @@ export function AffiliateWithdrawals() {
       setWithdrawals(data || []);
     } catch (error) {
       console.error("Error fetching withdrawals:", error);
-      toast.error("Failed to load withdrawal requests");
+      toast({
+        title: "Error",
+        description: "Failed to load withdrawal requests",
+        variant: "error",
+      });
     } finally {
       setLoading(false);
     }
   };
 
   const fetchBankAccounts = async () => {
-    if (!user) return;
+    if (!user || !affiliateUser) return;
 
     try {
       setLoading(true);
@@ -101,24 +106,40 @@ export function AffiliateWithdrawals() {
 
   const handleWithdrawRequest = async () => {
     if (!affiliateUser || !withdrawAmount || Number(withdrawAmount) <= 0) {
-      toast.error("Please enter a valid amount");
+      toast({
+        title: "Error",
+        description: "Please enter a valid amount",
+        variant: "error",
+      });
       return;
     }
 
     if (!selectedBankAccountId) {
-      toast.error("Please select a bank account");
+      toast({
+        title: "Error",
+        description: "Please select a bank account",
+        variant: "error",
+      });
       return;
     }
 
     if (Number(withdrawAmount) > affiliateUser.wallet_balance) {
-      toast.error("Insufficient wallet balance");
+      toast({
+        title: "Error",
+        description: "Insufficient wallet balance",
+        variant: "error",
+      });
       return;
     }
 
     try {
       const { data: session } = await supabase.auth.getSession();
       if (!session?.session) {
-        toast.error("Session expired");
+        toast({
+          title: "Error",
+          description: "Session expired",
+          variant: "error",
+        });
         return;
       }
 
@@ -126,7 +147,11 @@ export function AffiliateWithdrawals() {
         (acc) => acc.id === selectedBankAccountId
       );
       if (!selectedAccount) {
-        toast.error("Selected bank account not found");
+        toast({
+          title: "Error",
+          description: "Selected bank account not found",
+          variant: "error",
+        });
         return;
       }
 
@@ -160,13 +185,21 @@ export function AffiliateWithdrawals() {
         throw new Error(result.error || "Failed to create withdrawal request");
       }
 
-      toast.success("Withdrawal request submitted successfully");
+      toast({
+        title: "Success",
+        description: "Withdrawal request submitted successfully",
+        variant: "success",
+      });
       setShowWithdrawModal(false);
       setWithdrawAmount("");
       fetchWithdrawals();
     } catch (error: any) {
       console.error("Error creating withdrawal:", error);
-      toast.error(error.message || "Failed to create withdrawal request");
+      toast({
+        title: "Error",
+        description: error.message || "Failed to create withdrawal request",
+        variant: "error",
+      });
     }
   };
 
@@ -379,12 +412,12 @@ export function AffiliateWithdrawals() {
                 <p className="text-sm text-gray-600 mb-3">
                   No bank accounts found
                 </p>
-                <a
-                  href="/seller/bank-accounts"
+                <Link
+                  to="/affiliate/bank-accounts"
                   className="text-sm text-red-800 hover:underline"
                 >
                   Add a bank account first
-                </a>
+                </Link>
               </div>
             ) : (
               <div>
@@ -447,7 +480,10 @@ export function AffiliateWithdrawals() {
             </button>
             <button
               onClick={handleWithdrawRequest}
-              disabled={bankAccounts.length === 0}
+              disabled={
+                bankAccounts.length === 0 ||
+                affiliateUser.wallet_balance < withdrawAmount
+              }
               className="px-4 py-2 bg-red-800 text-white rounded-lg hover:bg-red-900 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Submit Request

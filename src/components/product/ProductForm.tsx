@@ -46,7 +46,7 @@ export function ProductForm({
   sellerId,
   isSeller,
 }: ProductFormProps) {
-  const toast = useToast();
+  const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [categories, setCategories] = useState<Category[]>([]);
   const [productImages, setProductImages] = useState<string[]>([]);
@@ -345,7 +345,11 @@ export function ProductForm({
           .eq("id", productId);
 
         if (error) throw error;
-        toast.success("Product updated successfully");
+        toast({
+          title: "Success",
+          description: "Product updated successfully",
+          variant: "success",
+        });
       } else {
         const { data, error } = await supabase
           .from("products")
@@ -354,7 +358,11 @@ export function ProductForm({
           .single();
 
         if (error) throw error;
-        toast.success("Product created successfully");
+        toast({
+          title: "Success",
+          description: "Product created successfully",
+          variant: "success",
+        });
 
         savedProductId = data?.id;
       }
@@ -370,7 +378,11 @@ export function ProductForm({
       onSuccess();
     } catch (error: any) {
       console.error("Error saving product:", error);
-      toast.error(error.message || "Failed to save product");
+      toast({
+        title: "Error",
+        description: error.message || "Failed to save product",
+        variant: "error",
+      });
     } finally {
       setLoading(false);
     }

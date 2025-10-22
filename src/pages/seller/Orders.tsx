@@ -33,7 +33,7 @@ interface Order {
 
 export function SellerOrders() {
   const { user } = useAuth();
-  const { addToast } = useToast();
+  const { toast } = useToast();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<string>("all");
@@ -80,7 +80,11 @@ export function SellerOrders() {
       setOrders(data || []);
     } catch (error) {
       console.error("Error fetching orders:", error);
-      addToast("Failed to load orders", "error");
+      toast({
+        title: "Error",
+        description: "Failed to load orders",
+        variant: "error",
+      });
     } finally {
       setLoading(false);
     }
@@ -94,10 +98,11 @@ export function SellerOrders() {
       };
 
       if (newStatus === "shipped" && !selectedOrder?.tracking_number) {
-        addToast(
-          "Please add tracking number before marking as shipped",
-          "error"
-        );
+        toast({
+          title: "Error",
+          description: "Please add tracking number before marking as shipped",
+          variant: "error",
+        });
         return;
       }
 
@@ -115,11 +120,19 @@ export function SellerOrders() {
 
       if (error) throw error;
 
-      addToast("Order status updated successfully", "success");
+      toast({
+        title: "Success",
+        description: "Order status updated successfully",
+        variant: "success",
+      });
       if (sellerId) fetchOrders(sellerId);
     } catch (error) {
       console.error("Error updating order:", error);
-      addToast("Failed to update order status", "error");
+      toast({
+        title: "Error",
+        description: "Failed to update order status",
+        variant: "error",
+      });
     }
   };
 
@@ -131,7 +144,11 @@ export function SellerOrders() {
 
   const saveTrackingNumber = async () => {
     if (!selectedOrder || !trackingNumber.trim()) {
-      addToast("Please enter a tracking number", "error");
+      toast({
+        title: "Error",
+        description: "Please enter a tracking number",
+        variant: "error",
+      });
       return;
     }
 
@@ -148,14 +165,22 @@ export function SellerOrders() {
 
       if (error) throw error;
 
-      addToast("Tracking number saved and order marked as shipped", "success");
+      toast({
+        title: "Success",
+        description: "Tracking number saved and order marked as shipped",
+        variant: "success",
+      });
       setShowTrackingModal(false);
       setSelectedOrder(null);
       setTrackingNumber("");
       if (sellerId) fetchOrders(sellerId);
     } catch (error) {
       console.error("Error saving tracking number:", error);
-      addToast("Failed to save tracking number", "error");
+      toast({
+        title: "Error",
+        description: "Failed to save tracking number",
+        variant: "error",
+      });
     }
   };
 

@@ -11,15 +11,15 @@ import {
 } from "lucide-react";
 import { useCart } from "../contexts/CartContext";
 import { useToast } from "../hooks/useToast";
-import { useWishlist } from "../hooks/useWishlist";
 import { useRecentlyViewed } from "../hooks/useRecentlyViewed";
 import { ProductGallery } from "../components/product/ProductGallery";
-import { ReviewsList } from "../components/product/ReviewsList";
 import { Breadcrumb } from "../components/ui/Breadcrumb";
 import { supabase } from "../lib/supabase";
 import { formatCurrency } from "../utils/format";
 import { useAffiliate } from "@/hooks/useAffiliate";
 import { useAuth } from "@/contexts/AuthContext";
+import ReferralShare from "@/components/ui/ReferralShare";
+import WhatsAppOrderButton from "@/components/ui/WhatsAppOrderButton";
 
 interface Product {
   id: string;
@@ -55,8 +55,8 @@ export function ProductDetail() {
   const ref = searchParams.get("ref");
   const { addItem } = useCart();
   const { addOrUpdate } = useAffiliate();
-  const toast = useToast();
-  const { toggleWishlist, isInWishlist } = useWishlist();
+  const { toast } = useToast();
+  // const { toggleWishlist, isInWishlist } = useWishlist();
   const { addRecentProduct } = useRecentlyViewed();
   const [quantity, setQuantity] = useState(1);
   const [product, setProduct] = useState<Product | null>(null);
@@ -75,9 +75,8 @@ export function ProductDetail() {
     const run = async () => {
       if (called) return;
       called = true;
-      console.log("Running loadProduct once...");
       await loadProduct(ref);
-      await loadReviews();
+      // await loadReviews();
     };
 
     run();
@@ -121,12 +120,15 @@ export function ProductDetail() {
           slug: data.slug,
           title: data.title,
           price: data.price,
-          image: data.images[0],
+          image: data.product_images[0]?.image_url,
         });
       }
     } catch (error) {
-      console.error("Error loading product:", error);
-      toast.error("Failed to load product");
+      toast({
+        title: "Error",
+        description: "Error loading product",
+        variant: "error",
+      });
     } finally {
       setLoading(false);
     }
@@ -222,9 +224,17 @@ export function ProductDetail() {
         variant: {},
         quantity,
       });
-      toast.success("Added to cart!");
+      toast({
+        title: "Success",
+        description: "Added to cart!",
+        variant: "success",
+      });
     } catch (error) {
-      toast.error("Failed to add to cart");
+      toast({
+        title: "Error",
+        description: "Failed to add to cart",
+        variant: "error",
+      });
     }
   };
 
@@ -364,7 +374,8 @@ export function ProductDetail() {
                 <ShoppingCart className="w-5 h-5" />
                 {product.stock === 0 ? "Out of Stock" : "Add to Cart"}
               </button>
-              <button
+
+              {/* <button
                 onClick={async () => {
                   try {
                     await toggleWishlist(product.id);
@@ -388,35 +399,56 @@ export function ProductDetail() {
                     isInWishlist(product.id) ? "fill-red-600" : ""
                   }`}
                 />
-              </button>
+              </button> */}
             </div>
 
-            <div className="grid grid-cols-3 gap-4 pt-6 border-t">
-              <div className="text-center">
-                <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-2">
-                  <Truck className="w-6 h-6 text-red-600" />
+            <WhatsAppOrderButton product={product} defaultQuantity={quantity} />
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 pt-6 border-t">
+              {/* Shipping */}
+              <div className="text-center group">
+                <div className="w-14 h-14 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-3 transition group-hover:bg-red-100">
+                  <Truck className="w-7 h-7 text-red-600 transition group-hover:scale-110" />
                 </div>
-                <p className="text-sm font-medium">Free Shipping</p>
+                <p className="text-sm font-semibold text-gray-800">
+                  Free Shipping
+                </p>
+                <p className="text-xs text-gray-500 mt-1">
+                  On all orders above ₹999
+                </p>
               </div>
-              <div className="text-center">
-                <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-2">
-                  <Shield className="w-6 h-6 text-red-600" />
+              {/* Secure Payment */}
+              <div className="text-center group">
+                <div className="w-14 h-14 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-3 transition group-hover:bg-red-100">
+                  <Shield className="w-7 h-7 text-red-600 transition group-hover:scale-110" />
                 </div>
-                <p className="text-sm font-medium">Secure Payment</p>
+                <p className="text-sm font-semibold text-gray-800">
+                  Secure Payment
+                </p>
+                <p className="text-xs text-gray-500 mt-1">
+                  100% SSL encrypted checkout
+                </p>
               </div>
-              <div className="text-center">
-                <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-2">
-                  <Package className="w-6 h-6 text-red-600" />
+              {/* Returns */}
+              <div className="text-center group">
+                <div className="w-14 h-14 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-3 transition group-hover:bg-red-100">
+                  <Package className="w-7 h-7 text-red-600 transition group-hover:scale-110" />
                 </div>
-                <p className="text-sm font-medium">Easy Returns</p>
+                <p className="text-sm font-semibold text-gray-800">
+                  Easy Returns
+                </p>
+                <p className="text-xs text-gray-500 mt-1">
+                  1 day return policy
+                </p>
               </div>
             </div>
+            <ReferralShare sampleProduct={product} />
           </div>
         </div>
 
-        <div className="mt-16">
+        {/* <div className="mt-16">
           <ReviewsList productId={product.id} />
-        </div>
+        </div> */}
       </div>
     </div>
   );

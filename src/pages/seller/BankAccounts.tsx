@@ -28,7 +28,7 @@ interface BankAccount {
 
 export function SellerBankAccounts() {
   const { user } = useAuth();
-  const toast = useToast();
+  const { toast } = useToast();
   const [sellerId, setSellerId] = useState<string | null>(null);
   const [accounts, setAccounts] = useState<BankAccount[]>([]);
   const [loading, setLoading] = useState(true);
@@ -67,7 +67,11 @@ export function SellerBankAccounts() {
       }
     } catch (error) {
       console.error("Error loading seller:", error);
-      toast.error("Failed to load seller data");
+      toast({
+        title: "Error",
+        description: "Failed to load seller data",
+        variant: "error",
+      });
     } finally {
       setLoading(false);
     }
@@ -89,7 +93,11 @@ export function SellerBankAccounts() {
       setAccounts(data || []);
     } catch (error) {
       console.error("Error fetching accounts:", error);
-      toast.error("Failed to load bank accounts");
+      toast({
+        title: "Error",
+        description: "Failed to load bank accounts",
+        variant: "error",
+      });
     }
   };
 
@@ -125,7 +133,11 @@ export function SellerBankAccounts() {
     e.preventDefault();
 
     if (!sellerId) {
-      toast.error("Seller account not found");
+      toast({
+        title: "Error",
+        description: "Seller account not found",
+        variant: "error",
+      });
       return;
     }
 
@@ -135,7 +147,11 @@ export function SellerBankAccounts() {
       !formData.ifsc_code ||
       !formData.bank_name
     ) {
-      toast.error("Please fill in all required fields");
+      toast({
+        title: "Error",
+        description: "Please fill in all required fields",
+        variant: "error",
+      });
       return;
     }
 
@@ -158,21 +174,33 @@ export function SellerBankAccounts() {
           .eq("id", editingAccount.id);
 
         if (error) throw error;
-        toast.success("Bank account updated successfully");
+        toast({
+          title: "Success",
+          description: "Bank account updated successfully",
+          variant: "success",
+        });
       } else {
         const { error } = await supabase
           .from("seller_bank_accounts")
           .insert(accountData);
 
         if (error) throw error;
-        toast.success("Bank account added successfully");
+        toast({
+          title: "Success",
+          description: "Bank account added successfully",
+          variant: "success",
+        });
       }
 
       setShowModal(false);
       fetchAccounts();
     } catch (error: any) {
       console.error("Error saving account:", error);
-      toast.error(error.message || "Failed to save bank account");
+      toast({
+        title: "Error",
+        description: error.message || "Failed to save bank account",
+        variant: "error",
+      });
     }
   };
 
@@ -187,11 +215,19 @@ export function SellerBankAccounts() {
 
       if (error) throw error;
 
-      toast.success("Bank account deleted successfully");
+      toast({
+        title: "Success",
+        description: "Bank account deleted successfully",
+        variant: "success",
+      });
       fetchAccounts();
     } catch (error) {
       console.error("Error deleting account:", error);
-      toast.error("Failed to delete bank account");
+      toast({
+        title: "Error",
+        description: "Failed to delete bank account",
+        variant: "error",
+      });
     }
   };
 
@@ -206,11 +242,19 @@ export function SellerBankAccounts() {
 
       if (error) throw error;
 
-      toast.success("Default account updated");
+      toast({
+        title: "Success",
+        description: "Default account updated",
+        variant: "success",
+      });
       fetchAccounts();
     } catch (error) {
       console.error("Error setting default:", error);
-      toast.error("Failed to set default account");
+      toast({
+        title: "Error",
+        description: "Failed to set default account",
+        variant: "error",
+      });
     }
   };
 

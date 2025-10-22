@@ -19,7 +19,7 @@ interface Category {
 
 export function AdminCategories() {
   const { user } = useAuth();
-  const toast = useToast();
+  const { toast } = useToast();
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -49,7 +49,11 @@ export function AdminCategories() {
       setCategories(data || []);
     } catch (error) {
       console.error("Error fetching categories:", error);
-      toast.error("Failed to load categories");
+      toast({
+        title: "Error",
+        description: "Failed to load categories",
+        variant: "error",
+      });
     } finally {
       setLoading(false);
     }
@@ -134,21 +138,33 @@ export function AdminCategories() {
           .eq("id", editingCategory.id);
 
         if (error) throw error;
-        toast.success("Category updated successfully");
+        toast({
+          title: "Success",
+          description: "Category updated successfully",
+          variant: "success",
+        });
       } else {
         const { error } = await supabase
           .from("categories")
           .insert([categoryData]);
 
         if (error) throw error;
-        toast.success("Category created successfully");
+        toast({
+          title: "Success",
+          description: "Category created successfully",
+          variant: "success",
+        });
       }
 
       closeModal();
       fetchCategories();
     } catch (error) {
       console.error("Error saving category:", error);
-      toast.error("Failed to save category");
+      toast({
+        title: "Error",
+        description: "Failed to save category",
+        variant: "error",
+      });
     }
   };
 
@@ -163,11 +179,19 @@ export function AdminCategories() {
 
       if (error) throw error;
 
-      toast.success("Category deleted successfully");
+      toast({
+        title: "Success",
+        description: "Category deleted successfully",
+        variant: "success",
+      });
       fetchCategories();
     } catch (error) {
       console.error("Error deleting category:", error);
-      toast.error("Failed to delete category");
+      toast({
+        title: "Error",
+        description: "Failed to delete category",
+        variant: "error",
+      });
     }
   };
 
@@ -180,11 +204,19 @@ export function AdminCategories() {
 
       if (error) throw error;
 
-      toast.success("Category status updated");
+      toast({
+        title: "Success",
+        description: "Category status updated",
+        variant: "success",
+      });
       fetchCategories();
     } catch (error) {
       console.error("Error updating category:", error);
-      toast.error("Failed to update category");
+      toast({
+        title: "Error",
+        description: "Failed to update category",
+        variant: "error",
+      });
     }
   };
 

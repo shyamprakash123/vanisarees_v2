@@ -34,6 +34,7 @@ interface Order {
   subtotal: number;
   taxes: number;
   shipping: number;
+  cod_charges: number;
   wallet_used: number;
   coupon_discount: number;
   status: string;
@@ -279,6 +280,12 @@ export function OrderDetail() {
                 <span>Shipping</span>
                 <span>{formatCurrency(order.shipping)}</span>
               </div>
+              {order.cod_charges > 0 && (
+                <div className="flex justify-between">
+                  <span>COD Charges</span>
+                  <span>{formatCurrency(order.cod_charges)}</span>
+                </div>
+              )}
               <div className="flex justify-between font-semibold text-gray-900 mt-2">
                 <span>Total</span>
                 <span>{formatCurrency(order.total)}</span>
@@ -345,6 +352,12 @@ export function OrderDetail() {
                     : formatCurrency(order.shipping)}
                 </span>
               </div>
+              {order.cod_charges > 0 && (
+                <div className="flex justify-between">
+                  <span>COD Charges</span>
+                  <span>{formatCurrency(order.cod_charges)}</span>
+                </div>
+              )}
               {order.coupon_discount > 0 && (
                 <div className="flex justify-between text-green-600">
                   <span>Coupon Discount</span>

@@ -25,7 +25,7 @@ interface AffiliateRelations {
 
 export function AffiliateRefferals() {
   const { affiliateUser } = useAuth();
-  const toast = useToast();
+  const { toast } = useToast();
 
   const [refferals, setRefferals] = useState<AffiliateRelations[]>([]);
   const [filtered, setFiltered] = useState<AffiliateRelations[]>([]);
@@ -63,7 +63,11 @@ export function AffiliateRefferals() {
       setFiltered(data || []);
     } catch (error) {
       console.error("Error fetching referrals:", error);
-      toast.error("Failed to load referrals");
+      toast({
+        title: "Error",
+        description: "Failed to load referrals",
+        variant: "error",
+      });
     } finally {
       setLoading(false);
     }

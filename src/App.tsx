@@ -37,21 +37,22 @@ import { SellerAnalytics } from "./pages/seller/Analytics";
 import { SellerBankAccounts } from "./pages/seller/BankAccounts";
 import { SellerWithdrawals } from "./pages/seller/Withdrawals";
 import { SellerSettings } from "./pages/seller/Settings";
-import { ToastContainer } from "./components/ui/Toast";
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
-import { useToast } from "./hooks/useToast";
 import { ProductApprovals } from "./pages/admin/ProductApprovals";
 import TopBanner from "./components/home/TopBanner";
 import { AffiliateDashboard } from "./pages/affiliate/Dashboard";
 import { AffiliateRefferals } from "./pages/affiliate/Refferals";
 import { AffiliateWithdrawals } from "./pages/affiliate/Withdrawals";
+import { AffiliateBankAccounts } from "./pages/affiliate/BankAccounts";
+import { AdminWithdrawals } from "./pages/admin/Withdrawals";
+import ScrollToTop from "./components/ScrollToTop";
+import { ToasterProvider } from "./hooks/useToast";
 
 function AppContent() {
-  const { toasts, removeToast } = useToast();
-
   return (
     <div className="flex flex-col min-h-screen w-full">
       <TopBanner />
+      <ScrollToTop />
       <Header />
       <main className="flex-1">
         <Routes>
@@ -61,6 +62,7 @@ function AppContent() {
           <Route path="/product/:slug" element={<ProductDetail />} />
           <Route path="/combo/:id" element={<ComboDetail />} />
           <Route path="/cart" element={<Cart />} />
+          {/* <Route path="/wish-list" element={<Wishlist />} /> */}
           <Route path="/checkout" element={<Checkout />} />
           <Route path="/orders" element={<Orders />} />
           <Route path="/order/:id" element={<OrderDetail />} />
@@ -177,6 +179,14 @@ function AppContent() {
             }
           />
           <Route
+            path="/admin/withdrawals"
+            element={
+              <ProtectedRoute requireRole="admin">
+                <AdminWithdrawals />
+              </ProtectedRoute>
+            }
+          />
+          <Route
             path="/seller"
             element={
               <ProtectedRoute requireRole="seller">
@@ -262,12 +272,15 @@ function AppContent() {
             path="/affiliate/withdrawals"
             element={<AffiliateWithdrawals />}
           />
+          <Route
+            path="/affiliate/bank-accounts"
+            element={<AffiliateBankAccounts />}
+          />
           <Route path="/auth/signin" element={<SignIn />} />
           <Route path="/auth/signup" element={<SignUp />} />
         </Routes>
       </main>
       <Footer />
-      <ToastContainer toasts={toasts} removeToast={removeToast} />
     </div>
   );
 }
@@ -279,7 +292,9 @@ function App() {
         <LanguageProvider>
           <AuthProvider>
             <CartProvider>
-              <AppContent />
+              <ToasterProvider>
+                <AppContent />
+              </ToasterProvider>
             </CartProvider>
           </AuthProvider>
         </LanguageProvider>

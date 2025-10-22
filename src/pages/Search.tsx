@@ -63,7 +63,7 @@ export function Search() {
 
       const searchTerm = query.trim();
 
-      const { data, error } = await supabase.rpc("search_products", {
+      const { data, error } = await supabase.rpc("search_products_v2", {
         search_query: searchTerm,
         page_num: currentPage,
         page_size: itemsPerPage,
@@ -78,15 +78,27 @@ export function Search() {
           error: fallbackError,
         } = await supabase
           .from("products")
-          .select("id, title, slug, price, mrp, images, stock", {
-            count: "exact",
-          })
+          .select(
+            `id, title, slug, price, mrp, product_images(
+            id,
+            image_url,
+            alt_text,
+            sort_order,
+            is_primary
+          ), stock`,
+            {
+              count: "exact",
+            }
+          )
           .or(`title.ilike.%${searchTerm}%,description.ilike.%${searchTerm}%`)
           .range(
             (currentPage - 1) * itemsPerPage,
             currentPage * itemsPerPage - 1
           )
-          .order("created_at", { ascending: false });
+          .order("created_at", {
+            ascending: false,
+            foreignTable: "product_images",
+          });
 
         if (fallbackError) throw fallbackError;
         setProducts(fallbackData || []);
@@ -135,7 +147,7 @@ export function Search() {
                 slug={product.slug}
                 price={product.price}
                 mrp={product.mrp}
-                image={product.product_images[0].image_url}
+                image={product?.images[0]?.image_url}
                 inStock={product.stock > 0}
               />
             ))}

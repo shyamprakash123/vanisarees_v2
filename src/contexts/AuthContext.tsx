@@ -7,7 +7,7 @@ import {
 } from "react";
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "../lib/supabase";
-import toast from "react-hot-toast";
+import { useToast } from "@/hooks/useToast";
 
 export interface AffiliateUser {
   id: string;
@@ -29,6 +29,7 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
+  const { toast } = useToast();
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
@@ -70,10 +71,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (result?.success) {
         setAffiliateUser(result.data);
       } else {
-        toast.error(result.error ?? result.message);
+        toast({
+          title: "Error",
+          description: result.error ?? result.message,
+          variant: "error",
+        });
       }
     } catch (error) {
-      toast.error(error || "Unknown Error");
+      toast({
+        title: "Error",
+        description: "Unknown Error",
+        variant: "error",
+      });
     } finally {
       setAffiliateLoading(false);
     }

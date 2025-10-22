@@ -7,6 +7,7 @@ import { formatCurrency } from "../utils/format";
 import { useCart } from "../contexts/CartContext";
 import { useToast } from "../hooks/useToast";
 import { Breadcrumb } from "../components/ui/Breadcrumb";
+import { useWishlist } from "@/hooks/useWishlist";
 
 interface WishlistItem {
   id: string;
@@ -25,65 +26,66 @@ interface WishlistItem {
 
 export function Wishlist() {
   const { user } = useAuth();
+  const { wishlistItems } = useWishlist();
   const navigate = useNavigate();
   const { addItem } = useCart();
-  const toast = useToast();
-  const [wishlistItems, setWishlistItems] = useState<WishlistItem[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
+  // const [wishlistItems, setWishlistItems] = useState<WishlistItem[]>([]);
+  const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    if (!user) {
-      navigate("/auth/signin");
-      return;
-    }
-    loadWishlist();
-  }, [user]);
+  // useEffect(() => {
+  //   if (!user) {
+  //     navigate("/auth/signin");
+  //     return;
+  //   }
+  //   loadWishlist();
+  // }, [user]);
 
-  const loadWishlist = async () => {
-    try {
-      const { data, error } = await supabase
-        .from("wishlist")
-        .select(
-          `*, product:products(id, title, slug, price, mrp, product_images(
-          id,
-          image_url,
-          alt_text,
-          sort_order,
-          is_primary
-        ), stock)`
-        )
-        .eq("user_id", user!.id)
-        .order("created_at", {
-          ascending: false,
-          foreignTable: "product_images",
-        });
+  // const loadWishlist = async () => {
+  //   try {
+  //     const { data, error } = await supabase
+  //       .from("wishlist")
+  //       .select(
+  //         `*, product:products(id, title, slug, price, mrp, product_images(
+  //         id,
+  //         image_url,
+  //         alt_text,
+  //         sort_order,
+  //         is_primary
+  //       ), stock)`
+  //       )
+  //       .eq("user_id", user!.id)
+  //       .order("created_at", {
+  //         ascending: false,
+  //         foreignTable: "product_images",
+  //       });
 
-      if (error) throw error;
-      setWishlistItems(data || []);
-    } catch (error) {
-      console.error("Load wishlist error:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  //     if (error) throw error;
+  //     setWishlistItems(data || []);
+  //   } catch (error) {
+  //     console.error("Load wishlist error:", error);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
 
-  const removeFromWishlist = async (wishlistId: string) => {
-    try {
-      const { error } = await supabase
-        .from("wishlist")
-        .delete()
-        .eq("id", wishlistId);
+  // const removeFromWishlist = async (wishlistId: string) => {
+  //   try {
+  //     const { error } = await supabase
+  //       .from("wishlist")
+  //       .delete()
+  //       .eq("id", wishlistId);
 
-      if (error) throw error;
-      setWishlistItems((items) =>
-        items.filter((item) => item.id !== wishlistId)
-      );
-      toast.success("Removed from wishlist");
-    } catch (error) {
-      console.error("Remove from wishlist error:", error);
-      toast.error("Failed to remove from wishlist");
-    }
-  };
+  //     if (error) throw error;
+  //     setWishlistItems((items) =>
+  //       items.filter((item) => item.id !== wishlistId)
+  //     );
+  //     toast.success("Removed from wishlist");
+  //   } catch (error) {
+  //     console.error("Remove from wishlist error:", error);
+  //     toast.error("Failed to remove from wishlist");
+  //   }
+  // };
 
   const moveToCart = async (item: WishlistItem) => {
     try {
@@ -96,9 +98,17 @@ export function Wishlist() {
         quantity: 1,
       });
       await removeFromWishlist(item.id);
-      toast.success("Moved to cart!");
+      toast({
+        title: "Success",
+        description: "Moved to cart!",
+        variant: "success",
+      });
     } catch (error) {
-      toast.error("Failed to move to cart");
+      toast({
+        title: "Error",
+        description: "Failed to move to cart",
+        variant: "error",
+      });
     }
   };
 
@@ -108,7 +118,7 @@ export function Wishlist() {
     );
   }
 
-  if (wishlistItems.length === 0) {
+  if (wishlistItems?.length === 0) {
     return (
       <div className="max-w-7xl mx-auto px-4 py-16 text-center">
         <Breadcrumb items={[{ label: "Wishlist" }]} className="mb-6" />
@@ -139,27 +149,28 @@ export function Wishlist() {
           <h1 className="text-3xl font-bold">My Wishlist</h1>
           <div className="flex items-center gap-2 text-gray-600">
             <Heart className="h-5 w-5 fill-red-600 text-red-600" />
-            <span>{wishlistItems.length} item(s)</span>
+            <span>{wishlistItems?.length} item(s)</span>
           </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {wishlistItems.map((item, index) => {
+          {wishlistItems?.map((item, index) => {
             const discount = Math.round(
-              ((item.product.mrp - item.product.price) / item.product.mrp) * 100
+              ((item?.product.mrp - item?.product.price) / item?.product.mrp) *
+                100
             );
 
             return (
               <div
-                key={item.id}
+                key={item?.product.id}
                 className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow animate-slideUp"
                 style={{ animationDelay: `${index * 50}ms` }}
               >
                 <div className="relative">
-                  <Link to={`/product/${item.product.slug}`}>
+                  <Link to={`/product/${item?.product.slug}`}>
                     <img
-                      src={item.product.product_images[0].image_url}
-                      alt={item.product.title}
+                      src={item?.product.product_images[0].image_url}
+                      alt={item?.product.title}
                       className="w-full h-64 object-cover"
                     />
                   </Link>
@@ -174,7 +185,7 @@ export function Wishlist() {
                       {discount}% OFF
                     </div>
                   )}
-                  {item.product.stock === 0 && (
+                  {item?.product.stock === 0 && (
                     <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
                       <span className="bg-white text-red-600 px-4 py-2 rounded-lg font-semibold">
                         Out of Stock
@@ -184,30 +195,32 @@ export function Wishlist() {
                 </div>
 
                 <div className="p-4">
-                  <Link to={`/product/${item.product.slug}`}>
+                  <Link to={`/product/${item?.product.slug}`}>
                     <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2 hover:text-red-800 transition-colors">
-                      {item.product.title}
+                      {item?.product.title}
                     </h3>
                   </Link>
 
                   <div className="flex items-center gap-2 mb-4">
                     <span className="text-xl font-bold text-gray-900">
-                      {formatCurrency(item.product.price)}
+                      {formatCurrency(item?.product.price)}
                     </span>
                     {discount > 0 && (
                       <span className="text-sm text-gray-500 line-through">
-                        {formatCurrency(item.product.mrp)}
+                        {formatCurrency(item?.product.mrp)}
                       </span>
                     )}
                   </div>
 
                   <button
                     onClick={() => moveToCart(item)}
-                    disabled={item.product.stock === 0}
+                    disabled={item?.product.stock === 0}
                     className="w-full py-2 bg-red-800 text-white rounded-lg font-medium hover:bg-red-900 transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <ShoppingCart className="h-5 w-5" />
-                    {item.product.stock === 0 ? "Out of Stock" : "Move to Cart"}
+                    {item?.product.stock === 0
+                      ? "Out of Stock"
+                      : "Move to Cart"}
                   </button>
                 </div>
               </div>

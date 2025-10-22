@@ -1,8 +1,8 @@
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { ShoppingCart, Heart, Eye } from 'lucide-react';
-import { useCart } from '../../contexts/CartContext';
-import { useToast } from '../../hooks/useToast';
+import { useState } from "react";
+import { Link } from "react-router-dom";
+import { ShoppingCart, Heart, Eye } from "lucide-react";
+import { useCart } from "../../contexts/CartContext";
+import { useToast } from "../../hooks/useToast";
 
 interface ProductCardProps {
   id: string;
@@ -28,10 +28,11 @@ export function ProductCard({
   onQuickView,
 }: ProductCardProps) {
   const { addItem } = useCart();
-  const toast = useToast();
+  const { toast } = useToast();
   const [isHovered, setIsHovered] = useState(false);
 
-  const discount = mrp && mrp > price ? Math.round(((mrp - price) / mrp) * 100) : 0;
+  const discount =
+    mrp && mrp > price ? Math.round(((mrp - price) / mrp) * 100) : 0;
 
   const handleAddToCart = async (e: React.MouseEvent) => {
     e.preventDefault();
@@ -46,9 +47,18 @@ export function ProductCard({
         variant: {},
         quantity: 1,
       });
-      toast.success('Added to cart!');
+
+      toast({
+        title: "Success",
+        description: "Added to cart!",
+        variant: "success",
+      });
     } catch (error) {
-      toast.error('Failed to add to cart');
+      toast({
+        title: "Error",
+        description: "Failed to add to cart",
+        variant: "error",
+      });
     }
   };
 
@@ -74,22 +84,27 @@ export function ProductCard({
 
         <div className="relative aspect-square overflow-hidden bg-gray-100">
           <img
-            src={image || 'https://images.pexels.com/photos/1164674/pexels-photo-1164674.jpeg'}
+            src={
+              image ||
+              "https://images.pexels.com/photos/1164674/pexels-photo-1164674.jpeg"
+            }
             alt={title}
             className={`w-full h-full object-cover transition-transform duration-700 ${
-              isHovered ? 'scale-110' : 'scale-100'
+              isHovered ? "scale-110" : "scale-100"
             }`}
           />
 
           {!inStock && (
             <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
-              <span className="text-white font-semibold text-lg">Out of Stock</span>
+              <span className="text-white font-semibold text-lg">
+                Out of Stock
+              </span>
             </div>
           )}
 
-          <div
+          {/* <div
             className={`absolute inset-0 bg-black/40 flex items-center justify-center gap-2 transition-opacity duration-300 ${
-              isHovered ? 'opacity-100' : 'opacity-0'
+              isHovered ? "opacity-100" : "opacity-0"
             }`}
           >
             {onQuickView && (
@@ -120,7 +135,7 @@ export function ProductCard({
             >
               <Heart className="w-5 h-5" />
             </button>
-          </div>
+          </div> */}
         </div>
 
         <div className="p-4">
@@ -128,15 +143,26 @@ export function ProductCard({
             {title}
           </h3>
 
-          <div className="flex items-center gap-2">
-            <span className="text-xl font-bold text-gray-900">
-              ₹{price.toLocaleString('en-IN')}
-            </span>
-            {mrp && mrp > price && (
-              <span className="text-sm text-gray-500 line-through">
-                ₹{mrp.toLocaleString('en-IN')}
+          <div className="flex items-center gap-2 justify-between">
+            <div>
+              <span className="text-xl font-bold text-gray-900">
+                ₹{price.toLocaleString("en-IN")}
               </span>
-            )}
+              {mrp && mrp > price && (
+                <span className="text-sm text-gray-500 line-through">
+                  ₹{mrp.toLocaleString("en-IN")}
+                </span>
+              )}
+            </div>
+            <button
+              onClick={handleAddToCart}
+              disabled={!inStock}
+              className="flex bg-primary-600 hover:bg-primary-800 text-white p-2 rounded-md transition-all duration-300 disabled:opacity-50"
+              title="Add to Cart"
+            >
+              <ShoppingCart className="w-5 h-5 mr-1" />
+              <p>Add to Cart</p>
+            </button>
           </div>
         </div>
       </div>
