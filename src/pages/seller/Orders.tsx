@@ -31,7 +31,7 @@ interface Order {
   tracking_data?: any;
 }
 
-export function SellerOrders() {
+export default function SellerOrders() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [orders, setOrders] = useState<Order[]>([]);

@@ -1,7 +1,9 @@
-import { useCart } from '../../contexts/CartContext';
-import { X, ShoppingBag } from 'lucide-react';
-import { Link } from 'react-router-dom';
-import { formatPrice } from '../../utils/format';
+import { useCart } from "../../contexts/CartContext";
+import { X, ShoppingBag } from "lucide-react";
+import { Link } from "react-router-dom";
+import { formatPrice } from "../../utils/format";
+import { LazyLoadImage } from "react-lazy-load-image-component";
+import "react-lazy-load-image-component/src/effects/blur.css";
 
 interface CartSidebarProps {
   isOpen: boolean;
@@ -9,7 +11,8 @@ interface CartSidebarProps {
 }
 
 export function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
-  const { items, removeItem, updateQuantity, totalItems, totalPrice } = useCart();
+  const { items, removeItem, updateQuantity, totalItems, totalPrice } =
+    useCart();
 
   if (!isOpen) return null;
 
@@ -54,14 +57,22 @@ export function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
             ) : (
               <div className="space-y-4">
                 {items.map((item) => (
-                  <div key={item.id} className="flex gap-4 bg-gray-50 p-4 rounded-lg">
-                    <img
-                      src={item.image || 'https://via.placeholder.com/80'}
+                  <div
+                    key={item.id}
+                    className="flex gap-4 bg-gray-50 p-4 rounded-lg"
+                  >
+                    <LazyLoadImage
+                      src={item.image || "https://via.placeholder.com/80"}
                       alt={item.name}
+                      effect="blur"
+                      wrapperClassName="w-20 h-20 object-cover rounded"
                       className="w-20 h-20 object-cover rounded"
                     />
+
                     <div className="flex-1">
-                      <h3 className="font-medium text-gray-900 mb-1">{item.name}</h3>
+                      <h3 className="font-medium text-gray-900 mb-1">
+                        {item.name}
+                      </h3>
                       <p className="text-sm text-gray-500 mb-2">
                         {formatPrice(item.price)}
                       </p>
@@ -69,14 +80,23 @@ export function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
                           <button
-                            onClick={() => updateQuantity(item.id, Math.max(1, item.quantity - 1))}
+                            onClick={() =>
+                              updateQuantity(
+                                item.id,
+                                Math.max(1, item.quantity - 1)
+                              )
+                            }
                             className="w-8 h-8 flex items-center justify-center border border-gray-300 rounded hover:bg-gray-100"
                           >
                             -
                           </button>
-                          <span className="w-8 text-center">{item.quantity}</span>
+                          <span className="w-8 text-center">
+                            {item.quantity}
+                          </span>
                           <button
-                            onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                            onClick={() =>
+                              updateQuantity(item.id, item.quantity + 1)
+                            }
                             className="w-8 h-8 flex items-center justify-center border border-gray-300 rounded hover:bg-gray-100"
                           >
                             +

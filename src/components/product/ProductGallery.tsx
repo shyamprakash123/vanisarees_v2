@@ -9,6 +9,8 @@ import {
   Crop,
   Square,
 } from "lucide-react";
+import { LazyLoadImage } from "react-lazy-load-image-component";
+import "react-lazy-load-image-component/src/effects/blur.css";
 
 interface ProductImage {
   image_url: string;
@@ -613,7 +615,50 @@ export function ProductGallery({
                     scrollSnapStop: "always",
                   }}
                 >
-                  <img
+                  <LazyLoadImage
+                    src={getCachedImageSrc(image.image_url)}
+                    alt={image.alt_text || `${title} - ${index + 1}`}
+                    effect="blur"
+                    wrapperClassName={`
+                       select-none transition-opacity duration-300
+                      ${
+                        objectFit === "contain"
+                          ? "max-w-full max-h-full object-contain"
+                          : "w-full h-full object-cover"
+                      }
+                      ${
+                        isImageLoaded(image.image_url)
+                          ? "opacity-100"
+                          : "opacity-90"
+                      }
+                    `}
+                    className={`
+                       select-none transition-opacity duration-300
+                      ${
+                        objectFit === "contain"
+                          ? "max-w-full max-h-full object-contain"
+                          : "w-full h-full object-cover"
+                      }
+                      ${
+                        isImageLoaded(image.image_url)
+                          ? "opacity-100"
+                          : "opacity-90"
+                      }
+                    `}
+                    style={
+                      objectFit === "contain"
+                        ? {
+                            maxHeight: "600px",
+                            width: "auto",
+                            height: "auto",
+                            touchAction: "manipulation",
+                          }
+                        : {
+                            touchAction: "manipulation",
+                          }
+                    }
+                  />
+                  {/* <img
                     src={getCachedImageSrc(image.image_url)} // Use cached version
                     alt={image.alt_text || `${title} - ${index + 1}`}
                     className={`
@@ -645,7 +690,7 @@ export function ProductGallery({
                       Math.abs(index - selectedIndex) <= 1 ? "eager" : "lazy"
                     }
                     draggable={false}
-                  />
+                  /> */}
 
                   {/* Zoom indicator */}
                   {/* {index === selectedIndex && (
@@ -797,15 +842,20 @@ export function ProductGallery({
                   style={{ scrollSnapAlign: "center" }}
                   aria-label={`View image ${index + 1}`}
                 >
-                  <img
-                    src={getCachedImageSrc(image.image_url)} // Use cached version
+                  <LazyLoadImage
+                    src={getCachedImageSrc(image.image_url)}
                     alt={`${title} thumbnail ${index + 1}`}
+                    effect="blur"
+                    wrapperClassName={`w-full h-full object-cover transition-all duration-300 ${
+                      isImageLoaded(image.image_url)
+                        ? "opacity-100"
+                        : "opacity-80"
+                    }`}
                     className={`w-full h-full object-cover transition-all duration-300 ${
                       isImageLoaded(image.image_url)
                         ? "opacity-100"
                         : "opacity-80"
                     }`}
-                    loading="lazy"
                   />
                   {/* Loading indicator for thumbnails */}
                   {isImageLoading(image.image_url) && (
@@ -832,11 +882,12 @@ export function ProductGallery({
                     : "border-gray-200 hover:border-gray-300 hover:scale-105"
                 }`}
               >
-                <img
+                <LazyLoadImage
                   src={`https://img.youtube.com/vi/${videoId}/mqdefault.jpg`}
                   alt={`${title} video ${index + 1}`}
+                  effect="blur"
+                  wrapperClassName="w-full h-full object-cover"
                   className="w-full h-full object-cover"
-                  loading="lazy"
                 />
                 <div className="absolute inset-0 flex items-center justify-center bg-black/20">
                   <Play className="h-6 w-6 text-white drop-shadow-lg" />

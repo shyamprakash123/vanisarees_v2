@@ -18,7 +18,7 @@ interface Address {
   is_default: boolean;
 }
 
-export function Addresses() {
+export default function Addresses() {
   const { user } = useAuth();
   const navigate = useNavigate();
 

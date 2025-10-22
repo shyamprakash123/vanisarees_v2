@@ -24,7 +24,7 @@ interface WishlistItem {
   created_at: string;
 }
 
-export function Wishlist() {
+export default function Wishlist() {
   const { user } = useAuth();
   const { wishlistItems } = useWishlist();
   const navigate = useNavigate();

@@ -25,7 +25,7 @@ interface Stats {
   averageOrderValue: number;
 }
 
-export function AdminDashboard() {
+export default function AdminDashboard() {
   const [stats, setStats] = useState<Stats>({
     totalOrders: 0,
     totalRevenue: 0,

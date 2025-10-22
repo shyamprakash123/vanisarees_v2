@@ -3,6 +3,8 @@ import { Link } from "react-router-dom";
 import { ShoppingCart, Heart, Eye } from "lucide-react";
 import { useCart } from "../../contexts/CartContext";
 import { useToast } from "../../hooks/useToast";
+import { LazyLoadImage } from "react-lazy-load-image-component";
+import "react-lazy-load-image-component/src/effects/blur.css";
 
 interface ProductCardProps {
   id: string;
@@ -83,15 +85,15 @@ export function ProductCard({
         )}
 
         <div className="relative aspect-square overflow-hidden bg-gray-100">
-          <img
+          <LazyLoadImage
             src={
               image ||
               "https://images.pexels.com/photos/1164674/pexels-photo-1164674.jpeg"
             }
             alt={title}
-            className={`w-full h-full object-cover transition-transform duration-700 ${
-              isHovered ? "scale-110" : "scale-100"
-            }`}
+            effect="blur"
+            wrapperClassName="w-full h-full overflow-hidden"
+            className="w-full h-full object-cover transition-transform duration-700 ease-in-out transform "
           />
 
           {!inStock && (

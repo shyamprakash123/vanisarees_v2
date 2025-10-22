@@ -2,6 +2,8 @@ import { Link } from "react-router-dom";
 import { useRecentlyViewed } from "../../hooks/useRecentlyViewed";
 import { formatCurrency } from "../../utils/format";
 import { Clock, Trash2 } from "lucide-react";
+import { LazyLoadImage } from "react-lazy-load-image-component";
+import "react-lazy-load-image-component/src/effects/blur.css";
 
 export function RecentlyViewed() {
   const { recentProducts, deleteRecentProduct } = useRecentlyViewed();
@@ -38,10 +40,12 @@ export function RecentlyViewed() {
 
               <Link to={`/product/${product.slug}`}>
                 <div className="aspect-square overflow-hidden rounded-t-lg">
-                  <img
+                  <LazyLoadImage
                     src={product.image}
                     alt={product.title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    effect="blur"
+                    wrapperClassName="w-full h-full object-cover transition-transform duration-300"
+                    className="w-full h-full object-cover transition-transform duration-300"
                   />
                 </div>
                 <div className="p-3">

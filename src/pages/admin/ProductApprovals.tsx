@@ -3,6 +3,8 @@ import { supabase } from "../../lib/supabase";
 import { useToast } from "../../hooks/useToast";
 import { Check, X, Eye } from "lucide-react";
 import { Modal } from "../../components/ui/Modal";
+import { LazyLoadImage } from "react-lazy-load-image-component";
+import "react-lazy-load-image-component/src/effects/blur.css";
 
 interface Product {
   id: string;
@@ -27,7 +29,7 @@ interface Product {
   };
 }
 
-export function ProductApprovals() {
+export default function ProductApprovals() {
   const { toast } = useToast();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -230,10 +232,12 @@ export function ProductApprovals() {
                     <td className="px-6 py-4">
                       <div className="flex items-center">
                         {product.product_images?.[0] && (
-                          <img
+                          <LazyLoadImage
                             src={product.product_images[0].image_url}
                             alt={product.title}
                             className="w-12 h-12 object-cover rounded mr-3"
+                            effect="blur"
+                            wrapperClassName="w-12 h-12 object-cover rounded mr-3"
                           />
                         )}
                         <div>
@@ -358,10 +362,12 @@ export function ProductApprovals() {
               </p>
 
               {selectedProduct.product_images?.[0] && (
-                <img
+                <LazyLoadImage
                   src={selectedProduct.product_images[0].image_url}
                   alt={selectedProduct.title}
                   className="w-full h-64 object-cover rounded-lg mb-4"
+                  effect="blur"
+                  wrapperClassName="w-full h-64 object-cover rounded-lg mb-4"
                 />
               )}
 

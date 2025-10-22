@@ -4,7 +4,7 @@ import { Mail, Lock, Eye, EyeOff, Loader2 } from "lucide-react";
 import { supabase } from "../lib/supabase";
 import { useToast } from "../hooks/useToast";
 
-export function SignIn() {
+export default function SignIn() {
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();

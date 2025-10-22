@@ -29,7 +29,7 @@ interface Stats {
   totalRevenue: number;
 }
 
-export function AffiliateDashboard() {
+export default function AffiliateDashboard() {
   const { user, affiliateUser, handleAffiliateJoin, affiliateLoading } =
     useAuth();
   const [stats, setStats] = useState<Stats>({

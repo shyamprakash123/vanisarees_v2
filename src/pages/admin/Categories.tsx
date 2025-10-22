@@ -17,7 +17,7 @@ interface Category {
   created_at: string;
 }
 
-export function AdminCategories() {
+export default function AdminCategories() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [categories, setCategories] = useState<Category[]>([]);

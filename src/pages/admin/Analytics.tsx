@@ -27,7 +27,7 @@ interface TopProduct {
   total_revenue: number;
 }
 
-export function AdminAnalytics() {
+export default function AdminAnalytics() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [analytics, setAnalytics] = useState<Analytics>({

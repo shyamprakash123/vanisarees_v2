@@ -21,7 +21,7 @@ interface Coupon {
   created_at: string;
 }
 
-export function SellerCoupons() {
+export default function SellerCoupons() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [coupons, setCoupons] = useState<Coupon[]>([]);

@@ -6,7 +6,7 @@ import { useToast } from "../hooks/useToast";
 
 type AccountRole = "user" | "seller";
 
-export function SignUp() {
+export default function SignUp() {
   const navigate = useNavigate();
   const { toast } = useToast();
 

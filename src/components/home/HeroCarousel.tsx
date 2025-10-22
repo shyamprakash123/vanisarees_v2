@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { LazyLoadImage } from "react-lazy-load-image-component";
+import "react-lazy-load-image-component/src/effects/blur.css";
 
 interface Slide {
   id: string;
@@ -90,12 +92,14 @@ export function HeroCarousel({ slides }: HeroCarouselProps) {
               />
             </div>
           ) : (
-            <img
+            <LazyLoadImage
               src={
                 slide.image_url ||
                 "https://images.pexels.com/photos/1164674/pexels-photo-1164674.jpeg"
               }
               alt={slide.title}
+              effect="blur"
+              wrapperClassName="w-full h-full overflow-hidden"
               className="w-full h-full object-cover"
             />
           )}

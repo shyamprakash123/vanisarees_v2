@@ -19,7 +19,7 @@ interface Transaction {
   created_at: string;
 }
 
-export function Wallet() {
+export default function Wallet() {
   const { user } = useAuth();
   const navigate = useNavigate();
 

@@ -28,6 +28,8 @@ import ShippingInfoTooltip from "@/components/ShippingChargesToolTip";
 import CodInfoTooltip from "@/components/CodChargesToolTip";
 import { useCart } from "@/contexts/CartContext";
 import { useToast } from "@/hooks/useToast";
+import { LazyLoadImage } from "react-lazy-load-image-component";
+import "react-lazy-load-image-component/src/effects/blur.css";
 
 declare global {
   interface Window {
@@ -65,7 +67,7 @@ const STEPS = [
   { id: 3, label: "Payment" },
 ];
 
-export function Checkout() {
+export default function Checkout() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -586,10 +588,12 @@ export function Checkout() {
                       key={item.id}
                       className="flex gap-4 pb-4 border-b last:border-b-0"
                     >
-                      <img
+                      <LazyLoadImage
                         src={item.product.product_images[0].image_url}
                         alt={item.product.title}
                         className="w-20 h-20 object-cover rounded-lg"
+                        effect="blur"
+                        wrapperClassName="w-20 h-20 object-cover rounded-lg"
                       />
                       <div className="flex-1">
                         <h3 className="font-medium">{item.product.title}</h3>

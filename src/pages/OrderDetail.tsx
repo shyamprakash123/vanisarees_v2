@@ -27,6 +27,8 @@ import {
   ShipmentTrackingData,
 } from "../components/ui/ShipmentTrackerComponent";
 import { getMethodBadge, getStatusBadge } from "../utils/badges";
+import { LazyLoadImage } from "react-lazy-load-image-component";
+import "react-lazy-load-image-component/src/effects/blur.css";
 
 interface Order {
   id: string;
@@ -51,7 +53,7 @@ interface Order {
   tracking_data?: ShipmentTrackingData;
 }
 
-export function OrderDetail() {
+export default function OrderDetail() {
   const { id } = useParams();
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -225,10 +227,12 @@ export function OrderDetail() {
                     {/* Product Image */}
                     <div className="w-20 h-20 flex-shrink-0 rounded-md overflow-hidden bg-gray-50 border">
                       {primaryImage ? (
-                        <img
+                        <LazyLoadImage
                           src={primaryImage}
                           alt={item.title}
                           className="w-full h-full object-cover"
+                          effect="blur"
+                          wrapperClassName="w-full h-full object-cover"
                         />
                       ) : (
                         <div className="flex items-center justify-center h-full text-gray-400">

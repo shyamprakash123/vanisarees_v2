@@ -20,6 +20,8 @@ import {
 import { OrderTrackingTimeline } from "../../components/order/OrderTrackingTimeline";
 import { Breadcrumb } from "../../components/ui/Breadcrumb";
 import { ShiprocketManager } from "../../components/shiprocket/ShiprocketManager";
+import { LazyLoadImage } from "react-lazy-load-image-component";
+import "react-lazy-load-image-component/src/effects/blur.css";
 
 interface Order {
   id: string;
@@ -62,7 +64,7 @@ interface SellerProfile {
   phone: string;
 }
 
-export function AdminOrderDetail() {
+export default function AdminOrderDetail() {
   const { id } = useParams();
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -377,10 +379,12 @@ export function AdminOrderDetail() {
                   className="flex gap-4 pb-4 border-b last:border-0"
                 >
                   {item.image_url && (
-                    <img
+                    <LazyLoadImage
                       src={item.image_url}
                       alt={item.title}
                       className="w-20 h-20 object-cover rounded"
+                      effect="blur"
+                      wrapperClassName="w-20 h-20 object-cover rounded"
                     />
                   )}
                   <div className="flex-1">

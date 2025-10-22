@@ -40,7 +40,7 @@ interface AnalyticsData {
   }>;
 }
 
-export function SellerAnalytics() {
+export default function SellerAnalytics() {
   const { user } = useAuth();
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);

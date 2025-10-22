@@ -30,7 +30,7 @@ interface WithdrawalRequest {
   processed_at?: string;
 }
 
-export function AffiliateWithdrawals() {
+export default function AffiliateWithdrawals() {
   const { user, affiliateUser } = useAuth();
   const { toast } = useToast();
   const [withdrawals, setWithdrawals] = useState<WithdrawalRequest[]>([]);

@@ -14,7 +14,7 @@ interface User {
   created_at: string;
 }
 
-export function AdminUsers() {
+export default function AdminUsers() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [users, setUsers] = useState<User[]>([]);

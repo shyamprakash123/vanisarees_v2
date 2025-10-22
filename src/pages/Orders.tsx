@@ -17,7 +17,7 @@ interface Order {
   created_at: string;
 }
 
-export function Orders() {
+export default function Orders() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [orders, setOrders] = useState<Order[]>([]);

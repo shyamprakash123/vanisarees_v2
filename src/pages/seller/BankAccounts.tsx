@@ -26,7 +26,7 @@ interface BankAccount {
   created_at: string;
 }
 
-export function SellerBankAccounts() {
+export default function SellerBankAccounts() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [sellerId, setSellerId] = useState<string | null>(null);

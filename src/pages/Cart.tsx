@@ -2,8 +2,10 @@ import { Link } from "react-router-dom";
 import { Trash2, Plus, Minus, ShoppingBag, ArrowRight } from "lucide-react";
 import { useCart } from "../contexts/CartContext";
 import { Breadcrumb } from "../components/ui/Breadcrumb";
+import { LazyLoadImage } from "react-lazy-load-image-component";
+import "react-lazy-load-image-component/src/effects/blur.css";
 
-export function Cart() {
+export default function Cart() {
   const { items, updateQuantity, removeItem, total, itemCount } = useCart();
 
   if (itemCount === 0) {
@@ -51,10 +53,12 @@ export function Cart() {
                 style={{ animationDelay: `${index * 50}ms` }}
               >
                 <div className="flex gap-4">
-                  <img
+                  <LazyLoadImage
                     src={item.image}
                     alt={item.title}
                     className="w-24 h-24 object-cover rounded-lg"
+                    effect="blur"
+                    wrapperClassName="w-24 h-24 object-cover rounded-lg"
                   />
 
                   <div className="flex-1">

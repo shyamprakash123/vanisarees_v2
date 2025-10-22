@@ -22,7 +22,7 @@ interface Category {
   description: string;
 }
 
-export function CategoryPage() {
+export default function CategoryPage() {
   const { slug } = useParams();
   const [searchParams, setSearchParams] = useSearchParams();
   const [products, setProducts] = useState<Product[]>([]);

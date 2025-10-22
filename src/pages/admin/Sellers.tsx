@@ -23,7 +23,7 @@ interface Seller {
   };
 }
 
-export function AdminSellers() {
+export default function AdminSellers() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [sellers, setSellers] = useState<Seller[]>([]);

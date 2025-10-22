@@ -34,7 +34,7 @@ interface HeroSlides {
   position: number;
 }
 
-export function Home() {
+export default function Home() {
   const { user } = useAuth();
   const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
   const [trendingProducts, setTrendingProducts] = useState<Product[]>([]);

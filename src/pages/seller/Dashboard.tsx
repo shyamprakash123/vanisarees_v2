@@ -19,7 +19,7 @@ interface Stats {
   pendingOrders: number;
 }
 
-export function SellerDashboard() {
+export default function SellerDashboard() {
   const { user } = useAuth();
   const [stats, setStats] = useState<Stats>({
     totalProducts: 0,

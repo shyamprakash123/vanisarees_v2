@@ -26,7 +26,7 @@ interface BankAccount {
   created_at: string;
 }
 
-export function AffiliateBankAccounts() {
+export default function AffiliateBankAccounts() {
   const { user, affiliateUser } = useAuth();
   const { toast } = useToast();
   const [accounts, setAccounts] = useState<BankAccount[]>([]);

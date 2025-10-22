@@ -1,4 +1,6 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from "react";
+import { LazyLoadImage } from "react-lazy-load-image-component";
+import "react-lazy-load-image-component/src/effects/blur.css";
 
 interface LazyImageProps {
   src: string;
@@ -7,7 +9,12 @@ interface LazyImageProps {
   placeholder?: string;
 }
 
-export function LazyImage({ src, alt, className = '', placeholder = 'https://via.placeholder.com/400x400?text=Loading...' }: LazyImageProps) {
+export function LazyImage({
+  src,
+  alt,
+  className = "",
+  placeholder = "https://via.placeholder.com/400x400?text=Loading...",
+}: LazyImageProps) {
   const [imageSrc, setImageSrc] = useState(placeholder);
   const [isLoaded, setIsLoaded] = useState(false);
   const imgRef = useRef<HTMLImageElement>(null);
@@ -23,7 +30,7 @@ export function LazyImage({ src, alt, className = '', placeholder = 'https://via
         });
       },
       {
-        rootMargin: '50px',
+        rootMargin: "50px",
       }
     );
 
@@ -39,12 +46,17 @@ export function LazyImage({ src, alt, className = '', placeholder = 'https://via
   }, [src]);
 
   return (
-    <img
+    <LazyLoadImage
       ref={imgRef}
       src={imageSrc}
       alt={alt}
-      className={`${className} ${isLoaded ? 'opacity-100' : 'opacity-0'} transition-opacity duration-300`}
-      onLoad={() => setIsLoaded(true)}
+      className={`${className} ${
+        isLoaded ? "opacity-100" : "opacity-0"
+      } transition-opacity duration-300`}
+      effect="blur"
+      wrapperClassName={`${className} ${
+        isLoaded ? "opacity-100" : "opacity-0"
+      } transition-opacity duration-300`}
     />
   );
 }

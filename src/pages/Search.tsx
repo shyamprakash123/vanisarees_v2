@@ -15,7 +15,7 @@ interface Product {
   stock: number;
 }
 
-export function Search() {
+export default function Search() {
   const [searchParams] = useSearchParams();
   const query = searchParams.get("q") || "";
 

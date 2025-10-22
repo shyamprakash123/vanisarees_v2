@@ -29,7 +29,7 @@ interface Product {
   stock: number;
 }
 
-export function ComboDetail() {
+export default function ComboDetail() {
   const { id } = useParams();
   const { addItem } = useCart();
   const { toast } = useToast();

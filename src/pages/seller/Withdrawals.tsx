@@ -34,7 +34,7 @@ interface WithdrawalRequest {
   processed_at?: string;
 }
 
-export function SellerWithdrawals() {
+export default function SellerWithdrawals() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [seller, setSeller] = useState<Seller | null>(null);

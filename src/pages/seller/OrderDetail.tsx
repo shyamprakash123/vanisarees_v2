@@ -2,6 +2,9 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import { supabase } from "../../lib/supabase";
+import { LazyLoadImage } from "react-lazy-load-image-component";
+import "react-lazy-load-image-component/src/effects/blur.css";
+
 import {
   formatCurrency,
   formatDateTime,
@@ -58,7 +61,7 @@ interface UserProfile {
   phone: string;
 }
 
-export function SellerOrderDetail() {
+export default function SellerOrderDetail() {
   const { id } = useParams();
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -342,10 +345,12 @@ export function SellerOrderDetail() {
                     {/* Product Image */}
                     <div className="w-20 h-20 flex-shrink-0 rounded-md overflow-hidden bg-gray-50 border">
                       {primaryImage ? (
-                        <img
+                        <LazyLoadImage
                           src={primaryImage}
                           alt={item.title}
                           className="w-full h-full object-cover"
+                          effect="blur"
+                          wrapperClassName="w-full h-full object-cover"
                         />
                       ) : (
                         <div className="flex items-center justify-center h-full text-gray-400">

@@ -23,7 +23,7 @@ interface AffiliateRelations {
   updated_at: string;
 }
 
-export function AffiliateRefferals() {
+export default function AffiliateRefferals() {
   const { affiliateUser } = useAuth();
   const { toast } = useToast();
 

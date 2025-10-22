@@ -48,7 +48,7 @@ interface Seller {
   shop_name: string;
 }
 
-export function ProductDetail() {
+export default function ProductDetail() {
   const { slug } = useParams();
   const { user } = useAuth();
   const [searchParams] = useSearchParams();

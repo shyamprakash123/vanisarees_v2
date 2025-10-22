@@ -34,7 +34,7 @@ interface WithdrawalRequest {
   };
 }
 
-export function AdminWithdrawals() {
+export default function AdminWithdrawals() {
   const { toast } = useToast();
   const [withdrawals, setWithdrawals] = useState<WithdrawalRequest[]>([]);
   const [loading, setLoading] = useState(true);

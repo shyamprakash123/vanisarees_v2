@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabase";
 import { User, Mail, Phone, Building, Bell } from "lucide-react";
 
-export function AccountSettings() {
+export default function AccountSettings() {
   const { user } = useAuth();
   const navigate = useNavigate();
 

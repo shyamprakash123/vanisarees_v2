@@ -6,6 +6,8 @@ import { useToast } from "../../hooks/useToast";
 import { Modal } from "../../components/ui/Modal";
 import { ProductForm } from "../../components/product/ProductForm";
 import { formatCurrency } from "../../utils/format";
+import { LazyLoadImage } from "react-lazy-load-image-component";
+import "react-lazy-load-image-component/src/effects/blur.css";
 
 interface Product {
   id: string;
@@ -30,7 +32,7 @@ interface Product {
   youtube_ids: string[];
 }
 
-export function AdminProducts() {
+export default function AdminProducts() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [products, setProducts] = useState<Product[]>([]);
@@ -289,10 +291,12 @@ export function AdminProducts() {
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
                         {product.product_images[0].image_url && (
-                          <img
+                          <LazyLoadImage
                             src={product.product_images[0].image_url}
                             alt={product.title}
                             className="w-12 h-12 object-cover rounded"
+                            effect="blur"
+                            wrapperClassName="w-12 h-12 object-cover rounded"
                           />
                         )}
                         <div>
