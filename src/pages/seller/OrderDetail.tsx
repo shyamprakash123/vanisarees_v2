@@ -39,8 +39,10 @@ interface Order {
   wallet_used: number;
   coupon_discount: number;
   status: string;
+  cod_charges: number;
   payment_status: string;
   payment_method?: string;
+  paid_amount: number;
   items: any[];
   shipping_address: any;
   gift_wrap: boolean;
@@ -402,6 +404,12 @@ export default function SellerOrderDetail() {
                 <span>Shipping</span>
                 <span>{formatCurrency(order.shipping)}</span>
               </div>
+              {order.cod_charges > 0 && (
+                <div className="flex justify-between">
+                  <span>COD Charges</span>
+                  <span>{formatCurrency(order.cod_charges)}</span>
+                </div>
+              )}
               <div className="flex justify-between font-semibold text-gray-900 mt-2">
                 <span>Total</span>
                 <span>{formatCurrency(order.total)}</span>
@@ -482,6 +490,12 @@ export default function SellerOrderDetail() {
                     : formatCurrency(order.shipping)}
                 </span>
               </div>
+              {order.cod_charges > 0 && (
+                <div className="flex justify-between">
+                  <span>COD Charges</span>
+                  <span>{formatCurrency(order.cod_charges)}</span>
+                </div>
+              )}
               {order.coupon_discount > 0 && (
                 <div className="flex justify-between text-green-600">
                   <span>Coupon Discount</span>
@@ -498,12 +512,18 @@ export default function SellerOrderDetail() {
                 <span>Total</span>
                 <span>{formatCurrency(order.total)}</span>
               </div>
+              <div className="border-t text-red-500 pt-2 flex justify-between font-bold text-lg">
+                <span>Total Paid</span>
+                <span>{formatCurrency(order.paid_amount)}</span>
+              </div>
             </div>
 
             <div className="mt-5 pt-4 border-t border-gray-200">
-              <p className="text-sm text-gray-600 flex items-center gap-2">
-                Payment Status: {getStatusBadge(order.payment_status)}
-              </p>
+              {order.payment_method === "prepaid" && (
+                <p className="text-sm text-gray-600 flex items-center gap-2">
+                  Payment Status: {getStatusBadge(order.payment_status)}
+                </p>
+              )}
 
               {order.payment_method && (
                 <p className="text-sm text-gray-600 mt-2 flex items-center gap-2">

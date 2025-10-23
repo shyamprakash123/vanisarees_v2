@@ -40,7 +40,7 @@ export const getMethodBadge = (method: string) => {
     case "prepaid":
       return (
         <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-semibold rounded-full bg-purple-100 text-purple-800">
-          <CreditCard className="w-3 h-3" /> Online Payment
+          <CreditCard className="w-3 h-3" /> Prepaid
         </span>
       );
     default:

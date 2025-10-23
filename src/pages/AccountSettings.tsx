@@ -122,7 +122,7 @@ export default function AccountSettings() {
           />
         </div>
 
-        <div>
+        {/* <div>
           <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
             <Building className="h-4 w-4" />
             GSTIN (Optional)
@@ -137,7 +137,7 @@ export default function AccountSettings() {
           <p className="text-xs text-gray-500 mt-1">
             For GST invoice generation
           </p>
-        </div>
+        </div> */}
 
         {/* <div className="border-t pt-6">
           <h3 className="flex items-center gap-2 text-lg font-semibold text-gray-900 mb-4">

@@ -30,7 +30,7 @@ export interface ShiprocketOrderItem {
 }
 
 export interface ShiprocketOrderPayload {
-  id: string;
+  order_id: string;
   order_date: string;
   pickup_location: string;
   channel_id?: string;

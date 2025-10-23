@@ -39,6 +39,7 @@ interface Order {
   shipping: number;
   cod_charges: number;
   wallet_used: number;
+  paid_amount: number;
   coupon_discount: number;
   status: string;
   payment_status: string;
@@ -379,15 +380,21 @@ export default function OrderDetail() {
                 </div>
               )}
               <div className="border-t pt-2 flex justify-between font-bold text-lg">
-                <span>Total Paid</span>
+                <span>Total</span>
                 <span>{formatCurrency(order.total)}</span>
+              </div>
+              <div className="border-t text-red-500 pt-2 flex justify-between font-bold text-lg">
+                <span>Total Paid</span>
+                <span>{formatCurrency(order.paid_amount)}</span>
               </div>
             </div>
 
             <div className="mt-5 pt-4 border-t border-gray-200">
-              <p className="text-sm text-gray-600 flex items-center gap-2">
-                Payment Status: {getStatusBadge(order.payment_status)}
-              </p>
+              {order.payment_method === "prepaid" && (
+                <p className="text-sm text-gray-600 flex items-center gap-2">
+                  Payment Status: {getStatusBadge(order.payment_status)}
+                </p>
+              )}
 
               {order.payment_method && (
                 <p className="text-sm text-gray-600 mt-2 flex items-center gap-2">

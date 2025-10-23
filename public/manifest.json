@@ -32,13 +32,6 @@
       "icons": []
     },
     {
-      "name": "Browse Jewellery",
-      "short_name": "Jewellery",
-      "description": "Browse our jewellery collection",
-      "url": "/category/jewellery",
-      "icons": []
-    },
-    {
       "name": "My Orders",
       "short_name": "Orders",
       "description": "View your orders",

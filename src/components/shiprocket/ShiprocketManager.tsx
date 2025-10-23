@@ -31,7 +31,12 @@ interface Order {
   billing_address: any;
   subtotal: number;
   shipping: number;
+  wallet_used: number;
   payment_method: string;
+  paid_amount: number;
+  coupon_discount: number;
+  discount: number;
+  cod_charges: number;
   created_at: string;
   shiprocket_order_id?: string;
   shiprocket_shipment_id?: number;
@@ -204,7 +209,7 @@ function ShiprocketComponent({
       const billingAddr = order.billing_address || order.shipping_address;
 
       const orderPayload: ShiprocketOrderPayload = {
-        id: order.id,
+        order_id: order.id,
         order_date: new Date(order.created_at).toISOString(),
         pickup_location: pickupLocation,
         billing_customer_name:
@@ -242,6 +247,9 @@ function ShiprocketComponent({
         })),
         payment_method: order.payment_method === "cod" ? "COD" : "Prepaid",
         shipping_charges: order.shipping || 0,
+        transaction_charges: order.cod_charges,
+        total_discount:
+          order.coupon_discount + order.discount + order.wallet_used,
         sub_total: order.subtotal,
         length: 10,
         breadth: 10,
