@@ -42,7 +42,7 @@ const SearchBar = () => {
         const { data, error } = await supabase
           .from("products")
           .select("id, title, slug, price, product_images(image_url)")
-          .ilike("title", `%${debouncedQuery}%`)
+          .or(`title.ilike.%${debouncedQuery}%, codes.cs.{${debouncedQuery}}`)
           .limit(5);
 
         if (error) throw error;
