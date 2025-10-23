@@ -693,7 +693,7 @@ export function ProductForm({
       </div>
 
       <div className="flex flex-wrap gap-4">
-        {!isSeller && (
+        {isSeller && (
           <>
             <div className="flex items-center gap-2">
               <input
