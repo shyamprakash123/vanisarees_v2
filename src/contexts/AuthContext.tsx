@@ -89,41 +89,42 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
+    const fetchAffiliateUser = async (user: User) => {
+      const { data: affiliate_user, error } = await supabase
+        .from("affiliate_users")
+        .select(
+          `id,
+            affiliate_id,
+            wallet_balance`
+        )
+        .eq("id", user.id)
+        .single();
+
+      if (error) throw error;
+      if (affiliate_user) {
+        setAffiliateUser(affiliate_user as AffiliateUser);
+      }
+    };
+    if (user) {
+      fetchAffiliateUser(user);
+    }
+  }, [user]);
+
+  useEffect(() => {
     // Immediately refresh session on mount
     const initAuth = async () => {
       setLoading(true);
       const { data, error } = await supabase.auth.refreshSession();
 
-      let user = null;
-
       if (!error && data?.session) {
         setSession(data.session);
         setUser(data.session.user);
         setRole(data.session.user.app_metadata?.role || "user");
-        user = data.session.user;
       } else {
         const { data: sessionData } = await supabase.auth.getSession();
         setSession(sessionData.session);
         setUser(sessionData.session?.user ?? null);
         setRole(sessionData.session?.user?.app_metadata?.role || "user");
-        user = sessionData.session?.user ?? null;
-      }
-
-      if (user) {
-        const { data: affiliate_user, error } = await supabase
-          .from("affiliate_users")
-          .select(
-            `id,
-            affiliate_id,
-            wallet_balance`
-          )
-          .eq("id", user.id)
-          .single();
-
-        if (error) throw error;
-        if (data) {
-          setAffiliateUser(affiliate_user as AffiliateUser);
-        }
       }
 
       setLoading(false);
@@ -138,6 +139,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setSession(session);
       setUser(session?.user ?? null);
       setRole(session?.user?.app_metadata?.role || "user");
+      if (!session?.user) {
+        setAffiliateUser(null);
+      }
       setLoading(false);
     });
 

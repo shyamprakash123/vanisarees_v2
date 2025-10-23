@@ -25,6 +25,7 @@ import { useTheme } from "../../contexts/ThemeContext";
 import { useLanguage } from "../../contexts/LanguageContext";
 import { supabase } from "../../lib/supabase";
 import Button from "../ui/Button";
+import SearchBar from "./SearchBar";
 
 export function Header() {
   const { itemCount } = useCart();
@@ -74,7 +75,7 @@ export function Header() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-min">
           <div className="flex items-center gap-4">
-            {/* <button
+            <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               className="lg:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors"
             >
@@ -83,7 +84,7 @@ export function Header() {
               ) : (
                 <Menu className="w-6 h-6" />
               )}
-            </button> */}
+            </button>
 
             <Link to="/" className="flex items-center gap-2 group">
               <img
@@ -119,7 +120,7 @@ export function Header() {
           </nav> */}
 
           <div className="flex items-center gap-3">
-            <form
+            {/* <form
               onSubmit={handleSearch}
               className="hidden md:flex items-center gap-2"
             >
@@ -136,14 +137,17 @@ export function Header() {
               >
                 <Search className="w-5 h-5" />
               </button>
-            </form>
+            </form> */}
+            <div className="hidden md:flex">
+              <SearchBar />
+            </div>
 
-            <button
+            {/* <button
               onClick={() => navigate("/search")}
               className="md:hidden p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
             >
               <Search className="w-5 h-5 text-gray-700 dark:text-gray-300" />
-            </button>
+            </button> */}
 
             {/* <button
               onClick={toggleTheme}
@@ -306,33 +310,13 @@ export function Header() {
           </div>
         </div>
 
-        {/* {mobileMenuOpen && (
+        {mobileMenuOpen && (
           <div className="lg:hidden border-t bg-white animate-slideDown">
             <nav className="flex flex-col px-4 py-4 gap-2">
-              <Link
-                to="/category/sarees"
-                className="px-4 py-2 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Sarees
-              </Link>
-              <Link
-                to="/category/jewellery"
-                className="px-4 py-2 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Jewellery
-              </Link>
-              <Link
-                to="/category/combos"
-                className="px-4 py-2 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Combos
-              </Link>
+              <SearchBar />
             </nav>
           </div>
-        )} */}
+        )}
       </div>
     </header>
   );

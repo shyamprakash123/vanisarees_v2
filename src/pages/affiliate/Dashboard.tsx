@@ -265,7 +265,7 @@ export default function AffiliateDashboard() {
                 <span className="font-medium">Withdrawals</span>
               </div>
             </Link>
-            <Link
+            {/* <Link
               to="/affiliate/settings"
               className="p-4 border rounded-lg hover:border-red-600 hover:bg-red-50 transition-colors"
             >
@@ -273,7 +273,7 @@ export default function AffiliateDashboard() {
                 <Package className="w-5 h-5 text-red-600" />
                 <span className="font-medium">Affiliate Settings</span>
               </div>
-            </Link>
+            </Link> */}
           </div>
         </div>
       </div>

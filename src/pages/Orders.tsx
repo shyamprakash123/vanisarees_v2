@@ -11,6 +11,7 @@ import { Package, ChevronRight } from "lucide-react";
 
 interface Order {
   id: string;
+  order_number: string;
   total: number;
   status: string;
   items: any[];
@@ -84,7 +85,9 @@ export default function Orders() {
             <div className="flex items-start justify-between">
               <div className="flex-1">
                 <div className="flex items-center gap-3 mb-2">
-                  <h3 className="font-semibold text-lg">{order.id}</h3>
+                  <h3 className="font-semibold text-lg">
+                    {order.order_number}
+                  </h3>
                   <span
                     className={`px-3 py-1 rounded-full text-xs font-medium ${getOrderStatusColor(
                       order.status

@@ -152,7 +152,7 @@ export default function Home() {
             </div>
             <Link
               to="/category/sarees"
-              className="flex items-center gap-2 text-red-600 hover:text-red-700 font-semibold transition-colors group"
+              className="flex items-center gap-2 text-red-600 hover:text-red-700 font-semibold transition-colors group text-nowrap"
             >
               View All
               <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
@@ -160,7 +160,7 @@ export default function Home() {
           </div>
 
           {loading ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
               {[...Array(4)].map((_, i) => (
                 <div key={i} className="animate-pulse">
                   <div className="bg-gray-200 rounded-lg aspect-[3/4]"></div>
@@ -172,7 +172,7 @@ export default function Home() {
               ))}
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
               {featuredProducts.map((product, index) => (
                 <div
                   key={product.id}
@@ -204,14 +204,14 @@ export default function Home() {
               </div>
               <Link
                 to="/category/jewellery"
-                className="flex items-center gap-2 text-red-600 hover:text-red-700 font-semibold transition-colors group"
+                className="flex items-center gap-2 text-red-600 hover:text-red-700 font-semibold transition-colors group  text-nowrap"
               >
                 View All
                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </Link>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
               {trendingProducts.map((product, index) => (
                 <div
                   key={product.id}

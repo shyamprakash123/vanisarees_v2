@@ -32,6 +32,7 @@ import "react-lazy-load-image-component/src/effects/blur.css";
 
 interface Order {
   id: string;
+  order_number: string;
   total: number;
   subtotal: number;
   taxes: number;
@@ -160,12 +161,15 @@ export default function OrderDetail() {
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
       <Breadcrumb
-        items={[{ label: "Orders", path: "/orders" }, { label: order.id }]}
+        items={[
+          { label: "Orders", path: "/orders" },
+          { label: order.order_number },
+        ]}
         className="mb-6"
       />
       <div className="mb-8">
-        <div className="flex items-center justify-between mb-4">
-          <h1 className="text-3xl font-bold">Order {order.id}</h1>
+        <div className="flex flex-wrap items-center justify-between mb-4">
+          <h1 className="text-3xl font-bold">Order {order.order_number}</h1>
           <div className="flex items-center gap-3">
             {["shipped", "out_for_delivery", "delivered"].includes(
               order.status

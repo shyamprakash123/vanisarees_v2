@@ -579,34 +579,32 @@ export default function Checkout() {
           )}
 
           {currentStep === 2 && (
-            <div className="space-y-6">
-              <div className="bg-white p-6 rounded-lg shadow">
-                <h2 className="text-xl font-semibold mb-4">Order Items</h2>
-                <div className="space-y-4">
-                  {cartItems.map((item) => (
-                    <div
-                      key={item.id}
-                      className="flex gap-4 pb-4 border-b last:border-b-0"
-                    >
-                      <LazyLoadImage
-                        src={item.product.product_images[0].image_url}
-                        alt={item.product.title}
-                        className="w-20 h-20 object-cover rounded-lg"
-                        effect="blur"
-                        wrapperClassName="w-20 h-20 object-cover rounded-lg"
-                      />
-                      <div className="flex-1">
-                        <h3 className="font-medium">{item.product.title}</h3>
-                        <p className="text-sm text-gray-600">
-                          Quantity: {item.quantity}
-                        </p>
-                        <p className="text-sm font-semibold">
-                          {formatCurrency(item.product.price * item.quantity)}
-                        </p>
-                      </div>
+            <div className="bg-white p-6 rounded-lg shadow space-y-6">
+              <h2 className="text-xl font-semibold mb-4">Order Items</h2>
+              <div className="space-y-4">
+                {cartItems.map((item) => (
+                  <div
+                    key={item.id}
+                    className="flex gap-4 pb-4 border-b last:border-b-0"
+                  >
+                    <LazyLoadImage
+                      src={item.product.product_images[0].image_url}
+                      alt={item.product.title}
+                      className="w-20 h-20 object-cover rounded-lg"
+                      effect="blur"
+                      wrapperClassName="w-20 h-20 object-cover rounded-lg"
+                    />
+                    <div className="flex-1">
+                      <h3 className="font-medium">{item.product.title}</h3>
+                      <p className="text-sm text-gray-600">
+                        Quantity: {item.quantity}
+                      </p>
+                      <p className="text-sm font-semibold">
+                        {formatCurrency(item.product.price * item.quantity)}
+                      </p>
                     </div>
-                  ))}
-                </div>
+                  </div>
+                ))}
               </div>
 
               {/* <div className="bg-white p-6 rounded-lg shadow space-y-4">
@@ -639,8 +637,7 @@ export default function Checkout() {
                   rows={3}
                 />
               </div> */}
-
-              <div className="flex justify-between">
+              <div className="flex flex-wrap justify-between pt-4 space-x-2 space-y-2">
                 <button
                   onClick={handleBack}
                   className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors flex items-center gap-2"
@@ -650,7 +647,7 @@ export default function Checkout() {
                 </button>
                 <button
                   onClick={handleNext}
-                  className="px-6 py-2 bg-red-800 text-white rounded-lg hover:bg-red-900 transition-colors flex items-center gap-2"
+                  className="px-6 py-2 bg-red-800 text-white rounded-lg hover:bg-red-900 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed text-nowrap"
                 >
                   Continue to Payment
                   <ArrowRight className="h-5 w-5" />
@@ -896,7 +893,7 @@ export default function Checkout() {
                           setCouponError("");
                         }}
                         placeholder="Enter coupon code"
-                        className="flex-1 min-w-[160px] px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-800 focus:border-transparent"
+                        className="flex-1 w-0 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-800 focus:border-transparent"
                       />
                       <button
                         onClick={applyCoupon}

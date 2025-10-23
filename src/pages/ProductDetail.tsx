@@ -404,7 +404,7 @@ export default function ProductDetail() {
 
             <WhatsAppOrderButton product={product} defaultQuantity={quantity} />
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 pt-6 border-t">
+            <div className="grid grid-cols-3 sm:grid-cols-3 gap-6 pt-6 border-t">
               {/* Shipping */}
               <div className="text-center group">
                 <div className="w-14 h-14 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-3 transition group-hover:bg-red-100">
@@ -442,9 +442,9 @@ export default function ProductDetail() {
                 </p>
               </div>
             </div>
-            <ReferralShare sampleProduct={product} />
           </div>
         </div>
+        <ReferralShare sampleProduct={product} />
 
         {/* <div className="mt-16">
           <ReviewsList productId={product.id} />

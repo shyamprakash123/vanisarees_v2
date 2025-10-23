@@ -9,6 +9,7 @@ import {
   Send,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/hooks/useToast";
 
 interface Product {
   id: string;
@@ -19,6 +20,7 @@ interface Product {
 const ReferralShare = ({ sampleProduct }: { sampleProduct?: Product }) => {
   const [copied, setCopied] = useState(false);
   const { affiliateUser } = useAuth();
+  const { toast } = useToast();
 
   const referralCode = affiliateUser?.affiliate_id;
   const referralLink = referralCode
@@ -28,6 +30,7 @@ const ReferralShare = ({ sampleProduct }: { sampleProduct?: Product }) => {
   const handleCopy = async () => {
     await navigator.clipboard.writeText(referralLink);
     setCopied(true);
+    toast({ title: "Success", description: "Copied", variant: "success" });
     setTimeout(() => setCopied(false), 2000);
   };
 
