@@ -58,7 +58,7 @@ const ReferralShare = ({ sampleProduct }: { sampleProduct?: Product }) => {
   const commissionValue = (basePrice * commissionRate) / 100;
 
   return (
-    <div className="p-6 bg-white rounded-2xl shadow-lg flex flex-col items-center gap-4 mx-auto border border-amber-100">
+    <div className="p-6 bg-white rounded-2xl shadow-lg flex flex-col items-center gap-4 mx-auto border border-amber-100 mt-8">
       <h2 className="text-xl font-semibold text-[#991B1B]">
         {affiliateUser ? "Invite & Earn" : "Join Our Affiliate Program"}
       </h2>

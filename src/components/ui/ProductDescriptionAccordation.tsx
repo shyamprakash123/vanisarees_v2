@@ -1,44 +1,66 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { ChevronDown, ChevronUp } from "lucide-react";
 
 export function ProductDescriptionAccordion({ description }) {
   const [open, setOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(
+    typeof window !== "undefined" ? window.innerWidth <= 640 : false
+  );
 
-  const isMobile = typeof window !== "undefined" && window.innerWidth <= 640;
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth <= 640);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
-  // Only allow toggle on mobile
+  // Always open on desktop/tablet
+  useEffect(() => {
+    if (!isMobile) setOpen(true);
+  }, [isMobile]);
+
   const handleToggle = () => {
     if (isMobile) setOpen((prev) => !prev);
   };
 
   return (
-    <div className="md:block">
-      {/* On mobile, accordion; on desktop, always open */}
-      <div
-        className={`accordion-mobile ${open ? "open" : ""} md:open`}
+    <section className="mb-6 rounded-lg border border-gray-200 bg-white shadow-sm">
+      <button
+        className={`flex items-center justify-between w-full px-4 py-3 focus:outline-none transition-colors ${
+          open
+            ? "bg-red-50 text-red-800"
+            : "bg-gray-50 text-gray-900 hover:bg-red-50 hover:text-red-800"
+        } rounded-t-lg`}
         onClick={handleToggle}
-        style={{
-          cursor: isMobile ? "pointer" : "default",
-          overflow: "hidden",
-          transition: "max-height 0.3s cubic-bezier(0.4,0.0,0.2,1)",
-          maxHeight: isMobile
-            ? open
-              ? "1200px" // Large enough for longest text
-              : "0px"
-            : "none",
-        }}
+        type="button"
+        aria-expanded={open}
       >
-        <p className="text-gray-600 mb-6">{description}</p>
-      </div>
+        <span className="font-semibold">Description</span>
+        {/* Chevron with animation; visible only on mobile */}
+        {isMobile && (
+          <span
+            className={`ml-2 transition-transform duration-300 ${
+              open ? "rotate-180" : "rotate-0"
+            }`}
+          >
+            {/* Use ChevronDown as base, rotate for up effect */}
+            <ChevronDown className="w-5 h-5" />
+          </span>
+        )}
+      </button>
 
-      {/* Toggle button: visible only on mobile */}
-      {isMobile && (
-        <button
-          onClick={handleToggle}
-          className="mt-2 text-sm text-blue-600 underline md:hidden"
-        >
-          {open ? "Hide" : "Show"} Description
-        </button>
-      )}
-    </div>
+      <div
+        style={{
+          maxHeight: open ? "600px" : "0px",
+          overflow: "hidden",
+          transition: "max-height 0.4s cubic-bezier(0.4,0,0.2,1)",
+        }}
+        className={`px-4 pb-3 transition-opacity duration-300 ease-in-out ${
+          open ? "opacity-100" : "opacity-0"
+        }`}
+        aria-hidden={!open}
+      >
+        <p className="text-gray-600">{description}</p>
+      </div>
+    </section>
   );
 }
