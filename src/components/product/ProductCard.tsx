@@ -93,7 +93,7 @@ export function ProductCard({
             alt={title}
             effect="blur"
             wrapperClassName="w-full h-full overflow-hidden"
-            className="w-full h-full object-cover transition-transform duration-700 ease-in-out transform "
+            className="w-full h-full object-contain transition-transform duration-700 ease-in-out transform bg-white"
           />
 
           {!inStock && (

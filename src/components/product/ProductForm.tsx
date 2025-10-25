@@ -13,7 +13,7 @@ interface Category {
 interface ProductFormData {
   title: string;
   slug: string;
-  codes: string[];
+  code: string;
   sku: string;
   category_id: string;
   price: number;
@@ -56,7 +56,7 @@ export function ProductForm({
   const [formData, setFormData] = useState<ProductFormData>({
     title: initialData?.title || "",
     slug: initialData?.slug || "",
-    codes: initialData?.codes || [],
+    code: initialData?.code || "",
     sku: initialData?.sku || "",
     category_id: initialData?.category_id || "",
     price: initialData?.price || 0,
@@ -72,7 +72,6 @@ export function ProductForm({
     active: initialData?.active !== undefined ? initialData.active : true,
   });
 
-  const [newCode, setNewCode] = useState("");
   const [newFeature, setNewFeature] = useState("");
   const [newImage, setNewImage] = useState("");
   const [newYoutubeId, setNewYoutubeId] = useState("");
@@ -194,20 +193,6 @@ export function ProductForm({
     });
   };
 
-  const addCode = () => {
-    if (newCode.trim() && !formData.codes.includes(newCode.trim())) {
-      setFormData({ ...formData, codes: [...formData.codes, newCode.trim()] });
-      setNewCode("");
-    }
-  };
-
-  const removeCode = (code: string) => {
-    setFormData({
-      ...formData,
-      codes: formData.codes.filter((c) => c !== code),
-    });
-  };
-
   const addFeature = () => {
     if (newFeature.trim() && !formData.features.includes(newFeature.trim())) {
       setFormData({
@@ -318,7 +303,7 @@ export function ProductForm({
       const productData: any = {
         title: formData.title,
         slug: formData.slug,
-        codes: formData.codes,
+        code: formData.code,
         sku: formData.sku,
         category_id: formData.category_id || null,
         price: parseFloat(formData.price.toString()),
@@ -541,43 +526,19 @@ export function ProductForm({
 
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">
-          Product Codes
+          Product Code
         </label>
         <div className="flex gap-2 mb-2">
           <input
             type="text"
-            value={newCode}
-            onChange={(e) => setNewCode(e.target.value)}
-            onKeyPress={(e) =>
-              e.key === "Enter" && (e.preventDefault(), addCode())
+            value={formData.code}
+            onChange={(e) =>
+              setFormData({ ...formData, code: e.target.value || "" })
             }
             placeholder="Enter product code"
             className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-800 focus:border-transparent"
+            required
           />
-          <button
-            type="button"
-            onClick={addCode}
-            className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
-          >
-            <Plus size={20} />
-          </button>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          {formData.codes.map((code) => (
-            <span
-              key={code}
-              className="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm"
-            >
-              {code}
-              <button
-                type="button"
-                onClick={() => removeCode(code)}
-                className="hover:text-blue-900"
-              >
-                <X size={14} />
-              </button>
-            </span>
-          ))}
         </div>
       </div>
 
