@@ -597,7 +597,7 @@ export function ProductGallery({
                 WebkitOverflowScrolling: "touch",
                 scrollbarWidth: "none",
                 msOverflowStyle: "none",
-                touchAction: "pan-x",
+                touchAction: "auto",
                 overscrollBehaviorX: "contain",
               }}
             >

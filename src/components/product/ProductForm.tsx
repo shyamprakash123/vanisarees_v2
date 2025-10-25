@@ -293,6 +293,68 @@ export function ProductForm({
     }
   };
 
+  const handleDeleteExistingImage = async (
+    imageId: string,
+    imageUrl: string
+  ) => {
+    try {
+      // // 1️⃣ Delete from Supabase storage (optional if you want to actually remove the file)
+      // const filePath = imageUrl.split("/").pop(); // adjust if you store in folders
+      // const { error: storageError } = await supabase.storage
+      //   .from("product-images") // your bucket name
+      //   .remove([filePath!]);
+
+      // if (storageError) {
+      //   console.warn("Failed to remove from storage:", storageError.message);
+      // }
+
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (!session) throw new Error("Not authenticated");
+
+      const response = await fetch(
+        `${
+          import.meta.env.VITE_SUPABASE_URL
+        }/functions/v1/delete-product-images`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${session.access_token}`,
+          },
+          body: JSON.stringify({
+            imageUrls: [imageUrl],
+          }),
+        }
+      );
+
+      // 2️⃣ Delete from product_images table
+      const { error } = await supabase
+        .from("product_images")
+        .delete()
+        .eq("id", imageId);
+
+      if (error) throw error;
+
+      // 3️⃣ Update local state
+      setExistingImages((prev) => prev.filter((img) => img.id !== imageId));
+
+      toast({
+        title: "Image deleted",
+        description: "The image was removed successfully.",
+        variant: "success",
+      });
+    } catch (error: any) {
+      console.error("Error deleting image:", error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to delete image",
+        variant: "error",
+      });
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -607,6 +669,7 @@ export function ProductForm({
           existingImages={existingImages}
           onFilesChange={setFiles}
           onExistingImagesChange={setExistingImages}
+          onDeleteExistingImage={handleDeleteExistingImage}
           maxImages={5}
         />
       </div>

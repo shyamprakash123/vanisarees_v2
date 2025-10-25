@@ -21,6 +21,7 @@ interface ImageUploadProps {
   existingImages: ExistingImage[]; // Existing images from database
   onFilesChange: (files: ImageFile[]) => void;
   onExistingImagesChange: (images: ExistingImage[]) => void;
+  onDeleteExistingImage?: (id: string, url: string) => void;
   maxImages?: number;
 }
 
@@ -29,6 +30,7 @@ const ImageUpload = ({
   existingImages,
   onFilesChange,
   onExistingImagesChange,
+  onDeleteExistingImage,
   maxImages = 5,
 }: ImageUploadProps) => {
   const totalImages = files.length + existingImages.length;
@@ -69,10 +71,17 @@ const ImageUpload = ({
     onFilesChange(newFiles);
   };
 
-  // Remove existing image
-  const removeExistingImage = (index: number) => {
-    const newImages = [...existingImages];
-    newImages.splice(index, 1);
+  // Remove existing image (with optional Supabase delete)
+  const removeExistingImage = async (index: number) => {
+    const imageToRemove = existingImages[index];
+
+    // 1️⃣ If parent provided delete handler, call it (to delete from Supabase)
+    if (onDeleteExistingImage) {
+      await onDeleteExistingImage(imageToRemove.id, imageToRemove.image_url);
+    }
+
+    // 2️⃣ Update UI after deletion
+    const newImages = existingImages.filter((_, i) => i !== index);
 
     // Reorder remaining images
     const reorderedImages = newImages.map((img, idx) => ({

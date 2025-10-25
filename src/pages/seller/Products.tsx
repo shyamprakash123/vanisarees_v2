@@ -13,7 +13,7 @@ interface Product {
   id: string;
   title: string;
   slug: string;
-  codes: string[];
+  code: string;
   sku: string;
   price: number;
   mrp: number;
@@ -263,9 +263,7 @@ export default function SellerProducts() {
   const filteredProducts = products.filter(
     (product) =>
       product.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      product.codes.some((code) =>
-        code.toLowerCase().includes(searchQuery.toLowerCase())
-      ) ||
+      product.code.toLowerCase().includes(searchQuery.toLowerCase()) ||
       product.sku.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
