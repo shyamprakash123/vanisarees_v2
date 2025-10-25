@@ -538,8 +538,15 @@ export function ProductGallery({
                   : "text-gray-600 hover:text-gray-900"
               }`}
             >
-              <Youtube className="h-4 w-4" />
-              Videos ({totalVideos})
+              <div className="relative flex items-center gap-2">
+                <Youtube className="h-4 w-4" />
+                Videos ({totalVideos}){/* 🔴 Ping Animation Badge */}
+                <span className="relative flex h-3 w-3">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-600 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-3 w-3 bg-red-700"></span>
+                </span>
+              </div>
+
               {isVideoTab && (
                 <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-red-800 rounded-full"></div>
               )}

@@ -20,6 +20,8 @@ import { useAffiliate } from "@/hooks/useAffiliate";
 import { useAuth } from "@/contexts/AuthContext";
 import ReferralShare from "@/components/ui/ReferralShare";
 import WhatsAppOrderButton from "@/components/ui/WhatsAppOrderButton";
+import { ProductDescriptionAccordion } from "@/components/ui/ProductDescriptionAccordation";
+import { ProductFeaturesAccordion } from "@/components/ui/ProductFeaturesAccordation";
 
 interface Product {
   id: string;
@@ -313,9 +315,12 @@ export default function ProductDetail() {
                 <p className="text-red-600 font-medium mb-4">Out of Stock</p>
               )}
 
-              <p className="text-gray-600 mb-6">{product.description}</p>
+              {/* <p className="text-gray-600 mb-6">{product.description}</p> */}
+              <ProductDescriptionAccordion description={product.description} />
 
-              {product.features && product.features.length > 0 && (
+              <ProductFeaturesAccordion features={product.features} />
+
+              {/* {product.features && product.features.length > 0 && (
                 <div className="mb-6">
                   <h3 className="font-semibold text-gray-900 mb-2">
                     Features:
@@ -326,7 +331,7 @@ export default function ProductDetail() {
                     ))}
                   </ul>
                 </div>
-              )}
+              )} */}
             </div>
 
             <div className="flex items-center gap-4">
