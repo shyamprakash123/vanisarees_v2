@@ -822,7 +822,7 @@ export function ProductGallery({
               className="flex gap-2 sm:gap-3 overflow-x-auto scrollbar-hide p-2 scroll-smooth touch-pan-x"
               style={{
                 scrollSnapType: "x proximity",
-                touchAction: "pan-x",
+                touchAction: "auto",
                 WebkitOverflowScrolling: "touch",
               }}
             >
