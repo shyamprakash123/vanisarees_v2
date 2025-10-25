@@ -919,7 +919,7 @@ export function ProductGallery({
                 WebkitOverflowScrolling: "touch",
                 scrollbarWidth: "none",
                 msOverflowStyle: "none",
-                touchAction: "pan-x pinch-zoom",
+                touchAction: "auto pinch-zoom",
                 overscrollBehaviorX: "contain",
               }}
               onScroll={handleLightboxScroll}
