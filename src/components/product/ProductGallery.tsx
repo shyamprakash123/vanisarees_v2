@@ -913,7 +913,7 @@ export function ProductGallery({
             {/* Horizontal Scrollable Gallery */}
             <div
               ref={lightboxScrollRef}
-              className="flex overflow-x-auto w-full h-full scrollbar-hide scroll-smooth snap-x snap-mandatory touch-pan-x overscroll-x-contain"
+              className="flex overflow-x-auto w-full h-full scrollbar-hide scroll-smooth snap-x snap-mandatory overscroll-x-contain"
               style={{
                 scrollSnapType: "x mandatory",
                 WebkitOverflowScrolling: "touch",
