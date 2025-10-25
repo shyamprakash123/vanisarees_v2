@@ -819,7 +819,7 @@ export function ProductGallery({
           <div className="relative">
             <div
               ref={thumbnailsRef}
-              className="flex gap-2 sm:gap-3 overflow-x-auto scrollbar-hide p-2 scroll-smooth touch-pan-x"
+              className="flex gap-2 sm:gap-3 overflow-x-auto scrollbar-hide p-2 scroll-smooth"
               style={{
                 scrollSnapType: "x proximity",
                 touchAction: "auto",
